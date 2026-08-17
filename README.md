@@ -1,3 +1,20 @@
+Tính năng hiện tại:
+-Đăng nhập, đăng xuất
+-Like, Comment, Theo dõi 
+-Nhắn tin đơn
+-Hiển thị Post Reel
+-Video: Tua, Progress Bar, Mute
+-Post: Nhiều nội dung trong cùng 1 post
+-Truy cập được trang cá nhân chi tiết 
+
+Cần làm thêm: 
+-Đăng kí tài khoản
+-Lưu nội dung Repost nội dung
+-Nhắn tin nhóm
+-Tạo Post, Reel
+
+
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 # Getting Started

@@ -7,6 +7,7 @@ import { CommentIcon, HeartIcon, MessageLightIcon, MoreIcon, NotificationIcon, R
 import { SizedBox } from '~/components/separate-components'
 import { IReel } from '~/interfaces/reel'
 import LikeButton from '../buttons/LikeButton'
+import { SheetManager } from 'react-native-actions-sheet'
 
 type ReelOverlayProps = {
   reel: IReel;
@@ -44,7 +45,9 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
           </View>
 
           <View style={styles.actionItem}>
-            <CommentIcon height={32} width={32} color={'#ffffff'} />
+            <CommentIcon height={32} width={32} color={'#ffffff'} 
+              onPress={() => SheetManager.show('CommentSheet', {payload: {targetId: reel._id, targetType: "Reel"}})}
+            />
             <SizedBox height={4}/>
             <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{reel.commentCount || 0}</BaseText>
           </View>
