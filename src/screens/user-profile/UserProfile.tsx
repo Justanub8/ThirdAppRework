@@ -1,5 +1,4 @@
-import { View, Text, ScrollView, Touchable, StyleSheet ,TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { commonStyles, Typography } from '~/constants'
 import { CreateIcon, MenuIcon, AddUserIcon, ReelLightIcon, ArrowToLeft } from '~/assets/svgs'
@@ -11,8 +10,11 @@ import { SizedBox } from '~/components/separate-components'
 import SlideUpModal from '~/components/slide-up/SlideUpModal'
 import { useQuery } from '@tanstack/react-query'
 import { userApi } from '~/api/userApi'
+import { conversationApi } from '~/api/conversationApi'
 import { AuthenticatedStackParamList } from '~/navigation/types'
 import { Navigation } from '~/utils'
+import { useFollowMutation, useAuthStore } from '~/hooks'
+import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
 
 interface AccountProps {
   username: string;
@@ -25,15 +27,56 @@ interface AccountProps {
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'UserProfile'>;
  
 const UserProfile = () => {
-    const route = useRoute<RouteProps>();
-    const id = route.params.id
+  const route = useRoute<RouteProps>();
+  const id = route.params.id;
+  const currentUser = useAuthStore(state => state.user);
+  const isOwnProfile = currentUser?._id === id;
+
   const { data, isLoading } = useQuery({
-        queryKey: ['profile'],
-        queryFn: async () => {
-            const res = await userApi.getUser(id);
-            return res.data.user;
-        }
-    });
+    queryKey: ['userProfile', id],
+    queryFn: async () => {
+      const res = await userApi.getUser(id);
+      return res.data.user;
+    }
+  });
+
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+
+  useEffect(() => {
+    if (data) {
+      setIsFollowing(!!data.isFollowing);
+      setFollowerCount(data.follower ?? 0);
+    }
+  }, [data]);
+
+  const { createFollow, deleteFollow } = useFollowMutation();
+
+  const handleFollowToggle = () => {
+    if (!id) return;
+    const nextState = !isFollowing;
+    setIsFollowing(nextState);
+    setFollowerCount(prev => nextState ? prev + 1 : Math.max(0, prev - 1));
+
+    if (isFollowing) {
+      deleteFollow.mutate(id);
+    } else {
+      createFollow.mutate(id);
+    }
+  };
+
+  const handleMessage = async () => {
+    try {
+      const res = await conversationApi.createConversation(id);
+      const convId = res.data?.data?._id;
+      if (convId) {
+        Navigation.goToConversation(convId, data?.username);
+      }
+    } catch (err) {
+      console.error('Failed to create conversation', err);
+    }
+  };
+
   const createModalRef = React.useRef<BottomSheetModal>(null);
   return (
     <SafeAreaView style={commonStyles.container}>
@@ -50,7 +93,10 @@ const UserProfile = () => {
             <MenuIcon height={36} width={36} onPress={() => {console.log(id)}}/>
           </View>
           <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.gap24]}>
-            <FastImage source={images.avater_random} style ={{height: 90, width: 90, borderWidth: 1 , borderRadius: 9999}}/>
+            <FastImage 
+              source={data?.imageUrl ? { uri: data.imageUrl } : images.avater_random} 
+              style ={{height: 90, width: 90, borderWidth: 1 , borderRadius: 9999}}
+            />
             <View>
               <BaseText typography= {Typography.bodyBold.medium}>
                 {data?.username}
@@ -59,7 +105,7 @@ const UserProfile = () => {
               <View style = {[commonStyles.flexRow, commonStyles.gap16]}>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {data?.postCount}
+                  {data?.postCount ?? 0}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
                   bài viết
@@ -67,7 +113,7 @@ const UserProfile = () => {
                 </View>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {data?.follower}
+                  {followerCount}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
                   người theo dõi
@@ -75,7 +121,7 @@ const UserProfile = () => {
                 </View>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {data?.following}
+                  {data?.following ?? 0}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
                   đang theo dõi
@@ -88,10 +134,20 @@ const UserProfile = () => {
           <SizedBox height={16}/>
 
           <View style = {[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.justifyBetween, commonStyles.gap4, ]}>
-            <TouchableOpacity style={[styles.button, {flex: 1}]}>
-              <BaseText color={'#FFFFFF'} typography={Typography.bodyBold.medium}>Theo dõi</BaseText>
-            </TouchableOpacity>
-            <TouchableOpacity style = {[styles.button, {flex: 1}]}>
+            {!isOwnProfile && (
+              <TouchableOpacity 
+                style={[styles.button, isFollowing ? styles.followingButton : styles.followButton, {flex: 1}]}
+                onPress={handleFollowToggle}
+              >
+                <BaseText color={isFollowing ? '#000000' : '#FFFFFF'} typography={Typography.bodyBold.medium}>
+                  {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+                </BaseText>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity 
+              style = {[styles.button, {flex: 1}]}
+              onPress={handleMessage}
+            >
               <BaseText color={'#FFFFFF'} typography={Typography.bodyBold.medium}>Nhắn tin</BaseText>
             </TouchableOpacity>
             <TouchableOpacity style = {styles.iconButton}>
@@ -139,6 +195,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#757575'
+  },
+  followButton: {
+    backgroundColor: '#3797EF',
+  },
+  followingButton: {
+    backgroundColor: '#EFEFEF',
   },
   iconButton: {
     borderRadius: 10,

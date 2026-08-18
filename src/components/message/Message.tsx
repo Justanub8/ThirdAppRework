@@ -10,21 +10,23 @@ interface MessageProps {
     item: IMessage;
     previous?: IMessage;
     isRefreshing?: boolean;
+    currentUserId?: string;
 }
 
-const Message = ({ item, previous, isRefreshing }: MessageProps) => {
-    const { user } = useAuthStore();
+const Message = ({ item, previous, isRefreshing, currentUserId }: MessageProps) => {
+    const storeUserId = useAuthStore(state => state.user?._id);
+    const userId = currentUserId || storeUserId;
     const messageSenderId = item.senderId?._id || item.senderId;
-    const isMyMessage = messageSenderId === user?._id;
+    const isMyMessage = messageSenderId === userId;
     const [showTime, setShowTime] = React.useState(false);
     const [showName, setShowName] = React.useState(false);
 
-    const timeDiff = () => {
+    const hasLargeTimeDiff = React.useMemo(() => {
         if (!previous) return true;
         const currentMessageTime = dayjs(item.createdAt);
         const previousMessageTime = dayjs(previous.createdAt);
         return Math.abs(currentMessageTime.diff(previousMessageTime, 'minute')) > TIME_THRESHOLD_MINUTES;
-    }
+    }, [item.createdAt, previous?.createdAt]);
 
     React.useEffect(() => {
         if (isRefreshing) {
@@ -35,7 +37,7 @@ const Message = ({ item, previous, isRefreshing }: MessageProps) => {
 
   return (
     <View style={{ width: '100%', marginVertical: 2 }}>
-        {showTime || timeDiff() ? (
+        {showTime || hasLargeTimeDiff ? (
             <View style={{
                 justifyContent: 'center',
                 alignSelf: 'center',
@@ -46,7 +48,7 @@ const Message = ({ item, previous, isRefreshing }: MessageProps) => {
                 </BaseText>
             </View>
         ) : null}
-        {(showName || timeDiff()) ? (
+        {(showName || hasLargeTimeDiff) ? (
             <BaseText typography={Typography.bodyMedium.small} color="#8E8E8E" style={{alignSelf: isMyMessage ? 'flex-end' : 'flex-start', marginHorizontal: 8, marginBottom: 2}}>
                 {item.senderId?.username || item.senderId?.name || 'Unknown'}
             </BaseText>

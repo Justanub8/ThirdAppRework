@@ -1,18 +1,18 @@
 Tính năng hiện tại:
--Đăng nhập, đăng xuất
+-Đăng nhập, đăng xuất, đăng kí tài khoản
 -Like, Comment, Theo dõi 
--Nhắn tin đơn
+-Nhắn tin đơn: Giao diện tạo tin nhắn mới, sắp xếp conversation theo mốc thời gian có thay đổi của conversation
 -Hiển thị Post Reel
 -Video: Tua, Progress Bar, Mute
 -Post: Nhiều nội dung trong cùng 1 post
 -Truy cập được trang cá nhân chi tiết 
 
 Cần làm thêm: 
--Đăng kí tài khoản
+-Thêm otp về mail/sdt khi tạo tài khoản
 -Lưu nội dung Repost nội dung
--Nhắn tin nhóm
+-Nhắn tin nhóm, gửi ảnh/ video trong chat 
 -Tạo Post, Reel
-
+-Tối ưu Media 
 
 
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).

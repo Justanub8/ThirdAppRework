@@ -49,9 +49,9 @@ const HomeScreen = () => {
   
   const {logoutLocal} = useAuthStore();
   
-  const posts = data?.pages.flatMap(page => page.data) || [];
+  const posts = React.useMemo(() => data?.pages.flatMap(page => page.data) || [], [data?.pages]);
 
-  const renderHeader = () => (
+  const renderHeader = React.useCallback(() => (
     <View>
       <View style= {[commonStyles.flexRow, commonStyles.justifyBetween, commonStyles.alignItemsCenter, commonStyles.paddingScrollHorizontal, commonStyles.testBorder]}>
           <CreateIcon width={36} height={36} onPress={() => {}}/>
@@ -61,14 +61,23 @@ const HomeScreen = () => {
       <Story username='justanub'/>
       <SizedBox height={24}/>
     </View>
+  ), [logoutLocal]);
+
+  const keyExtractor = React.useCallback((item: any) => item._id, []);
+
+  const renderItem = React.useCallback(
+    ({ item }: { item: any }) => (
+      <Post post={item} isActive={item._id === activePostId} />
+    ),
+    [activePostId]
   );
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style = {[commonStyles.container]}>
       <FlashList 
         data={posts}
-        renderItem={({ item }) => <Post post={item} isActive={item._id === activePostId} />}
-        keyExtractor={(item: any) => item._id}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
         ListHeaderComponent={renderHeader}
         onEndReached={() => {
           if (hasNextPage) fetchNextPage();
@@ -77,7 +86,6 @@ const HomeScreen = () => {
         ListFooterComponent={isFetchingNextPage ? <ActivityIndicator size="small" /> : null}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        estimatedItemSize={600}
       />
       <SlideUpModal
         ref={menuModalRef}

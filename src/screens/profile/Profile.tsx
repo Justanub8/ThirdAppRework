@@ -1,10 +1,10 @@
-import { View, Text, ScrollView, Touchable, StyleSheet ,TouchableOpacity } from 'react-native'
-import React from 'react'
+import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
+import React, { useCallback } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { commonStyles, Typography } from '~/constants'
 import { CreateIcon, MenuIcon, AddUserIcon, ReelLightIcon } from '~/assets/svgs'
 import { BaseText, FastImage } from '~/components/rn-components'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { images } from '~/assets/images'
 import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import { SizedBox } from '~/components/separate-components'
@@ -21,13 +21,20 @@ interface AccountProps {
 }
 
 const Profile = () => {
-  const { data, isLoading } = useQuery({
-        queryKey: ['my-profile'],
-        queryFn: async () => {
-            const res = await userApi.getMyProfile();
-            return res.data.user;
-        }
-    });
+  const { data, refetch } = useQuery({
+    queryKey: ['my-profile'],
+    queryFn: async () => {
+      const res = await userApi.getMyProfile();
+      return res.data.user;
+    }
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
   const {navigate} = useNavigation<any>()
   const createModalRef = React.useRef<BottomSheetModal>(null);
   return (

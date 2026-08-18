@@ -13,10 +13,14 @@ import { commonStyles } from '~/constants';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
-        defaultOptions: {
-            queries: {retry: false},
-        }
-    })
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 1000 * 30, // Cache tươi trong 30s, tránh fetch trùng lặp khi đổi tab
+      gcTime: 1000 * 60 * 5, // Giữ cache 5 phút trong RAM
+    },
+  }
+})
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>

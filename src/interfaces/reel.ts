@@ -13,4 +13,5 @@ export interface IReel {
     createdAt: Date;
     updatedAt?: Date;
     isLiked?: boolean;
+    isFollowing?: boolean;
 }

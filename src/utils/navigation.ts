@@ -24,6 +24,14 @@ export const Navigation = {
             navigationRef.dispatch(StackActions.pop(count ?? 1));
         }
     },
+    
+    goToSignUp: () => {
+        if(navigationRef.isReady()){
+            navigationRef.navigate('Auth', {
+                screen: "SignUp"
+            })
+        }
+    },
 
     goToReels: () => {
         if (navigationRef.isReady()) {

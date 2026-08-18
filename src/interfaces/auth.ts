@@ -9,12 +9,18 @@ export interface ILoginPayLoad {
     email?: string;
     password?: string;
 }
-export interface SignUpPayload {
+export interface ISignUpPayload {
     username: string;
-    phoneNumber: string;
     email: string;
     password: string;
-    confirmPassword: string;
+    fullname?: string;
+    phoneNumber?: string;
+}
+export interface IResponseSignUp {
+    message: string;
+    accessToken: string;
+    refreshToken?: string;
+    user?: IProfileUser;
 }
 export interface IResponseLogin {
     accessToken: string;
@@ -45,6 +51,7 @@ export interface IProfileUser {
     postCount: number;
     follower: number;
     following: number;
+    isFollowing?: boolean;
     createdAt?: Date;
     updatedAt?: Date;
 }

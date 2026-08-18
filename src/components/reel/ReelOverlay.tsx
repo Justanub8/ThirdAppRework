@@ -8,6 +8,7 @@ import { SizedBox } from '~/components/separate-components'
 import { IReel } from '~/interfaces/reel'
 import LikeButton from '../buttons/LikeButton'
 import { SheetManager } from 'react-native-actions-sheet'
+import { useFollowMutation, useAuthStore } from '~/hooks'
 
 type ReelOverlayProps = {
   reel: IReel;
@@ -15,6 +16,26 @@ type ReelOverlayProps = {
 }
 
 const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
+  const [isFollowing, setIsFollowing] = useState(!!reel.isFollowing);
+  const currentUser = useAuthStore(state => state.user);
+  const isOwnReel = currentUser?._id === reel.user?._id;
+  const { createFollow, deleteFollow } = useFollowMutation();
+
+  useEffect(() => {
+    setIsFollowing(!!reel.isFollowing);
+  }, [reel.user?._id, reel.isFollowing]);
+
+  const handleFollowToggle = () => {
+    if (!reel.user?._id) return;
+    const nextState = !isFollowing;
+    setIsFollowing(nextState);
+    if (isFollowing) {
+      deleteFollow.mutate(reel.user._id);
+    } else {
+      createFollow.mutate(reel.user._id);
+    }
+  };
+
   return (
     <>
       <View style={[styles.bottomContainer, { bottom: 20 }]} pointerEvents="box-none">
@@ -25,11 +46,16 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
                 {reel.user?.username || 'user'}
               </BaseText>
               
-              <TouchableOpacity style={styles.followButton}>
-                <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>
-                  Theo dõi
-                </BaseText>
-              </TouchableOpacity>
+              {!isOwnReel && reel.user?._id && (
+                <TouchableOpacity 
+                  style={[styles.followButton, isFollowing && styles.followingButton]}
+                  onPress={handleFollowToggle}
+                >
+                  <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>
+                    {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+                  </BaseText>
+                </TouchableOpacity>
+              )}
             </View>
             <SizedBox height={12} />
             <BaseText color={'#ffffff'} typography={Typography.bodyRegular.medium} numberOfLines={2}>
@@ -115,6 +141,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 4,
+  },
+  followingButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
   bottomRight: {
     alignItems: 'center',

@@ -15,24 +15,38 @@ import LikeButton from '../buttons/LikeButton'
 import { IMedia } from '~/interfaces'
 import Video, { VideoRef } from 'react-native-video'
 import { Navigation } from '~/utils'
-import { useFollowMutation } from '~/hooks'
+import { useFollowMutation, useAuthStore } from '~/hooks'
 const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) => {
     const [expanded, setExpanded] = React.useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const [bookmarked, setBookmarked] = React.useState(false);
     const [numberOfLines, setNumberOfLines] = React.useState(0);
     const [likeCount, setLikeCount] = useState(post.likeCount);
+    const [isFollowing, setIsFollowing] = useState(!!post.isFollowing);
+    const windowWidth = Dimensions.get('window').width
+    const currentUser = useAuthStore(state => state.user);
+    const isOwnPost = currentUser?._id === post.user?._id;
 
     useEffect(() => {
         setLikeCount(post.likeCount);
     }, [post.likeCount]);
 
-    const handleTextLayout = (event: any) => {
-        const linesCount = event.nativeEvent.lines.length;
-        setNumberOfLines(linesCount);
-    };
-    const windowWidth = Dimensions.get('window').width;
+    useEffect(() => {
+        setIsFollowing(!!post.isFollowing);
+    }, [post.user?._id, post.isFollowing]);
+
     const { createFollow, deleteFollow } = useFollowMutation();
+
+    const handleFollowToggle = () => {
+        if (!post.user?._id) return;
+        const nextState = !isFollowing;
+        setIsFollowing(nextState);
+        if (isFollowing) {
+            deleteFollow.mutate(post.user._id);
+        } else {
+            createFollow.mutate(post.user._id);
+        }
+    };
 
     const renderItem = (({ item, index}: {item: IMedia, index: number}) => {
         return (
@@ -101,19 +115,17 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
 
             
             <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.gap8]}>
-                {post.isFollowing ? (
+                {!isOwnPost && post.user?._id && (
                     <TouchableOpacity 
-                        style={styles.followButton}
-                        onPress={() => deleteFollow.mutate(post.user._id)}
+                        style={[styles.followButton, isFollowing && styles.followingButton]}
+                        onPress={handleFollowToggle}
                     >
-                        <BaseText>Đang theo dõi</BaseText>
-                    </TouchableOpacity>
-                ) : (
-                    <TouchableOpacity 
-                        style={styles.followButton}
-                        onPress={() => createFollow.mutate(post.user._id)}
-                    >
-                        <BaseText>Theo dõi</BaseText>
+                        <BaseText 
+                            typography={Typography.bodySemiBold.small} 
+                            color={isFollowing ? '#000000' : '#FFFFFF'}
+                        >
+                            {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+                        </BaseText>
                     </TouchableOpacity>
                 )}
                 <MoreIcon width={24} height={24} onPress={() => { console.log(post)}}/>
@@ -159,7 +171,7 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
             </View>
             <SizedBox height={12}/>
             <View>
-                <BaseText numberOfLines={expanded ? undefined : 1} onTextLayout={handleTextLayout}>
+                <BaseText numberOfLines={expanded ? undefined : 1}>
                     <BaseText typography={Typography.bodyBold.medium} onPress={() => {}}>
                         {post.user?.username || 'Unknown'}
                     </BaseText>
@@ -219,10 +231,15 @@ const styles = StyleSheet.create({
     },
     followButton: {
         borderRadius: 8,
-        backgroundColor: "#a4a4a4",
+        backgroundColor: "#3797EF",
         paddingHorizontal: 12,
-        paddingVertical: 8,
+        paddingVertical: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
     },  
+    followingButton: {
+        backgroundColor: "#EFEFEF",
+    },
 })
 
-export default Post
+export default React.memo(Post);

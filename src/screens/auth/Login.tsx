@@ -10,6 +10,7 @@ import { SizedBox } from '~/components/separate-components'
 import { BaseText } from '~/components/rn-components'
 import { FacebookIcon } from '~/assets/svgs'
 import { useLogin } from '~/hooks';
+import { Navigation } from '~/utils'
 const Login = () => {
     const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
@@ -81,6 +82,7 @@ const Login = () => {
                 <TextButton
                     title='Sign up.'
                     style = {{color: '#3797EF'}}
+                    onPress={() => Navigation.goToSignUp()}
                 />
             </View>
         </KeyboardAvoidingView>

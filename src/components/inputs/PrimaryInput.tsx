@@ -7,8 +7,8 @@ import { TouchableOpacity } from "react-native";
 import { SvgProps } from "react-native-svg";
 import { useState, useMemo } from "react";
 interface PrimaryInputProps extends BaseTextInputProps {
-    RightComponent?: React.FC<SvgProps>;
-    LeftComponent?: React.FC<SvgProps>;
+    RightComponent?: React.FC<SvgProps> | React.ReactNode;
+    LeftComponent?: React.FC<SvgProps> | React.ReactNode;
 }
 const PrimaryInput = ({
     LeftComponent,
@@ -36,8 +36,12 @@ const PrimaryInput = ({
         >
             {!!LeftComponent && ( 
             <>
-                {<LeftComponent width={20} height={20} color={iconColor}/>}
-                <SizedBox width={12} />
+                {typeof LeftComponent === 'function' ? (
+                    <LeftComponent width={24} height={24} color={iconColor}/>
+                ) : (
+                    LeftComponent
+                )}
+                <SizedBox width={4} />
             </>
             )}
             <BaseTextInput
@@ -60,7 +64,11 @@ const PrimaryInput = ({
             {!!RightComponent && (
                 <>
                     <SizedBox width={12}/>
-                    {<RightComponent width={20} height={20} color={iconColor} />}
+                    {typeof RightComponent === 'function' ? (
+                        <RightComponent width={20} height={20} color={iconColor} />
+                    ) : (
+                        RightComponent
+                    )}
                 </>
             )}
         </TouchableOpacity>
@@ -69,7 +77,7 @@ const PrimaryInput = ({
 
 const styles = StyleSheet.create({
     container: {
-        padding: 12,
+        padding: 8,
         borderRadius: 40,
         backgroundColor: '#eeeeee',
         flexDirection: 'row',

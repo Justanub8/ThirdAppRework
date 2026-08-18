@@ -2,8 +2,8 @@ import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, Native
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { FlashList } from '@shopify/flash-list'
 import { messageApi } from '~/api'
-import { ArrowToLeft, CallIcon } from '~/assets/svgs'
-import { BaseText } from '~/components/rn-components'
+import { ArrowToLeft, CallIcon, CameraLightIcon } from '~/assets/svgs'
+import { BaseText, BaseTextInput } from '~/components/rn-components'
 import { CustomHeader } from '~/components/headers'
 import { AuthenticatedStackParamList } from '~/navigation/types'
 import { Navigation } from '~/utils'
@@ -14,7 +14,7 @@ import { PrimaryInput } from '~/components/inputs'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import FastImage from '@d11/react-native-fast-image'
 import { images } from '~/assets/images'
-import { COLORS, commonStyles } from '~/constants'
+import { COLORS, commonStyles, Typography } from '~/constants'
 import { useMessageMutation, useAuthStore } from '~/hooks'
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Conversation'>;
@@ -27,6 +27,7 @@ const Conversation = () => {
     const { createMessage } = useMessageMutation();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isFetchingNextPage, setIsFetchingNextPage] = useState<boolean>(false);
+    const [isTexting, setIsTexting] = useState(false);
     const [messages, setMessages] = useState<IMessage[]>([]);
     const [pageIndex, setPageIndex] = useState<number>(1);
     const [isFull, setIsFull] = useState<boolean>(false);
@@ -173,17 +174,19 @@ const Conversation = () => {
             console.error("Lỗi gửi tin nhắn", error);
         }
     };
+
     const renderItem = useCallback(
         ({ item, index }: { item: IMessage; index: number }) => {
             return (
                 <Message 
-                    item={item}
+                    item={item} 
                     previous={index > 0 ? messages[index - 1] : undefined}
                     isRefreshing={isRefreshing}
+                    currentUserId={user?._id}
                 />
             );
         },
-        [messages, isRefreshing]
+        [messages, isRefreshing, user?._id]
     );
 
     useEffect(() => {
@@ -193,11 +196,11 @@ const Conversation = () => {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-            <View style={[commonStyles.alignItemsCenter, commonStyles.justifyBetween, commonStyles.flexRow, commonStyles.paddingHorizontal16, commonStyles.testBorder]}>
+            <View style={[commonStyles.alignItemsCenter, commonStyles.justifyBetween, commonStyles.flexRow, commonStyles.paddingHorizontal16, commonStyles.testBorder, {height: 60}]}>
               <ArrowToLeft height={24} width={24} onPress={() => Navigation.pop()} style={{zIndex: 1}}/>
-              <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter]}>
+              <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.gap12]}>
                 <FastImage source={images.avater_random} style = {{width: 40, height: 40, borderWidth: 1, borderColor: COLORS.border, borderRadius: 9999}}/>
-                <BaseText>{name}</BaseText>
+                <BaseText typography={Typography.bodyBold.medium}>{name}</BaseText>
               </View>
               <CallIcon height={24} width={24} style={{zIndex: 1}}/>
             </View>
@@ -227,14 +230,23 @@ const Conversation = () => {
                         refreshing={isRefreshing}
                         onRefresh={handleRefresh}
                     />
-                    <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
-                        <PrimaryInput
-                          placeholder='Nhập tin nhắn...'
-                          value={messageContent}
-                          onChangeText={setMessageContent}
-                          onSubmitEditing={handleSend}
-                          returnKeyType='send'
-                        />
+                    <View style={{paddingBottom: 8 }}> 
+                        <View style={styles.messageInput}>
+                            {!isTexting ? (
+                            <TouchableOpacity style={styles.cameraIcon}>
+                                <CameraLightIcon height={24} width={24}/>
+                            </TouchableOpacity>
+                            ) : null}
+                            <BaseTextInput
+                                placeholder='Nhập tin nhắn...'
+                                value={messageContent}
+                                onChangeText={setMessageContent}
+                                onFocus={() => setIsTexting(true)}
+                                onBlur={() => setIsTexting(false)}
+                                onSubmitEditing={handleSend}
+                                returnKeyType='send'
+                            />
+                        </View>
                     </View>
                     <Animated.View style={[styles.fabContainer, { opacity: fadeAnim }]} pointerEvents={showScrollButton ? 'auto' : 'none'}>
                       <TouchableOpacity
@@ -280,5 +292,21 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.15,
         shadowRadius: 6,
         elevation: 4,
-    }
+    },
+    cameraIcon: {
+        backgroundColor: "#eee7f1",
+        borderRadius: 9999,
+        padding: 4,
+    },
+    messageInput: {
+        borderWidth: 1,
+        borderRadius: 9999,
+        height: 40,
+        backgroundColor: "#eaeaea",
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: 12,
+        marginHorizontal: 16,
+        paddingHorizontal: 8,
+    },
 });

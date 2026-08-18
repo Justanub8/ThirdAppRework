@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import React, { useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -18,14 +18,14 @@ import { Navigation } from '~/utils'
 const MessageScreen = () => {
   const user = useAuthStore(state => state.user);
 
-  const { data: rawConversations, refetch, isRefetching } = useQuery({
+  const { data: rawConversations, refetch } = useQuery({
     queryKey: ['conversations'],
     queryFn: async () => {
       const response = await conversationApi.getConversations();
       return response.data?.data || [];
     }
   });
-
+  
   useFocusEffect(
     useCallback(() => {
       refetch();
@@ -43,12 +43,7 @@ const MessageScreen = () => {
 
   return (
     <SafeAreaView style = {commonStyles.container}>
-      <ScrollView 
-        style = {commonStyles.paddingScrollHorizontal}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-        }
-      >
+      <ScrollView style = {commonStyles.paddingScrollHorizontal}>
           <View style={[commonStyles.alignItemsCenter, commonStyles.testBorder, commonStyles.flexRow, commonStyles.justifyBetween]}>
             <View style = {{width: 24}}></View>
             <BaseText typography={Typography.bodyBold.xxxLarge} numberOfLines={1}>
