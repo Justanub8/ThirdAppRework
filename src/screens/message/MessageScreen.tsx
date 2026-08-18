@@ -1,6 +1,8 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useFocusEffect } from '@react-navigation/native'
 import { commonStyles, Typography } from '~/constants'
 import { BaseText } from '~/components/rn-components'
 import { SizedBox } from '~/components/separate-components'
@@ -14,26 +16,39 @@ import { useAuthStore } from '~/hooks/useAuthStore'
 import { Navigation } from '~/utils'
 
 const MessageScreen = () => {
-  const [conversations, setConversations] = useState<any[]>([]);
   const user = useAuthStore(state => state.user);
 
-  useEffect(() => {
-    const fetchConversations = async () => {
-      try {
-        const response = await conversationApi.getConversations();
-        if (response.data && response.data.data) {
-          setConversations(response.data.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch conversations", error);
-      }
-    };
-    fetchConversations();
-  }, []);
+  const { data: rawConversations, refetch, isRefetching } = useQuery({
+    queryKey: ['conversations'],
+    queryFn: async () => {
+      const response = await conversationApi.getConversations();
+      return response.data?.data || [];
+    }
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
+  const conversations = useMemo(() => {
+    const list = rawConversations || [];
+    return [...list].sort((a: any, b: any) => {
+      const timeA = new Date(a.lastMessage?.createdAt || a.updatedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.lastMessage?.createdAt || b.updatedAt || b.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
+  }, [rawConversations]);
 
   return (
     <SafeAreaView style = {commonStyles.container}>
-      <ScrollView style = {commonStyles.paddingScrollHorizontal}>
+      <ScrollView 
+        style = {commonStyles.paddingScrollHorizontal}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+      >
           <View style={[commonStyles.alignItemsCenter, commonStyles.testBorder, commonStyles.flexRow, commonStyles.justifyBetween]}>
             <View style = {{width: 24}}></View>
             <BaseText typography={Typography.bodyBold.xxxLarge} numberOfLines={1}>

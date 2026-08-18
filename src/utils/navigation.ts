@@ -69,11 +69,11 @@ export const Navigation = {
         }
     },
 
-    goToConversation: (id: string) => {
+    goToConversation: (id: string, name?: string) => {
         if (navigationRef.isReady()){
             navigationRef.navigate("App", {
                 screen: 'Conversation',
-                params: {id}
+                params: {id, name}
             });
         }
     },

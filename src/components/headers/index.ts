@@ -1,2 +1,2 @@
-import CustomHeader from "../CustomeHeader";
-export {CustomHeader}
+import CustomHeader from "./CustomeHeader";
+export {CustomHeader};

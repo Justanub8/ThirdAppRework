@@ -13,7 +13,7 @@ export type AuthStackParamList = {
 
 export type AuthenticatedStackParamList = {
     Main: NavigatorScreenParams<MainTabParamList>;
-    Conversation: {id: string},
+    Conversation: {id: string, name?: string},
     NewMessage: undefined,
     UserProfile: {id: string},
 }

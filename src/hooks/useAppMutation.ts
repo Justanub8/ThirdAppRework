@@ -120,13 +120,14 @@ export const useConversationMutation = () => {
             if(!targetId){throw new Error("Missing conversation params")}
             return conversationApi.createConversation(targetId)
         },
-        onSuccess:(_, variables) => {
-            queryClient.invalidateQueries({queryKey: ['conversations', variables]});
+        onSuccess:() => {
+            queryClient.invalidateQueries({queryKey: ['conversations']});
         },
         onError:() => {
             Alert.alert("Lỗi khi tạo cuộc trò chuyện")
         }
     })
+    return { createConversation}
 }
 
 export const useMessageMutation = () => {
@@ -136,11 +137,20 @@ export const useMessageMutation = () => {
             if(!params.conversationId || !params.content){throw new Error("Missing create message params")};
             return messageApi.sendMessage(params);
         },
-        onSuccess:(_, variables) => {
-            queryClient.invalidateQueries({queryKey: ['messages', variables]})
+        onMutate: async (params) => {
+            const queryKey = ['messages', params.conversationId];
+            await queryClient.cancelQueries({ queryKey });
+            const previousData = queryClient.getQueryData(queryKey);
+            return { previousData, queryKey };
         },
-        onError:() => {
-            Alert.alert("Lỗi khi gửi tin nhắn")
+        onError: (error, variables, context: any) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(context.queryKey, context.previousData);
+            }
+            Alert.alert("Lỗi khi gửi tin nhắn");
+        },
+        onSettled: (data, error, variables, context: any) => {
+            queryClient.invalidateQueries({ queryKey: ['conversations'] });
         }
     })
     const editMessage = useMutation({
@@ -148,8 +158,8 @@ export const useMessageMutation = () => {
             if(!params.messageId || !params.content){throw new Error("Missing edit message params")}
             return messageApi.editMessage(params);
         },
-        onSuccess:(_, variables) => {
-            queryClient.invalidateQueries({queryKey: ['messages', variables]})
+        onSuccess:() => {
+            queryClient.invalidateQueries({queryKey: ['messages']})
         },
         onError:() => {
             Alert.alert("Lỗi khi chỉnh sửa tin nhắn")
@@ -157,3 +167,4 @@ export const useMessageMutation = () => {
     })
     return { createMessage, editMessage}
 }
+

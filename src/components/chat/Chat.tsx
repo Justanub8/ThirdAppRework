@@ -24,10 +24,13 @@ const Chat = ({conversation, currentUserId} : ChatProps) => {
   return (
     <TouchableOpacity 
         style = {[commonStyles.container, commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.justifyBetween]}
-        onPress={() => Navigation.goToConversation(conversation._id)}
+        onPress={() => Navigation.goToConversation(conversation._id, displayName)}
     >
         <View style = {[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.gap12]}>
-            <FastImage source={images.avater_random} style = {styles.avatar} />
+            <FastImage 
+                source={otherUser?.imageUrl ? { uri: otherUser.imageUrl } : images.avater_random} 
+                style = {styles.avatar} 
+            />
             <View>
                 <BaseText typography = {Typography.bodyBold.medium}>
                     {displayName}

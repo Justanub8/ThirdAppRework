@@ -34,45 +34,44 @@ const Message = ({ item, previous, isRefreshing }: MessageProps) => {
     }, [isRefreshing]);
 
   return (
-    <View style={commonStyles.container}>
+    <View style={{ width: '100%', marginVertical: 2 }}>
         {showTime || timeDiff() ? (
             <View style={{
                 justifyContent: 'center',
-                alignSelf: 'center'
+                alignSelf: 'center',
+                marginVertical: 6,
             }}>
-                <BaseText typography={Typography.bodyMedium.small}>
+                <BaseText typography={Typography.bodyMedium.small} color="#8E8E8E">
                     {dayjs(item.createdAt).format('HH:mm DD/MM/YYYY')}
                 </BaseText>
             </View>
         ) : null}
         {(showName || timeDiff()) ? (
-            <BaseText typography={Typography.bodyMedium.small} style={{alignSelf: isMyMessage ? 'flex-end' : 'flex-start'}}>
-                {item.senderId.username || 'Unknown'}
+            <BaseText typography={Typography.bodyMedium.small} color="#8E8E8E" style={{alignSelf: isMyMessage ? 'flex-end' : 'flex-start', marginHorizontal: 8, marginBottom: 2}}>
+                {item.senderId?.username || item.senderId?.name || 'Unknown'}
             </BaseText>
         ) : null}
         <TouchableOpacity 
             style={{ 
-                    paddingHorizontal: 16,
-                    paddingVertical: 10, 
-                    backgroundColor: isMyMessage ? '#1866af' : '#f2dddd', 
+                    paddingHorizontal: 14,
+                    paddingVertical: 8, 
+                    backgroundColor: isMyMessage ? '#3797EF' : '#EFEFEF', 
                     borderRadius: 18, 
                     borderBottomRightRadius: isMyMessage ? 4 : 18,
                     borderBottomLeftRadius: isMyMessage ? 18 : 4,
-                    marginVertical: 4, 
                     alignSelf: isMyMessage ? 'flex-end' : 'flex-start',
-                    maxWidth: '80%'
+                    maxWidth: '75%'
                 }}
             onPress={() => {
                 setShowTime(!showTime);
                 setShowName(!showName);
                 }}
         >
-            <BaseText color={isMyMessage ? '#000' : '#000'}>
+            <BaseText color={isMyMessage ? '#FFFFFF' : '#000000'} typography={Typography.bodyRegular.medium}>
                 {item.content}
             </BaseText>
         </TouchableOpacity>
     </View>
-    
   )
 }
 

@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Button } from 'react-native'
-import React, { useState} from 'react'
-import CustomHeader from '~/components/CustomeHeader'
-import { LeftArrow, MoreIcon, RightArrow } from '~/assets/svgs'
+import React, { useEffect, useState} from 'react'
+import { CustomHeader } from '~/components/headers'
+import { CameraLightIcon, LeftArrow, MoreIcon, RightArrow } from '~/assets/svgs'
 import { PrimaryInput } from '~/components/inputs'
 import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components'
 import { commonStyles, Typography } from '~/constants'
@@ -13,10 +13,16 @@ import { userApi } from '~/api'
 import { IProfileUser } from '~/interfaces'
 import { PrimaryButton } from '~/components/buttons'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useConversationMutation, useMessageMutation } from '~/hooks'
 
 const NewMessage = () => {
     const [isFront, setIsFront] = useState(false);
-    
+    const [isTexting, setIsTexting] = useState(false);
+    const [messageContent,setMessageContent] = useState('');
+    const [currentContact, setCurrentContact] = useState<IProfileUser>();
+    const [conversationId, setConversationId] = useState("");
+    const { createConversation } = useConversationMutation();
+    const { createMessage } = useMessageMutation();
     const { data: usersData, isLoading } = useQuery({
         queryKey: ['suggestedUsers'],
         queryFn: async () => {
@@ -24,9 +30,29 @@ const NewMessage = () => {
             return res.data.users;
         }
     });
-
+    const handleChooseContact = async (contact: IProfileUser) => {
+        if(!contact) return;
+        try{
+            const res = await createConversation.mutateAsync(contact._id);
+            const convId = res.data?.data?._id || res.data?._id;
+            if (convId) {
+                setConversationId(convId);
+            }
+        }catch(error){
+            console.log("Lỗi khi tìm/tạo cuộc trò chuyện", error)
+        }
+    }
+    const handleSend = async () => {
+        if(!messageContent.trim() || !conversationId) return;
+        try{
+            await createMessage.mutateAsync({conversationId: conversationId, content: messageContent})
+            setMessageContent('');
+            Navigation.goToConversation(conversationId);
+        }catch(error){
+            console.log("Lỗi khi gửi tin nhắn", error)
+        }
+    }
     const users = usersData || [];
-    const [currentContact, setCurrentContact] = useState<IProfileUser>();
   return (
     <>
         <CustomHeader
@@ -54,8 +80,9 @@ const NewMessage = () => {
                         {users.map((item) => (
                             <TouchableOpacity key={item._id} style={styles.contactContainer} 
                                 onPress={() => {
-                                    setIsFront(true) 
-                                    setCurrentContact(item)
+                                    setIsFront(true);
+                                    setCurrentContact(item);
+                                    handleChooseContact(item);
                                 }}
                             >
                                 <FastImage 
@@ -90,8 +117,19 @@ const NewMessage = () => {
                         </TouchableOpacity>
                     </View>
                     <View style={styles.messageInput}>
+                        {!isTexting ? (
+                            <TouchableOpacity style={styles.cameraIcon}>
+                                <CameraLightIcon height={24} width={24}/>
+                            </TouchableOpacity>
+                        ) : null}
                         <BaseTextInput
                             placeholder='Nhắn tin..'
+                            style={{flex: 1}}
+                            value={messageContent}
+                            onFocus={() => {setIsTexting(true)}}
+                            onBlur={() => setIsTexting(false)}
+                            onChangeText={setMessageContent}
+                            onSubmitEditing={() => {handleSend()}}
                         />
                     </View>
                 </SafeAreaView>
@@ -144,9 +182,14 @@ const styles = StyleSheet.create({
         backgroundColor: "#eaeaea",
         alignItems: 'center',
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        gap: 12,
         marginHorizontal: 16,
         paddingHorizontal: 8,
+    },
+    cameraIcon: {
+        backgroundColor: "#eee7f1",
+        borderRadius: 9999,
+        padding: 4,
     }
 })
 export default NewMessage
