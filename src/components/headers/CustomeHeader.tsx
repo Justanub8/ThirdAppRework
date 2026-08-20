@@ -15,9 +15,8 @@ const CustomHeader = ({
     LeftComponent?: React.JSX.Element,
 }) => {
     const navigation = useNavigation();
-    const {top} = useSafeAreaInsets();
     return (
-        <View style = {{paddingTop: top}}>
+        <View style = {{paddingTop: 0}}>
             <View style = {styles.container}>
                 <View style={{ zIndex: 1 }}>
                     {LeftComponent}

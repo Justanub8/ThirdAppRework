@@ -1,10 +1,12 @@
 import { StackActions, createNavigationContainerRef } from "@react-navigation/native";
+import { SheetManager } from "react-native-actions-sheet";
 import { IProfileUser } from "~/interfaces";
 import { RootStackParamList } from "~/navigation/types";
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 export const Navigation = {
     goBack: () => {
+        SheetManager.hideAll();
         if(navigationRef.isReady()){
             if(navigationRef.canGoBack()){
                 navigationRef.goBack()
@@ -20,12 +22,14 @@ export const Navigation = {
     },
 
     pop: (count?: number ) => {
+        SheetManager.hideAll();
         if (navigationRef.isReady()){
             navigationRef.dispatch(StackActions.pop(count ?? 1));
         }
     },
     
     goToSignUp: () => {
+        SheetManager.hideAll();
         if(navigationRef.isReady()){
             navigationRef.navigate('Auth', {
                 screen: "SignUp"
@@ -34,6 +38,7 @@ export const Navigation = {
     },
 
     goToReels: () => {
+        SheetManager.hideAll();
         if (navigationRef.isReady()) {
         navigationRef.navigate('App', {
             screen: 'Main',
@@ -45,6 +50,7 @@ export const Navigation = {
     },
 
     goToMessage: () => {
+        SheetManager.hideAll();
         if (navigationRef.isReady()) {
         navigationRef.navigate('App', {
             screen: 'Main',
@@ -56,6 +62,7 @@ export const Navigation = {
     },
 
     goToExplore: () => {
+        SheetManager.hideAll();
         if (navigationRef.isReady()) {
         navigationRef.navigate('App', {
             screen: 'Main',
@@ -67,6 +74,7 @@ export const Navigation = {
     },
 
     goToProfile: () => {
+        SheetManager.hideAll();
         if (navigationRef.isReady()) {
         navigationRef.navigate('App', {
             screen: 'Main',
@@ -78,6 +86,7 @@ export const Navigation = {
     },
 
     goToConversation: (id: string, name?: string) => {
+        SheetManager.hideAll();
         if (navigationRef.isReady()){
             navigationRef.navigate("App", {
                 screen: 'Conversation',
@@ -87,6 +96,7 @@ export const Navigation = {
     },
 
     goToNewMessage: () => {
+        SheetManager.hideAll();
         if(navigationRef.isReady()){
             navigationRef.navigate('App', {
                 screen: 'NewMessage'
@@ -95,6 +105,7 @@ export const Navigation = {
     },
 
     goToUserProfile: (id: string) => {
+        SheetManager.hideAll();
         if(navigationRef.isReady()){
             navigationRef.navigate('App',{
                 screen: 'UserProfile',
@@ -103,10 +114,21 @@ export const Navigation = {
         }
     },
 
-    goToCreatePost: () => {
+    goToCreateContent: () => {
+        SheetManager.hideAll();
         if(navigationRef.isReady()){
             navigationRef.navigate('App' , {
-                screen: 'CreatePost'
+                screen: 'CreateContent'
+            })
+        }
+    },
+
+    goToCreatePost: (uri: string) => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate('App' , {
+                screen: 'CreatePost',
+                params: {uri}
             })
         }
     }

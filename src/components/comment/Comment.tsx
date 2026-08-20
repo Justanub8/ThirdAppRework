@@ -22,10 +22,12 @@ const Comment = ({ item }: { item: IComment }) => {
         <SizedBox height={8}/>
         <View style={[commonStyles.flexRow, commonStyles.paddingHorizontal16, commonStyles.justifyBetween]}>
         <View style= {[commonStyles.flexRow, commonStyles.gap12, {flex: 1}]}>
-            <FastImage source={item.user?.imageUrl ? { uri: item.user.imageUrl } : images.avater_random} style={{height: 40, width: 40, borderRadius: 9999, borderWidth: 1}}/>
+            <TouchableOpacity onPress={() => { if (item.user?._id) Navigation.goToUserProfile(item.user._id); }}>
+                <FastImage source={item.user?.imageUrl ? { uri: item.user.imageUrl } : images.avater_random} style={{height: 40, width: 40, borderRadius: 9999, borderWidth: 1}}/>
+            </TouchableOpacity>
             <View style={{flex: 1}}>
                 <View>
-                    <BaseText typography={Typography.bodyBold.medium} onPress={() => Navigation.goToUserProfile(item.user)}>
+                    <BaseText typography={Typography.bodyBold.medium} onPress={() => { if (item.user?._id) Navigation.goToUserProfile(item.user._id); }}>
                         {item.user?.username || 'Unknown'}
                     </BaseText>
                 <BaseText typography={Typography.bodyRegular.medium}>

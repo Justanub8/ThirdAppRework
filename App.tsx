@@ -1,5 +1,5 @@
 import { GlobalAlert, GlobalLoading, GlobalToast } from '~/components/globals';
-import { SheetProvider } from 'react-native-actions-sheet';
+import { SheetProvider, SheetManager } from 'react-native-actions-sheet';
 import '~/components/sheets/sheets';
 import { navigationRef } from '~/utils';
 import * as React from 'react';
@@ -30,7 +30,12 @@ const App = () => {
             <BottomSheetModalProvider>
                 <SheetProvider>
                   <View style= {commonStyles.container}>
-                      <NavigationContainer ref={navigationRef}>
+                      <NavigationContainer 
+                        ref={navigationRef}
+                        onStateChange={() => {
+                          SheetManager.hideAll();
+                        }}
+                      >
                           <RootNavigator/>
                       </NavigationContainer>
                       <GlobalToast />

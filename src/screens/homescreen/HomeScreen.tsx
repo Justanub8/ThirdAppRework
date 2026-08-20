@@ -55,7 +55,7 @@ const HomeScreen = () => {
   const renderHeader = React.useCallback(() => (
     <View>
       <View style= {[commonStyles.flexRow, commonStyles.justifyBetween, commonStyles.alignItemsCenter, commonStyles.paddingScrollHorizontal, commonStyles.testBorder]}>
-          <CreateIcon width={36} height={36} onPress={() => {Navigation.goToCreatePost()}}/>
+          <CreateIcon width={36} height={36} onPress={() => {Navigation.goToCreateContent()}}/>
           <FastImage source={images.logo_transparent} resizeMode='contain' style={styles.logo}/>
           <NotificationIcon width={32} height={32} onPress={() => {logoutLocal()}}/>
       </View>

@@ -52,8 +52,17 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
   console.log("COMMENTS IN SHEET:", JSON.stringify(comments, null, 2));
 
   return (
-    <ActionSheet id={props.sheetId} gestureEnabled>
-      <View style={{ height: 500 }}>
+    <ActionSheet 
+      id={props.sheetId} 
+      gestureEnabled={true}
+      snapPoints={[50, 80]}
+      initialSnapIndex={0}
+      closeOnTouchBackdrop={true}
+      closeOnPressBack={true}
+      indicatorStyle={styles.indicator}
+      containerStyle={styles.containerStyle}
+    >
+      <View style={{ flex: 1 }}>
         <View style={{borderBottomColor: COLORS.border, borderBottomWidth: 1, paddingBottom: 8}}>
           <Text style={styles.title}>Bình luận</Text>
         </View>
@@ -84,7 +93,6 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
                   onChangeText={setCommentText}
                   onSubmitEditing={handleSendComment}
                   returnKeyType="send"
-                  
                 />
               </View>
             </View>
@@ -98,14 +106,23 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
 export default CommentSheet;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    height: 500, // Chiều cao tạm thời
+  containerStyle: {
+    height: '100%',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    backgroundColor: '#ffffff',
+  },
+  indicator: {
+    width: 44,
+    height: 5,
+    backgroundColor: '#d1d5db',
+    borderRadius: 3,
+    marginTop: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginVertical: 6,
     textAlign: 'center'
   }
 });

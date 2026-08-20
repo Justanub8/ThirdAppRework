@@ -34,105 +34,111 @@ const SignUp = () => {
     };
     
   return (
-    <SafeAreaView edges={['top']} style={commonStyles.container}>
+    <SafeAreaView edges={['top', 'bottom']} style={commonStyles.container}>
         <KeyboardAvoidingView
-            behavior={'padding'}
-            style={[commonStyles.paddingScrollHorizontal, {flex: 1}]}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={{ flex: 1 }}
         >
-            <FastImage source={images.logo_transparent} resizeMode='contain' style={styles.logo}/>
-            <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.alignSelfCenter, commonStyles.gap8]}>
-                <FacebookIcon height={24} width={24} color={'#246BFD'}/>
-                <TextButton
-                    title='Login with Facebook'
-                    typography={Typography.bodyMedium.large}
-                    color={'#3797EF'}
-                    style = {commonStyles.alignSelfCenter}
-                />
-            </View>
-            <SizedBox height={24}/>
-            <View
-                style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.wFull, commonStyles.justifyCenter, commonStyles.gap16]}
+            <ScrollView 
+                contentContainerStyle={[commonStyles.paddingScrollHorizontal, { flexGrow: 1, paddingBottom: 24 }]}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
             >
-                <SizedBox height={1} backgroundColor={'#bdbdbd'} width={'40%'}/>
-                <BaseText color={'#757575'}>
-                OR
-                </BaseText>
-                <SizedBox height={1} backgroundColor={'#bdbdbd'} width={'40%'}/>
-            </View>
-            <SizedBox height={24}/>
-            <BaseTextInput
-                value = {email}
-                placeholder='Mobile Number or Email'
-                onChangeText={setEmail}
-                autoCorrect={false}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                style={styles.inputField}
-            />
-            <SizedBox height={16}/>
-            <BaseTextInput
-                value = {fullname}
-                placeholder='Fullname'
-                onChangeText={setFullname}
-                autoCorrect={false}
-                style={styles.inputField}
-            />
-            <SizedBox height={16}/>
-            <BaseTextInput
-                value = {username}
-                placeholder='Username'
-                onChangeText={setUsername}
-                autoCorrect={false}
-                autoCapitalize="none"
-                style={styles.inputField}
-            />
-            <SizedBox height={16}/>
-            <BaseTextInput
-                value = {password}
-                placeholder='Password'
-                onChangeText={setPassword}
-                secureTextEntry={true}
-                autoCorrect={false}
-                autoCapitalize="none"
-                style={styles.inputField}
-                onSubmitEditing={handleSignUp}
-            />
-            <SizedBox height={16}/>
-            <TouchableOpacity 
-                style={[styles.signUpButton, signUp.isPending && { opacity: 0.6 }]}
-                onPress={handleSignUp}
-                disabled={signUp.isPending}
-            >
-              <BaseText typography={Typography.bodyBold.large} style={{color: "#ffffff"}}>
-                {signUp.isPending ? 'Signing Up...' : 'Sign Up'}
-              </BaseText>
-            </TouchableOpacity>
-            <SizedBox height={48}/>
-            <View style={styles.termAndPolicyContainer}>
-                <BaseText
-                    color={'#9e9e9e'}
-                    typography={Typography.bodyRegular.medium}
-                    textAlign='center'
+                <FastImage source={images.logo_transparent} resizeMode='contain' style={styles.logo}/>
+                <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.alignSelfCenter, commonStyles.gap8]}>
+                    <FacebookIcon height={24} width={24} color={'#246BFD'}/>
+                    <TextButton
+                        title='Login with Facebook'
+                        typography={Typography.bodyMedium.large}
+                        color={'#3797EF'}
+                        style = {commonStyles.alignSelfCenter}
+                    />
+                </View>
+                <SizedBox height={24}/>
+                <View
+                    style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.wFull, commonStyles.justifyCenter, commonStyles.gap16]}
                 >
-                    By signing up, you agree to our{' '}
-                    <BaseText
-                        typography={Typography.bodySemiBold.medium}
-                        color={'#4A4A4A'}
-                        onPress={() => {}}
-                    >
-                        Terms, Data Policy
+                    <SizedBox height={1} backgroundColor={'#bdbdbd'} width={'40%'}/>
+                    <BaseText color={'#757575'}>
+                    OR
                     </BaseText>
-                    {' and '}
+                    <SizedBox height={1} backgroundColor={'#bdbdbd'} width={'40%'}/>
+                </View>
+                <SizedBox height={24}/>
+                <BaseTextInput
+                    value = {email}
+                    placeholder='Mobile Number or Email'
+                    onChangeText={setEmail}
+                    autoCorrect={false}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    style={styles.inputField}
+                />
+                <SizedBox height={16}/>
+                <BaseTextInput
+                    value = {fullname}
+                    placeholder='Fullname'
+                    onChangeText={setFullname}
+                    autoCorrect={false}
+                    style={styles.inputField}
+                />
+                <SizedBox height={16}/>
+                <BaseTextInput
+                    value = {username}
+                    placeholder='Username'
+                    onChangeText={setUsername}
+                    autoCorrect={false}
+                    autoCapitalize="none"
+                    style={styles.inputField}
+                />
+                <SizedBox height={16}/>
+                <BaseTextInput
+                    value = {password}
+                    placeholder='Password'
+                    onChangeText={setPassword}
+                    secureTextEntry={true}
+                    autoCorrect={false}
+                    autoCapitalize="none"
+                    style={styles.inputField}
+                    onSubmitEditing={handleSignUp}
+                />
+                <SizedBox height={16}/>
+                <TouchableOpacity 
+                    style={[styles.signUpButton, signUp.isPending && { opacity: 0.6 }]}
+                    onPress={handleSignUp}
+                    disabled={signUp.isPending}
+                >
+                  <BaseText typography={Typography.bodyBold.large} style={{color: "#ffffff"}}>
+                    {signUp.isPending ? 'Signing Up...' : 'Sign Up'}
+                  </BaseText>
+                </TouchableOpacity>
+                <SizedBox height={48}/>
+                <View style={styles.termAndPolicyContainer}>
                     <BaseText
-                        typography={Typography.bodySemiBold.medium}
-                        color={'#4A4A4A'}
-                        onPress={() => {}}
+                        color={'#9e9e9e'}
+                        typography={Typography.bodyRegular.medium}
+                        textAlign='center'
                     >
-                        Cookies Policy
+                        By signing up, you agree to our{' '}
+                        <BaseText
+                            typography={Typography.bodySemiBold.medium}
+                            color={'#4A4A4A'}
+                            onPress={() => {}}
+                        >
+                            Terms, Data Policy
+                        </BaseText>
+                        {' and '}
+                        <BaseText
+                            typography={Typography.bodySemiBold.medium}
+                            color={'#4A4A4A'}
+                            onPress={() => {}}
+                        >
+                            Cookies Policy
+                        </BaseText>
+                        .
                     </BaseText>
-                    .
-                </BaseText>
-            </View>
+                </View>
+            </ScrollView>
         </KeyboardAvoidingView>
     </SafeAreaView>
   )
