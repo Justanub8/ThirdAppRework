@@ -7,3 +7,5 @@ export * from './commentApi';
 export * from './likeApi';
 export * from './userApi'
 export * from './reelApi'
+export * from './bookmarkApi'
+export * from './repostApi'

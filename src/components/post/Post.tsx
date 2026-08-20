@@ -2,7 +2,7 @@ import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native'
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { commonStyles, Typography } from '~/constants'
 import { BaseText } from '../rn-components'
-import { BookmarkBoldIcon, BookmarkLightIcon, CommentIcon, HeartIcon, MessageLightIcon, MoreIcon, NotificationIcon, RepostIcon } from '~/assets/svgs'
+import { CommentIcon, HeartIcon, MessageLightIcon, MoreIcon, NotificationIcon, RepostIcon } from '~/assets/svgs'
 import InteractNum from '../interact/InteractNum'
 import { LinearGradient } from 'react-native-linear-gradient'
 import { FastImage } from '../rn-components'
@@ -12,16 +12,18 @@ import { IPost } from '~/interfaces/post'
 import { SheetManager } from 'react-native-actions-sheet'
 import { FlashList } from '@shopify/flash-list'
 import LikeButton from '../buttons/LikeButton'
+import BookmarkButton from '../buttons/BookmarkButton'
 import { IMedia } from '~/interfaces'
 import Video, { VideoRef } from 'react-native-video'
 import { Navigation } from '~/utils'
 import { useFollowMutation, useAuthStore } from '~/hooks'
+import { RepostButton } from '../buttons'
 const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) => {
     const [expanded, setExpanded] = React.useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
-    const [bookmarked, setBookmarked] = React.useState(false);
     const [numberOfLines, setNumberOfLines] = React.useState(0);
     const [likeCount, setLikeCount] = useState(post.likeCount);
+    const [repostCount, setRepostCount] = useState(post.repostCount);
     const [isFollowing, setIsFollowing] = useState(!!post.isFollowing);
     const windowWidth = Dimensions.get('window').width
     const currentUser = useAuthStore(state => state.user);
@@ -30,6 +32,10 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
     useEffect(() => {
         setLikeCount(post.likeCount);
     }, [post.likeCount]);
+
+    useEffect(() => {
+        setRepostCount(post.repostCount);
+    }, [post.repostCount]);
 
     useEffect(() => {
         setIsFollowing(!!post.isFollowing);
@@ -156,18 +162,15 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
                         interactNum={post.commentCount}
                         onPress={() => SheetManager.show('CommentSheet', {payload: {targetId: post._id, targetType: "Post"}})}
                     />
-                    <InteractNum accessory={<RepostIcon width={24} height={24} />} interactNum={post.repostCount}/>
+                    <InteractNum accessory={<RepostButton size={24} id={post._id} type="Post" initialReposted={post.isReposted} onRepostToggle={(isReposted) => setRepostCount(prev => isReposted ? prev + 1 : Math.max(0, prev - 1))}/>} interactNum={repostCount}/>
                     <InteractNum accessory={<MessageLightIcon width={24} height={24}/>} interactNum={post.shareCount}/>
                 </View>
-                <TouchableOpacity onPress= {() => setBookmarked(prev => !prev)}>
-                {
-                    bookmarked ? (
-                        <BookmarkBoldIcon width={24} height={24} />
-                    ) : (
-                        <BookmarkLightIcon width={24} height={24} />
-                    )
-                }
-                </TouchableOpacity>
+                <BookmarkButton 
+                    size={24} 
+                    id={post._id} 
+                    type="Post" 
+                    initialBookmarked={post.isBookmarked} 
+                />
             </View>
             <SizedBox height={12}/>
             <View>

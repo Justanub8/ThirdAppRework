@@ -7,8 +7,10 @@ import { CommentIcon, HeartIcon, MessageLightIcon, MoreIcon, NotificationIcon, R
 import { SizedBox } from '~/components/separate-components'
 import { IReel } from '~/interfaces/reel'
 import LikeButton from '../buttons/LikeButton'
+import BookmarkButton from '../buttons/BookmarkButton'
 import { SheetManager } from 'react-native-actions-sheet'
 import { useFollowMutation, useAuthStore } from '~/hooks'
+import { RepostButton } from '../buttons'
 
 type ReelOverlayProps = {
   reel: IReel;
@@ -17,6 +19,9 @@ type ReelOverlayProps = {
 
 const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
   const [isFollowing, setIsFollowing] = useState(!!reel.isFollowing);
+  const [likeCount, setLikeCount] = useState(reel.likeCount || 0);
+  const [bookmarkCount, setBookmarkCount] = useState(reel.bookmarkCount || 0);
+  const [repostCount, setRepostCount] = useState(reel.repostCount || 0);
   const currentUser = useAuthStore(state => state.user);
   const isOwnReel = currentUser?._id === reel.user?._id;
   const { createFollow, deleteFollow } = useFollowMutation();
@@ -24,6 +29,18 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
   useEffect(() => {
     setIsFollowing(!!reel.isFollowing);
   }, [reel.user?._id, reel.isFollowing]);
+
+  useEffect(() => {
+    setLikeCount(reel.likeCount || 0);
+  }, [reel.likeCount]);
+
+  useEffect(() => {
+    setBookmarkCount(reel.bookmarkCount || 0);
+  }, [reel.bookmarkCount]);
+
+  useEffect(() => {
+    setRepostCount(reel.repostCount || 0);
+  }, [reel.repostCount])
 
   const handleFollowToggle = () => {
     if (!reel.user?._id) return;
@@ -65,9 +82,17 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
 
         <View style={styles.bottomRight} pointerEvents="box-none">
           <View style={styles.actionItem}>
-            <LikeButton size={32} id={reel._id} type="Reel" initialLiked={reel.isLiked} inactiveColor="#ffffff" activeColor="#F44336" />
+            <LikeButton 
+              size={32} 
+              id={reel._id} 
+              type="Reel" 
+              initialLiked={reel.isLiked} 
+              inactiveColor="#ffffff" 
+              activeColor="#F44336"
+              onLikeToggle={(isLiked) => setLikeCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))}
+            />
             <SizedBox height={4}/>
-            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{reel.likeCount || 0}</BaseText>
+            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{likeCount}</BaseText>
           </View>
 
           <View style={styles.actionItem}>
@@ -79,9 +104,31 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
           </View>
 
           <View style={styles.actionItem}>
-            <RepostIcon height={32} width={32} color={'#ffffff'} />
+            <BookmarkButton
+              size={32}
+              id={reel._id}
+              type="Reel"
+              initialBookmarked={reel.isBookmarked}
+              inactiveColor="#ffffff"
+              activeColor="#ffffff"
+              onBookmarkToggle={(isBookmarked) => setBookmarkCount(prev => isBookmarked ? prev + 1 : Math.max(0, prev - 1))}
+            />
             <SizedBox height={4}/>
-            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{reel.repostCount || 0}</BaseText>
+            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{bookmarkCount}</BaseText>
+          </View>
+
+          <View style={styles.actionItem}>
+            <RepostButton
+              size={32}
+              id={reel._id}
+              type="Reel"
+              initialReposted={reel.isReposted}
+              inactiveColor="#ffffff"
+              activeColor="#23d04e"
+              onRepostToggle={(isReposted) => setRepostCount(prev => isReposted ? prev + 1 : Math.max(0, prev - 1))}
+            />
+            <SizedBox height={4}/>
+            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{repostCount}</BaseText>
           </View>
 
           <View style={styles.actionItem}>

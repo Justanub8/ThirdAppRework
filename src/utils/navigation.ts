@@ -101,5 +101,13 @@ export const Navigation = {
                 params: {id}
             })
         }
+    },
+
+    goToCreatePost: () => {
+        if(navigationRef.isReady()){
+            navigationRef.navigate('App' , {
+                screen: 'CreatePost'
+            })
+        }
     }
 };

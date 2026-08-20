@@ -9,11 +9,14 @@ export interface IPost {
     shareCount: number;
     repostCount: number;
     commentCount: number;
+    bookmarkCount?: number;
     caption: string;
     createdAt: Date;
     updatedAt?: Date;
     isFollowing?: boolean;
     isLiked?: boolean;
+    isBookmarked?: boolean;
+    isReposted?: boolean;
 }
 
 export interface IResponseGetPost {

@@ -17,6 +17,7 @@ export type AuthenticatedStackParamList = {
     Conversation: {id: string, name?: string},
     NewMessage: undefined,
     UserProfile: {id: string},
+    CreatePost: undefined,
 }
 
 export type MainTabParamList = {

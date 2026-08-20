@@ -17,6 +17,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { postApi } from '~/api/postApi'
 import { SheetManager } from 'react-native-actions-sheet'
 import { FlashList } from '@shopify/flash-list'
+import { Navigation } from '~/utils'
 
 const HomeScreen = () => {
   const menuModalRef = React.useRef<BottomSheetModal>(null);
@@ -54,7 +55,7 @@ const HomeScreen = () => {
   const renderHeader = React.useCallback(() => (
     <View>
       <View style= {[commonStyles.flexRow, commonStyles.justifyBetween, commonStyles.alignItemsCenter, commonStyles.paddingScrollHorizontal, commonStyles.testBorder]}>
-          <CreateIcon width={36} height={36} onPress={() => {}}/>
+          <CreateIcon width={36} height={36} onPress={() => {Navigation.goToCreatePost()}}/>
           <FastImage source={images.logo_transparent} resizeMode='contain' style={styles.logo}/>
           <NotificationIcon width={32} height={32} onPress={() => {logoutLocal()}}/>
       </View>
