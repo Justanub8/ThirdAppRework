@@ -27,6 +27,18 @@ export const Navigation = {
             navigationRef.dispatch(StackActions.pop(count ?? 1));
         }
     },
+
+    goToHomeScreen: () => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate("App", {
+                screen: 'Main',
+                params: {
+                    screen: 'HomeScreen'
+                }
+            })
+        }
+    },
     
     goToSignUp: () => {
         SheetManager.hideAll();

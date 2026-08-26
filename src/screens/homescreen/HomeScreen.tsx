@@ -25,7 +25,7 @@ const HomeScreen = () => {
 
   const onViewableItemsChanged = React.useCallback(({ viewableItems }: { viewableItems: any[] }) => {
     if (viewableItems && viewableItems.length > 0) {
-      setActivePostId(viewableItems[0].item._id);
+      setActivePostId(viewableItems[0].item.id || viewableItems[0].item._id);
     }
   }, []);
 
@@ -41,7 +41,7 @@ const HomeScreen = () => {
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      if (lastPage.pagination.page < lastPage.pagination.totalPages) {
+      if (lastPage?.pagination && lastPage.pagination.page < lastPage.pagination.totalPages) {
         return lastPage.pagination.page + 1;
       }
       return undefined;
@@ -64,11 +64,11 @@ const HomeScreen = () => {
     </View>
   ), [logoutLocal]);
 
-  const keyExtractor = React.useCallback((item: any) => item._id, []);
+  const keyExtractor = React.useCallback((item: any) => item.id || item._id, []);
 
   const renderItem = React.useCallback(
     ({ item }: { item: any }) => (
-      <Post post={item} isActive={item._id === activePostId} />
+      <Post post={item} isActive={(item.id || item._id) === activePostId} />
     ),
     [activePostId]
   );

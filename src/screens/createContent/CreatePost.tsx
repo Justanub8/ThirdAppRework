@@ -1,5 +1,5 @@
-import { View, Image, TouchableOpacity, StyleSheet } from 'react-native'
-import React from 'react'
+import { View, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, TextInput } from 'react-native'
+import React, { useState } from 'react'
 import { RouteProp, useRoute } from '@react-navigation/native'
 import { AuthenticatedStackParamList } from '~/navigation/types'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,8 @@ import { ArrowToRight, CrossIcon, MenuIcon, MutedIcon, StickerIcon, TextAaIcon, 
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
 import { Navigation } from '~/utils';
+import { usePostMutation } from '~/hooks';
+import { mediaApi } from '~/api';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreatePost'>;
 
@@ -14,20 +16,55 @@ const CreatePost = () => {
   const { top } = useSafeAreaInsets();
   const route = useRoute<RouteProps>();
   const { uri } = route.params;
+  const [caption, setCaption] = useState('');
+  const [showCaptionInput, setShowCaptionInput] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const { createPost } = usePostMutation();
+
+  const handleCreatePost = async () => {
+    if (!uri || createPost.isPending || isUploading) return;
+
+    try {
+      setIsUploading(true);
+      const uploadRes = await mediaApi.uploadImage(uri);
+      const uploadedUrl = uploadRes?.url || uri;
+
+      await createPost.mutateAsync({
+        caption: caption.trim() || 'Bài viết mới',
+        media: [{ url: uploadedUrl, type: 'image' }],
+      });
+      Alert.alert('Thành công', 'Đã tạo bài viết mới thành công!', [
+        {
+          text: 'OK',
+          onPress: () => {
+            Navigation.goToHomeScreen();
+          },
+        },
+      ]);
+    } catch (error: any) {
+      console.log('Error creating post:', error);
+      Alert.alert('Lỗi', error?.response?.data?.message || error?.message || 'Không thể tạo bài viết');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={[{ paddingTop: top + 10 }, styles.toolBar]}>
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.iconButton} onPress={() => Navigation.pop()}>
-            <CrossIcon width={32} height={32} color="#ffffff" />
+            <CrossIcon width={24} height={24} color="#ffffff" />
           </TouchableOpacity> 
 
           <View style={styles.rightTools}>
             <TouchableOpacity style={styles.iconButton}>
               <UnmutedIcon width={20} height={20} color="#ffffff" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity 
+              style={[styles.iconButton, showCaptionInput && styles.activeIconButton]}
+              onPress={() => setShowCaptionInput(prev => !prev)}
+            >
               <TextAaIcon width={16} height={16} color="#ffffff" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
@@ -40,21 +77,52 @@ const CreatePost = () => {
         </View>
       </View>
       
-      <Image
-        source={{ uri }}
-        resizeMode="cover"
-        style={styles.mainImage}
-      />
+      <View style={styles.imageWrapper}>
+        <Image
+          source={{ uri }}
+          resizeMode="cover"
+          style={styles.mainImage}
+        />
+        {showCaptionInput && (
+          <View style={styles.captionOverlay}>
+            <TextInput
+              placeholder="Caption cho bài đăng"
+              placeholderTextColor="#cccccc"
+              value={caption}
+              onChangeText={setCaption}
+              style={styles.captionInput}
+              autoFocus
+              multiline
+            />
+          </View>
+        )}
+      </View>
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.storyButton}>
-          <BaseText typography={Typography.bodyBold.medium} color="#ffffff">Your Story</BaseText>
+        <TouchableOpacity 
+          style={styles.storyButton}
+        >
+          <BaseText typography={Typography.bodyBold.medium} color="#ffffff">
+            Your Story
+          </BaseText>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.storyButton}>
-          <BaseText typography={Typography.bodyBold.medium} color="#ffffff">Close Friends</BaseText>
+        <TouchableOpacity 
+          style={styles.storyButton}
+        >
+          <BaseText typography={Typography.bodyBold.medium} color="#ffffff">
+            Close Friends
+          </BaseText>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.nextButton}>
-          <ArrowToRight width={32} height={32} color="#000000" />
+        <TouchableOpacity 
+          style={styles.nextButton}
+          onPress={handleCreatePost}
+          disabled={createPost.isPending || isUploading}
+        >
+          {createPost.isPending || isUploading ? (
+            <ActivityIndicator size="small" color="#000000" />
+          ) : (
+            <ArrowToRight width={24} height={24} color="#000000" />
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -93,10 +161,33 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
   },
-  mainImage: {
+  activeIconButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    borderWidth: 1,
+    borderColor: '#ffffff',
+  },
+  imageWrapper: {
     width: '100%',
     height: '84%',
+    position: 'relative',
+  },
+  mainImage: {
+    width: '100%',
+    height: '100%',
     borderRadius: 24,
+  },
+  captionOverlay: {
+    position: 'absolute',
+    top: '40%',
+    left: 24,
+    right: 24,
+    borderRadius: 16,
+    padding: 16,
+  },
+  captionInput: {
+    color: '#ffffff',
+    fontSize: 16,
+    textAlign: 'center',
   },
   bottomBar: {
     flexDirection: 'row',

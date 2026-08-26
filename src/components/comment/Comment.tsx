@@ -12,6 +12,8 @@ import { Navigation } from '~/utils';
 
 const Comment = ({ item }: { item: IComment }) => {
   const [likeCount, setLikeCount] = React.useState(item.likeCount);
+  const commentUserId = item.user?.id || item.user?._id;
+  const commentId = item.id || item._id || '';
 
   React.useEffect(() => {
       setLikeCount(item.likeCount);
@@ -22,12 +24,15 @@ const Comment = ({ item }: { item: IComment }) => {
         <SizedBox height={8}/>
         <View style={[commonStyles.flexRow, commonStyles.paddingHorizontal16, commonStyles.justifyBetween]}>
         <View style= {[commonStyles.flexRow, commonStyles.gap12, {flex: 1}]}>
-            <TouchableOpacity onPress={() => { if (item.user?._id) Navigation.goToUserProfile(item.user._id); }}>
-                <FastImage source={item.user?.imageUrl ? { uri: item.user.imageUrl } : images.avater_random} style={{height: 40, width: 40, borderRadius: 9999, borderWidth: 1}}/>
+            <TouchableOpacity onPress={() => { if (commentUserId) Navigation.goToUserProfile(commentUserId); }}>
+                <FastImage 
+                  source={(item.user?.avatarUrl || item.user?.imageUrl) ? { uri: item.user?.avatarUrl || item.user?.imageUrl } : images.avater_random} 
+                  style={{height: 40, width: 40, borderRadius: 9999, borderWidth: 1}}
+                />
             </TouchableOpacity>
             <View style={{flex: 1}}>
                 <View>
-                    <BaseText typography={Typography.bodyBold.medium} onPress={() => { if (item.user?._id) Navigation.goToUserProfile(item.user._id); }}>
+                    <BaseText typography={Typography.bodyBold.medium} onPress={() => { if (commentUserId) Navigation.goToUserProfile(commentUserId); }}>
                         {item.user?.username || 'Unknown'}
                     </BaseText>
                 <BaseText typography={Typography.bodyRegular.medium}>
@@ -56,7 +61,7 @@ const Comment = ({ item }: { item: IComment }) => {
             </View>
         </View>
         <View style={commonStyles.alignItemsCenter}>
-            <LikeButton size={24} id={item._id} type="Comment" initialLiked={(item as any).isLiked} onLikeToggle={(isLiked) => setLikeCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))} inactiveColor="#000000" activeColor="#F44336" />
+            <LikeButton size={24} id={commentId} type="Comment" initialLiked={(item as any).isLiked} onLikeToggle={(isLiked) => setLikeCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))} inactiveColor="#000000" activeColor="#F44336" />
             <SizedBox height={4}/>
             <BaseText typography ={Typography.bodyRegular.small}>
             {likeCount}

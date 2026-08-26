@@ -28,15 +28,15 @@ axiosInstance.interceptors.response.use(
         return response
     },
     error => {
-        const apiError = error as {response? : {data?: {message?: string}}}
-        if (apiError?.response?.data?.message === 'Please authenticate'){
+        const apiError = error as { response?: { status?: number; data?: { message?: string } } };
+        if (apiError?.response?.status === 401 || apiError?.response?.data?.message === 'Please authenticate') {
             useAuthStore.setState({
                 accessToken: null,
                 refreshToken: null,
                 user: null,
             });
         }
-        return Promise.reject(error)
+        return Promise.reject(error);
     }
 )
 

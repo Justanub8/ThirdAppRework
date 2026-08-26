@@ -25,9 +25,12 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
     const [likeCount, setLikeCount] = useState(post.likeCount);
     const [repostCount, setRepostCount] = useState(post.repostCount);
     const [isFollowing, setIsFollowing] = useState(!!post.isFollowing);
-    const windowWidth = Dimensions.get('window').width
+    const windowWidth = Dimensions.get('window').width;
     const currentUser = useAuthStore(state => state.user);
-    const isOwnPost = currentUser?._id === post.user?._id;
+    const postUserId = post.user?.id || post.user?._id;
+    const currentUserId = currentUser?.id || currentUser?._id;
+    const isOwnPost = !!currentUserId && currentUserId === postUserId;
+    const postId = post.id || post._id || '';
 
     useEffect(() => {
         setLikeCount(post.likeCount);
@@ -39,18 +42,18 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
 
     useEffect(() => {
         setIsFollowing(!!post.isFollowing);
-    }, [post.user?._id, post.isFollowing]);
+    }, [postUserId, post.isFollowing]);
 
     const { createFollow, deleteFollow } = useFollowMutation();
 
     const handleFollowToggle = () => {
-        if (!post.user?._id) return;
+        if (!postUserId) return;
         const nextState = !isFollowing;
         setIsFollowing(nextState);
         if (isFollowing) {
-            deleteFollow.mutate(post.user._id);
+            deleteFollow.mutate(postUserId);
         } else {
-            createFollow.mutate(post.user._id);
+            createFollow.mutate(postUserId);
         }
     };
 
@@ -98,7 +101,7 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
                         style={{ borderRadius: 9999, width:34, height: 34, borderWidth: 1, borderColor: '#ffffff', backgroundColor: '#ffffff'}}
                     >
                         <FastImage
-                            source={images.avater_random}
+                            source={(post.user?.avatarUrl || post.user?.imageUrl) ? { uri: post.user?.avatarUrl || post.user?.imageUrl } : images.avater_random}
                             resizeMode='cover'
                             style={{width: '100%', height: '100%', borderRadius: 9999}}
                         />
@@ -107,7 +110,7 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
                 <View>
                     <BaseText
                         typography = {Typography.bodyBold.medium}
-                        onPress={() => Navigation.goToUserProfile(post.user._id)}
+                        onPress={() => { if (postUserId) Navigation.goToUserProfile(postUserId); }}
                     >
                         {post.user?.username || 'Unknown'}
                     </BaseText>
@@ -121,7 +124,7 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
 
             
             <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.gap8]}>
-                {!isOwnPost && post.user?._id && (
+                {!isOwnPost && postUserId && (
                     <TouchableOpacity 
                         style={[styles.followButton, isFollowing && styles.followingButton]}
                         onPress={handleFollowToggle}
@@ -141,7 +144,7 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
             <FlashList
                 data={post.media || []}
                 renderItem={renderItem}
-                keyExtractor={(item, index) => item?._id || index.toString()}
+                keyExtractor={(item, index) => item?.id || item?._id || index.toString()}
                 pagingEnabled={true}
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={viewabilityConfig}
@@ -154,20 +157,20 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
             <View style = {[commonStyles.flexRow, commonStyles.justifyBetween]}>
                 <View style = {[commonStyles.flexRow, commonStyles.gap8]}>
                     <InteractNum 
-                        accessory={<LikeButton size={24} id={post._id} type="Post" initialLiked={post.isLiked} onLikeToggle={(isLiked) => setLikeCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))} inactiveColor="#000000" activeColor="#F44336" />} 
+                        accessory={<LikeButton size={24} id={postId} type="Post" initialLiked={post.isLiked} onLikeToggle={(isLiked) => setLikeCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))} inactiveColor="#000000" activeColor="#F44336" />} 
                         interactNum={likeCount}
                     />
                     <InteractNum 
                         accessory={<CommentIcon width={24} height={24}/>} 
                         interactNum={post.commentCount}
-                        onPress={() => SheetManager.show('CommentSheet', {payload: {targetId: post._id, targetType: "Post"}})}
+                        onPress={() => SheetManager.show('CommentSheet', {payload: {targetId: postId, targetType: "Post"}})}
                     />
-                    <InteractNum accessory={<RepostButton size={24} id={post._id} type="Post" initialReposted={post.isReposted} onRepostToggle={(isReposted) => setRepostCount(prev => isReposted ? prev + 1 : Math.max(0, prev - 1))}/>} interactNum={repostCount}/>
+                    <InteractNum accessory={<RepostButton size={24} id={postId} type="Post" initialReposted={post.isReposted} onRepostToggle={(isReposted) => setRepostCount(prev => isReposted ? prev + 1 : Math.max(0, prev - 1))}/>} interactNum={repostCount}/>
                     <InteractNum accessory={<MessageLightIcon width={24} height={24}/>} interactNum={post.shareCount}/>
                 </View>
                 <BookmarkButton 
                     size={24} 
-                    id={post._id} 
+                    id={postId} 
                     type="Post" 
                     initialBookmarked={post.isBookmarked} 
                 />

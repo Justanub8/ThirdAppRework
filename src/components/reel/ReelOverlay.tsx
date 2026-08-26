@@ -23,12 +23,15 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
   const [bookmarkCount, setBookmarkCount] = useState(reel.bookmarkCount || 0);
   const [repostCount, setRepostCount] = useState(reel.repostCount || 0);
   const currentUser = useAuthStore(state => state.user);
-  const isOwnReel = currentUser?._id === reel.user?._id;
+  const reelUserId = reel.user?.id || reel.user?._id;
+  const currentUserId = currentUser?.id || currentUser?._id;
+  const isOwnReel = !!currentUserId && currentUserId === reelUserId;
+  const reelId = reel.id || reel._id || '';
   const { createFollow, deleteFollow } = useFollowMutation();
 
   useEffect(() => {
     setIsFollowing(!!reel.isFollowing);
-  }, [reel.user?._id, reel.isFollowing]);
+  }, [reelUserId, reel.isFollowing]);
 
   useEffect(() => {
     setLikeCount(reel.likeCount || 0);
@@ -43,13 +46,13 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
   }, [reel.repostCount])
 
   const handleFollowToggle = () => {
-    if (!reel.user?._id) return;
+    if (!reelUserId) return;
     const nextState = !isFollowing;
     setIsFollowing(nextState);
     if (isFollowing) {
-      deleteFollow.mutate(reel.user._id);
+      deleteFollow.mutate(reelUserId);
     } else {
-      createFollow.mutate(reel.user._id);
+      createFollow.mutate(reelUserId);
     }
   };
 
@@ -58,12 +61,15 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
       <View style={[styles.bottomContainer, { bottom: 20 }]} pointerEvents="box-none">
         <View style={styles.bottomLeft} pointerEvents="box-none">
             <View style={styles.reelInformation} pointerEvents="box-none">
-              <FastImage source={images.avater_random} style={styles.avatar}/>
+              <FastImage 
+                source={(reel.user?.avatarUrl || reel.user?.imageUrl) ? { uri: reel.user?.avatarUrl || reel.user?.imageUrl } : images.avater_random} 
+                style={styles.avatar}
+              />
               <BaseText color={'#ffffff'} typography={Typography.bodyBold.medium}>
                 {reel.user?.username || 'user'}
               </BaseText>
               
-              {!isOwnReel && reel.user?._id && (
+              {!isOwnReel && reelUserId && (
                 <TouchableOpacity 
                   style={[styles.followButton, isFollowing && styles.followingButton]}
                   onPress={handleFollowToggle}
@@ -84,7 +90,7 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
           <View style={styles.actionItem}>
             <LikeButton 
               size={32} 
-              id={reel._id} 
+              id={reelId} 
               type="Reel" 
               initialLiked={reel.isLiked} 
               inactiveColor="#ffffff" 
@@ -97,7 +103,7 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
 
           <View style={styles.actionItem}>
             <CommentIcon height={32} width={32} color={'#ffffff'} 
-              onPress={() => SheetManager.show('CommentSheet', {payload: {targetId: reel._id, targetType: "Reel"}})}
+              onPress={() => SheetManager.show('CommentSheet', {payload: {targetId: reelId, targetType: "Reel"}})}
             />
             <SizedBox height={4}/>
             <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{reel.commentCount || 0}</BaseText>
@@ -106,7 +112,7 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
           <View style={styles.actionItem}>
             <BookmarkButton
               size={32}
-              id={reel._id}
+              id={reelId}
               type="Reel"
               initialBookmarked={reel.isBookmarked}
               inactiveColor="#ffffff"
@@ -120,7 +126,7 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
           <View style={styles.actionItem}>
             <RepostButton
               size={32}
-              id={reel._id}
+              id={reelId}
               type="Reel"
               initialReposted={reel.isReposted}
               inactiveColor="#ffffff"

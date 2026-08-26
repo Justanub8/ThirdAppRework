@@ -1,11 +1,20 @@
-export interface ApiRes<T> {
-    status: number;
-    datetime: string;
-    message: string;
-    message_code: string;
-    result: T;
+export interface PaginationMeta {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
 }
-export interface PaginatedRes<T> {
+
+export interface PaginatedResponse<T> {
     data: T[];
-    total_record: number;
+    pagination: PaginationMeta;
 }
+
+export interface BaseResponse<T = any> {
+    message?: string;
+    data?: T;
+}
+
+// Legacy aliases for backward compatibility
+export type ApiRes<T> = BaseResponse<T>;
+export type PaginatedRes<T> = PaginatedResponse<T>;

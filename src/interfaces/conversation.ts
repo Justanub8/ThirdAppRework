@@ -2,7 +2,8 @@ import { IProfileUser } from "./auth";
 import { IMessage } from "./message";
 
 export interface IConversation {
-    _id: string;
+    id?: string;
+    _id?: string;
     participants: IProfileUser[];
     lastMessage?: IMessage;
     isGroup: boolean;

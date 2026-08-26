@@ -14,10 +14,12 @@ interface MessageProps {
 }
 
 const Message = ({ item, previous, isRefreshing, currentUserId }: MessageProps) => {
-    const storeUserId = useAuthStore(state => state.user?._id);
+    const storeUserId = useAuthStore(state => state.user?.id || state.user?._id);
     const userId = currentUserId || storeUserId;
-    const messageSenderId = item.senderId?._id || item.senderId;
-    const isMyMessage = messageSenderId === userId;
+    const senderObj = item.sender || (typeof item.senderId === 'object' ? item.senderId : null);
+    const messageSenderId = senderObj?.id || senderObj?._id || (typeof item.senderId === 'string' ? item.senderId : undefined);
+    const isMyMessage = !!userId && messageSenderId === userId;
+    const senderDisplayName = senderObj?.username || senderObj?.name || 'Unknown';
     const [showTime, setShowTime] = React.useState(false);
     const [showName, setShowName] = React.useState(false);
 
@@ -50,7 +52,7 @@ const Message = ({ item, previous, isRefreshing, currentUserId }: MessageProps) 
         ) : null}
         {(showName || hasLargeTimeDiff) ? (
             <BaseText typography={Typography.bodyMedium.small} color="#8E8E8E" style={{alignSelf: isMyMessage ? 'flex-end' : 'flex-start', marginHorizontal: 8, marginBottom: 2}}>
-                {item.senderId?.username || item.senderId?.name || 'Unknown'}
+                {senderDisplayName}
             </BaseText>
         ) : null}
         <TouchableOpacity 

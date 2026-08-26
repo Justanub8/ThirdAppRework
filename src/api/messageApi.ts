@@ -1,14 +1,22 @@
 import axiosInstance from "~/services/axiosClient";
-import { ApiRes, PaginatedRes } from "./api";
 import { IMessage } from "~/interfaces";
+import { PaginatedResponse } from "./api";
+
+export interface SendMessagePayload {
+    conversationId: string;
+    content?: string;
+    mediaId?: string[];
+}
 
 export const messageApi = {
-    getMessages: (conversationId: string, page: number , pageSize: number) => 
-        axiosInstance.get<ApiRes<PaginatedRes<IMessage>>>(`message/${conversationId}?page=${page}&limit=${pageSize}`),
+    getMessages: (conversationId: string, page: number = 1, limit: number = 20) => 
+        axiosInstance.get<PaginatedResponse<IMessage>>(
+            `/message/${conversationId}?page=${page}&limit=${limit}`
+        ),
     
-    sendMessage: ({conversationId, content}: {conversationId: string, content: string}) => 
-        axiosInstance.post(`message/send/${conversationId}`, { content }),
+    sendMessage: ({ conversationId, content, mediaId }: SendMessagePayload) => 
+        axiosInstance.post<{ message: string; data: IMessage }>(`/message/send/${conversationId}`, { content, mediaId, conversationId }),
         
-    editMessage: ({messageId, content}: {messageId: string, content: string}) => 
-        axiosInstance.put(`message/${messageId}`, { content })
-}
+    editMessage: ({ messageId, content }: { messageId: string; content: string }) => 
+        axiosInstance.put<{ message: string; data: IMessage }>(`/message/${messageId}`, { content }),
+};

@@ -11,6 +11,7 @@ import { SizedBox } from '~/components/separate-components'
 import SlideUpModal from '~/components/slide-up/SlideUpModal'
 import { useQuery } from '@tanstack/react-query'
 import { userApi } from '~/api/userApi'
+import { useAuthStore } from '~/hooks'
 
 interface AccountProps {
   username: string;
@@ -21,6 +22,7 @@ interface AccountProps {
 }
 
 const Profile = () => {
+  const { logoutLocal } = useAuthStore();
   const { data, refetch } = useQuery({
     queryKey: ['my-profile'],
     queryFn: async () => {
@@ -49,10 +51,13 @@ const Profile = () => {
             <BaseText typography={Typography.bodyBold.xxxLarge}>
               {data?.username}
             </BaseText>
-            <MenuIcon height={36} width={36} onPress={() => {navigate('Settings')}}/>
+            <MenuIcon height={36} width={36} onPress={() => logoutLocal()}/>
           </View>
           <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.gap24]}>
-            <FastImage source={images.avater_random} style ={{height: 90, width: 90, borderWidth: 1 , borderRadius: 9999}}/>
+            <FastImage 
+              source={(data?.avatarUrl || data?.imageUrl) ? { uri: data?.avatarUrl || data?.imageUrl } : images.avater_random} 
+              style={{height: 90, width: 90, borderWidth: 1 , borderRadius: 9999}}
+            />
             <View>
               <BaseText typography= {Typography.bodyBold.medium}>
                 {data?.username}

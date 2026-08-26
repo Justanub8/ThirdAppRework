@@ -1,23 +1,29 @@
 import { IProfileUser } from "./auth";
+import { IMedia } from "./media";
 
 export interface IMessage {
-    _id: string;
+    id?: string;
+    _id?: string;
     conversationId: string;
-    senderId: IProfileUser;
-    content: string;
+    senderId?: string;
+    sender?: IProfileUser;
+    content?: string | null;
+    media?: IMedia[];
     createdAt: Date;
     updatedAt?: Date;
 }
 
 export interface IResponseGetMessage {
-    message: IMessage
+    message: IMessage;
 }
 
 export interface INote { 
-    _id: string;
+    id?: string;
+    _id?: string;
     userId: {
-        _id: string;
+        id?: string;
+        _id?: string;
         username: string;
         avatar?: string;
-    }
+    };
 }

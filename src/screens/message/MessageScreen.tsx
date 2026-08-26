@@ -75,15 +75,15 @@ const MessageScreen = () => {
           <SizedBox height={24}/>
           <View>
             {conversations.map((conv: any) => {
-              const otherUser = conv.participants.find((p: any) => p._id !== user?._id);
+              const convKey = conv.id || conv._id;
               return (
-                <View key={conv._id} style={{ marginBottom: 16 }}>
+                <View key={convKey} style={{ marginBottom: 16 }}>
                   <Chat 
                     conversation={conv}
-                    currentUserId={user?._id}
+                    currentUserId={user?.id || user?._id}
                   />
                 </View>
-              )
+              );
             })}
           </View>
           <SizedBox height={24}/>

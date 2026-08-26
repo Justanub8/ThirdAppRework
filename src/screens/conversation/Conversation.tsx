@@ -143,17 +143,20 @@ const Conversation = () => {
         );
     }, [isLoading]);
 
-    const keyExtractor = useCallback((item: IMessage) => item._id, []);
+    const keyExtractor = useCallback((item: IMessage) => item.id || item._id || '', []);
     const handleSend = async () => {
         if (!messageContent.trim()) return;
         const text = messageContent.trim();
         setMessageContent('');
 
+        const currentUid = user?.id || user?._id;
         const tempId = `temp-${Date.now()}`;
         const tempMessage: IMessage = {
+            id: tempId,
             _id: tempId,
             conversationId: id,
-            senderId: user ? ({ _id: user._id, username: user.username, imageUrl: user.imageUrl } as any) : ({} as any),
+            sender: user ? ({ id: currentUid, _id: currentUid, username: user.username, name: user.name, avatarUrl: user.avatarUrl, imageUrl: user.imageUrl } as any) : undefined,
+            senderId: currentUid,
             content: text,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -167,10 +170,10 @@ const Conversation = () => {
         try {
             const res = await createMessage.mutateAsync({ conversationId: id, content: text });
             if (res.data && res.data.data) {
-                setMessages(prev => prev.map(m => m._id === tempId ? res.data.data : m));
+                setMessages(prev => prev.map(m => (m.id === tempId || m._id === tempId) ? res.data.data : m));
             }
         } catch (error) {
-            setMessages(prev => prev.filter(m => m._id !== tempId));
+            setMessages(prev => prev.filter(m => m.id !== tempId && m._id !== tempId));
             console.error("Lỗi gửi tin nhắn", error);
         }
     };
@@ -182,11 +185,11 @@ const Conversation = () => {
                     item={item} 
                     previous={index > 0 ? messages[index - 1] : undefined}
                     isRefreshing={isRefreshing}
-                    currentUserId={user?._id}
+                    currentUserId={user?.id || user?._id}
                 />
             );
         },
-        [messages, isRefreshing, user?._id]
+        [messages, isRefreshing, user?.id, user?._id]
     );
 
     useEffect(() => {

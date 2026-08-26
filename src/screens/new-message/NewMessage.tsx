@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
-import React, { useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import { CustomHeader } from '~/components/headers'
 import { CameraLightIcon, LeftArrow, MoreIcon, RightArrow } from '~/assets/svgs'
 import { PrimaryInput } from '~/components/inputs'
@@ -18,131 +18,160 @@ import { useConversationMutation, useMessageMutation } from '~/hooks'
 const NewMessage = () => {
     const [isFront, setIsFront] = useState(false);
     const [isTexting, setIsTexting] = useState(false);
-    const [messageContent,setMessageContent] = useState('');
+    const [messageContent, setMessageContent] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
     const [currentContact, setCurrentContact] = useState<IProfileUser>();
     const [conversationId, setConversationId] = useState("");
     const { createConversation } = useConversationMutation();
     const { createMessage } = useMessageMutation();
+
     const { data: usersData, isLoading } = useQuery({
         queryKey: ['suggestedUsers'],
         queryFn: async () => {
-            const res = await userApi.getAllUsers(20);
-            return res.data.users;
+            const res = await userApi.getAllUsers(1, 20);
+            return res.data?.users || res.data?.data || [];
         }
     });
+
     const handleChooseContact = async (contact: IProfileUser) => {
-        if(!contact) return;
-        try{
-            const res = await createConversation.mutateAsync(contact._id);
-            const convId = res.data?.data?._id || res.data?._id;
+        const contactId = contact?.id || contact?._id;
+        if (!contactId) return;
+        try {
+            const res = await createConversation.mutateAsync(contactId);
+            const convId = res.data?.data?.id || res.data?.data?._id || (res.data as any)?.id || (res.data as any)?._id;
             if (convId) {
                 setConversationId(convId);
             }
-        }catch(error){
-            console.log("Lỗi khi tìm/tạo cuộc trò chuyện", error)
+        } catch (error) {
+            console.log("Lỗi khi tìm/tạo cuộc trò chuyện", error);
         }
-    }
+    };
+
     const handleSend = async () => {
-        if(!messageContent.trim() || !conversationId) return;
-        try{
-            await createMessage.mutateAsync({conversationId: conversationId, content: messageContent})
+        if (!messageContent.trim() || !conversationId) return;
+        try {
+            await createMessage.mutateAsync({ conversationId: conversationId, content: messageContent });
             setMessageContent('');
             Navigation.goToConversation(conversationId);
-        }catch(error){
-            console.log("Lỗi khi gửi tin nhắn", error)
+        } catch (error) {
+            console.log("Lỗi khi gửi tin nhắn", error);
         }
-    }
-    const users = usersData || [];
-  return (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-        <CustomHeader
-            title='Tin nhắn mới'
-            LeftComponent={<LeftArrow height={24} width={24} onPress={() => Navigation.pop()}/>}
-        />
-        <KeyboardAvoidingView 
-            style={{ flex: 1 }} 
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-            <View style={styles.inputContainer}>
-                <BaseText typography={Typography.bodyMedium.large}>
-                Đến: 
-                </BaseText>
-                <BaseTextInput
-                    style={styles.toWhomInput}
-                    placeholder='Tìm kiếm'
-                    typography={Typography.bodyMedium.large}
-                />
-            </View>
-            <View style={styles.container}>
-                <View style={[styles.card, {zIndex: 2}]}>
-                    <ScrollView contentContainerStyle={{ paddingBottom: 16 }} keyboardShouldPersistTaps="handled">
-                        <View style={{padding: 16}}>
-                            <BaseText typography={Typography.bodyBold.large}>Gợi ý</BaseText>
-                        </View>
-                        
-                        <View style={{ gap: 12 }}>
-                            {users.map((item) => (
-                                <TouchableOpacity key={item._id} style={styles.contactContainer} 
-                                    onPress={() => {
-                                        setIsFront(true);
-                                        setCurrentContact(item);
-                                        handleChooseContact(item);
-                                    }}
-                                >
-                                    <FastImage 
-                                        source={item.imageUrl ? { uri: item.imageUrl } : images.avater_random} 
-                                        style={[styles.avatar, {width: 48, height: 48}]}
-                                    />
-                                    <BaseText typography={Typography.bodySemiBold.medium}>{item.username}</BaseText>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    </ScrollView>
+    };
+
+    const users = (usersData || []).filter(u => {
+        if (!searchQuery.trim()) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+            (u.username && u.username.toLowerCase().includes(q)) ||
+            (u.name && u.name.toLowerCase().includes(q))
+        );
+    });
+
+    return (
+        <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
+            <CustomHeader
+                title='Tin nhắn mới'
+                LeftComponent={<LeftArrow height={24} width={24} onPress={() => Navigation.pop()} />}
+            />
+            <KeyboardAvoidingView 
+                style={{ flex: 1 }} 
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <View style={styles.inputContainer}>
+                    <BaseText typography={Typography.bodyMedium.large}>
+                        Đến: 
+                    </BaseText>
+                    <BaseTextInput
+                        style={styles.toWhomInput}
+                        placeholder='Tìm kiếm'
+                        typography={Typography.bodyMedium.large}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
                 </View>
-                <View style={[styles.card, {zIndex: isFront ? 3 : 1}]}>
-                    <View style={{justifyContent: 'space-between', flex: 1}}>
-                        <View style={{alignItems: 'center', padding: 16, gap: 8}}> 
-                            <FastImage 
-                                source={currentContact?.imageUrl ? { uri: currentContact?.imageUrl } : images.avater_random} 
-                                style={[styles.avatar, {width: 80, height: 80}]}
-                            />
-                            <BaseText>{currentContact?.username}</BaseText>
-                            <BaseText>
-                                    {currentContact?.follower} người theo dõi - {currentContact?.postCount} bài viết
-                            </BaseText>
-                            <BaseText> Các bạn theo dõi nhau trên Instagram</BaseText>
-                            <TouchableOpacity 
-                                onPress={() => Navigation.goToUserProfile(currentContact?._id as any)}
-                                style={{borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: "#a4a4a4"}}
-                            >
-                                <BaseText style={{color: "#ffffff"}}>
-                                    Xem trang cá nhân
+                <View style={styles.container}>
+                    <View style={[styles.card, { zIndex: 2 }]}>
+                        <ScrollView contentContainerStyle={{ paddingBottom: 16 }} keyboardShouldPersistTaps="handled">
+                            <View style={{ padding: 16 }}>
+                                <BaseText typography={Typography.bodyBold.large}>Gợi ý</BaseText>
+                            </View>
+                            
+                            <View style={{ gap: 12 }}>
+                                {users.map((item) => {
+                                    const itemAvatar = item.avatarUrl || item.imageUrl;
+                                    const itemKey = item.id || item._id;
+                                    return (
+                                        <TouchableOpacity 
+                                            key={itemKey} 
+                                            style={styles.contactContainer} 
+                                            onPress={() => {
+                                                setIsFront(true);
+                                                setCurrentContact(item);
+                                                handleChooseContact(item);
+                                            }}
+                                        >
+                                            <FastImage 
+                                                source={itemAvatar ? { uri: itemAvatar } : images.avater_random} 
+                                                style={[styles.avatar, { width: 48, height: 48 }]}
+                                            />
+                                            <View>
+                                                <BaseText typography={Typography.bodySemiBold.medium}>{item.username}</BaseText>
+                                                {item.name && (
+                                                    <BaseText typography={Typography.bodyRegular.small} color="#8e8e8e">
+                                                        {item.name}
+                                                    </BaseText>
+                                                )}
+                                            </View>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </ScrollView>
+                    </View>
+                    <View style={[styles.card, { zIndex: isFront ? 3 : 1 }]}>
+                        <View style={{ justifyContent: 'space-between', flex: 1 }}>
+                            <View style={{ alignItems: 'center', padding: 16, gap: 8 }}> 
+                                <FastImage 
+                                    source={(currentContact?.avatarUrl || currentContact?.imageUrl) ? { uri: currentContact?.avatarUrl || currentContact?.imageUrl } : images.avater_random} 
+                                    style={[styles.avatar, { width: 80, height: 80 }]}
+                                />
+                                <BaseText typography={Typography.bodyBold.large}>{currentContact?.username}</BaseText>
+                                <BaseText>
+                                    {currentContact?.follower || 0} người theo dõi - {currentContact?.postCount || 0} bài viết
                                 </BaseText>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.messageInput}>
-                            {!isTexting ? (
-                                <TouchableOpacity style={styles.cameraIcon}>
-                                    <CameraLightIcon height={24} width={24}/>
+                                <BaseText> Các bạn theo dõi nhau trên Instagram</BaseText>
+                                <TouchableOpacity 
+                                    onPress={() => Navigation.goToUserProfile((currentContact?.id || currentContact?._id) as any)}
+                                    style={{ borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: "#a4a4a4" }}
+                                >
+                                    <BaseText style={{ color: "#ffffff" }}>
+                                        Xem trang cá nhân
+                                    </BaseText>
                                 </TouchableOpacity>
-                            ) : null}
-                            <BaseTextInput
-                                placeholder='Nhắn tin..'
-                                style={{flex: 1}}
-                                value={messageContent}
-                                onFocus={() => {setIsTexting(true)}}
-                                onBlur={() => setIsTexting(false)}
-                                onChangeText={setMessageContent}
-                                onSubmitEditing={() => {handleSend()}}
-                            />
+                            </View>
+                            <View style={styles.messageInput}>
+                                {!isTexting ? (
+                                    <TouchableOpacity style={styles.cameraIcon}>
+                                        <CameraLightIcon height={24} width={24} />
+                                    </TouchableOpacity>
+                                ) : null}
+                                <BaseTextInput
+                                    placeholder='Nhắn tin..'
+                                    style={{ flex: 1 }}
+                                    value={messageContent}
+                                    onFocus={() => { setIsTexting(true); }}
+                                    onBlur={() => setIsTexting(false)}
+                                    onChangeText={setMessageContent}
+                                    onSubmitEditing={() => { handleSend(); }}
+                                />
+                            </View>
                         </View>
                     </View>
                 </View>
-            </View>
-        </KeyboardAvoidingView>
-    </SafeAreaView>
-  )
-}
+            </KeyboardAvoidingView>
+        </SafeAreaView>
+    );
+};
 
 const styles = StyleSheet.create({
     safeArea: {
@@ -156,7 +185,7 @@ const styles = StyleSheet.create({
     },
     toWhomInput: {
         flex: 1,
-        marginLeft: 8
+        marginLeft: 8,
     },
     avatar: {
         borderRadius: 9999,
@@ -169,11 +198,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
     },
-    container:{
+    container: {
         flex: 1,
         position: 'relative',
         borderWidth: 1,
-        borderColor: "#000"
+        borderColor: "#000",
     },
     card: {
         position: 'absolute',
@@ -198,6 +227,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#eee7f1",
         borderRadius: 9999,
         padding: 4,
-    }
-})
-export default NewMessage
+    },
+});
+
+export default NewMessage;

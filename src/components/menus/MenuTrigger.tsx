@@ -1,7 +1,6 @@
-import { dimensions } from "@helpers/index"
-import _ from 'lodash'
 import * as React from 'react'
 import {
+    Dimensions,
     Modal,
     StyleProp,
     StyleSheet,
@@ -9,10 +8,13 @@ import {
     View,
     ViewStyle,
 } from 'react-native'
-import { Gesture, GestureDetector, } from "react-native-gesture-handler"
+import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import { runOnJS } from "react-native-worklets"
-import { commonStyles } from "@themes/commonStyles"
+import { commonStyles } from '~/constants'
 import { create } from "zustand"
+
+const { width: widthScreen, height: heightScreen } = Dimensions.get('window');
+export const dimensions = { widthScreen, heightScreen, scale: (v: number) => v };
 
 interface MenuTriggerProps {
     children: React.JSX.Element;
@@ -122,8 +124,8 @@ const MenuTrigger = React.forwardRef<MenuTriggerRef, MenuTriggerProps>(
             <GestureDetector gesture = {gesture}>
                 <TouchableOpacity
                 onLayout={event => {
-                    const width = _.get(event, 'nativeEvent.layout.width', 0)
-                    const height = _.get(event, 'nativeEvent.layout.height', 0)
+                    const width = event?.nativeEvent?.layout?.width || 0;
+                    const height = event?.nativeEvent?.layout?.height || 0;
                 }}
                 style = {archonContainerStyle}
                 >
@@ -140,9 +142,9 @@ const MenuTrigger = React.forwardRef<MenuTriggerRef, MenuTriggerProps>(
                         {visible ? (
                             <View
                             onLayout={event => {
-                                const width = _.get(event, 'nativeEvent.layout.width' , 0);
-                                const height = _.get(event, 'nativeEvent.layout.height', 0);
-                                childrenLayout.current = { width, height}
+                                const width = event?.nativeEvent?.layout?.width || 0;
+                                const height = event?.nativeEvent?.layout?.height || 0;
+                                childrenLayout.current = { width, height};
                             }}
                             style = {[
                                 modalStyle.container,

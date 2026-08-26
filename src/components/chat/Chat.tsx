@@ -12,8 +12,10 @@ interface ChatProps {
     currentUserId?: string;
 }
 const Chat = ({conversation, currentUserId} : ChatProps) => {
-  const otherUser = conversation.participants.find((p: any) => p._id !== currentUserId) || conversation.participants[0];
-  const displayName = otherUser?.username || 'Unknown';
+  const otherUser = conversation.participants.find((p: any) => (p.id || p._id) !== currentUserId) || conversation.participants[0];
+  const displayName = otherUser?.username || otherUser?.name || 'Unknown';
+  const avatarUri = otherUser?.avatarUrl || otherUser?.imageUrl;
+  const conversationId = conversation.id || conversation._id || '';
   
   const targetDate = conversation.lastMessage?.createdAt || conversation.createdAt || new Date();
   const isToday = dayjs(targetDate).isSame(dayjs(), 'day');
@@ -24,11 +26,11 @@ const Chat = ({conversation, currentUserId} : ChatProps) => {
   return (
     <TouchableOpacity 
         style = {[commonStyles.container, commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.justifyBetween]}
-        onPress={() => Navigation.goToConversation(conversation._id, displayName)}
+        onPress={() => Navigation.goToConversation(conversationId, displayName)}
     >
         <View style = {[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.gap12]}>
             <FastImage 
-                source={otherUser?.imageUrl ? { uri: otherUser.imageUrl } : images.avater_random} 
+                source={avatarUri ? { uri: avatarUri } : images.avater_random} 
                 style = {styles.avatar} 
             />
             <View>

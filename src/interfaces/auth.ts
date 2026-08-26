@@ -13,8 +13,10 @@ export interface ISignUpPayload {
     username: string;
     email: string;
     password: string;
+    name?: string;
     fullname?: string;
     phoneNumber?: string;
+    avatarUrl?: string;
 }
 export interface IResponseSignUp {
     message: string;
@@ -43,9 +45,11 @@ export interface IVerifyOtpPayload {
     otp: string;
 }
 export interface IProfileUser {
-    _id: string;
+    id?: string;
+    _id?: string;
     username: string;
     email: string;
+    name?: string;
     avatarUrl?: string;
     imageUrl?: string;
     postCount: number;

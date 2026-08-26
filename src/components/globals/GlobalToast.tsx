@@ -6,7 +6,7 @@ import { commonStyles } from '~/constants'
 import { SizedBox } from '../separate-components'
 import Animated, { SlideInUp, SlideOutUp} from 'react-native-reanimated'
 import { BaseText } from '../rn-components'
-import { InfoCircleBoldIcon, CheckCircleIcon} from '~/assets/svgs'
+import { CrossIcon, HeartIcon } from '~/assets/svgs'
 
 type GlobalToastType = {
   visible: boolean,
@@ -65,13 +65,13 @@ const GlobalToast = () => {
       >
         
         {type === 'error' ? (
-          <InfoCircleBoldIcon
+          <CrossIcon
             width={18}
             height={18}
             color={'#F75555'}
           />
         ) : (
-          <CheckCircleIcon
+          <HeartIcon
             width={18}
             height={18}
             color={'#1BAC4B'}

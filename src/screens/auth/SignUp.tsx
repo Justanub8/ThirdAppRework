@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Platform, ScrollView } from 'react-native'
 import React from 'react'
 import { commonStyles, Typography } from '~/constants'
 import FastImage from '@d11/react-native-fast-image'

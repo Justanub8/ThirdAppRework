@@ -1,20 +1,21 @@
 import { IProfileUser } from "./auth";
 import { IMedia } from "./media";
-export interface IReel {
+
+export interface IStory {
     id?: string;
     _id?: string;
+    userId?: string;
     user: IProfileUser;
-    media: IMedia;
+    content?: string;
+    mediaId?: string;
+    media?: IMedia;
     likeCount: number;
-    shareCount: number;
-    repostCount: number;
     commentCount: number;
-    caption: string;
-    bookmarkCount: number;
     createdAt: Date;
     updatedAt?: Date;
     isLiked?: boolean;
-    isBookmarked?: boolean;
-    isFollowing?: boolean;
-    isReposted?: boolean; 
+}
+
+export interface IResponseGetStory {
+    story: IStory;
 }

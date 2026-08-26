@@ -25,8 +25,8 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
       return res.data;
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.pagination.page < lastPage.pagination.totalPages) {
+    getNextPageParam: (lastPage: any) => {
+      if (lastPage?.pagination && lastPage.pagination.page < lastPage.pagination.totalPages) {
         return lastPage.pagination.page + 1;
       }
       return undefined;
@@ -55,8 +55,6 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
     <ActionSheet 
       id={props.sheetId} 
       gestureEnabled={true}
-      snapPoints={[50, 80]}
-      initialSnapIndex={0}
       closeOnTouchBackdrop={true}
       closeOnPressBack={true}
       indicatorStyle={styles.indicator}
@@ -73,7 +71,7 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
             <FlashList
               data={comments}
               renderItem={({ item }) => <Comment item={item} />}
-              keyExtractor={(item: any) => item._id}
+              keyExtractor={(item: any) => item.id || item._id || ''}
               onEndReached={() => {
                 if (hasNextPage) fetchNextPage();
               }}
@@ -107,7 +105,7 @@ export default CommentSheet;
 
 const styles = StyleSheet.create({
   containerStyle: {
-    height: '100%',
+    height: '70%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     backgroundColor: '#ffffff',

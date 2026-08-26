@@ -23,13 +23,18 @@ const Reels = () => {
       const response = await reelApi.getAllReels(pageParam, 10);
       return response.data;
     },
-    getNextPageParam: (lastPage) => {
-      return lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined;
+    getNextPageParam: (lastPage: any) => {
+      if (lastPage?.pagination) {
+        return lastPage.pagination.page < lastPage.pagination.totalPages
+          ? lastPage.pagination.page + 1
+          : undefined;
+      }
+      return lastPage?.hasNextPage ? (lastPage?.currentPage || 1) + 1 : undefined;
     },
     initialPageParam: 1,
   });
 
-  const reels = data?.pages.flatMap((page) => page.reels) || [];
+  const reels = data?.pages.flatMap((page: any) => page.data || page.reels || []) || [];
 
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 50,
@@ -58,7 +63,7 @@ const Reels = () => {
       <FlashList
         data={reels}
         renderItem={renderItem}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item.id || item._id || ''}
         pagingEnabled={true}
         showsVerticalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}

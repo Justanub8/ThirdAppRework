@@ -30,7 +30,7 @@ const UserProfile = () => {
   const route = useRoute<RouteProps>();
   const id = route.params.id;
   const currentUser = useAuthStore(state => state.user);
-  const isOwnProfile = currentUser?._id === id;
+  const isOwnProfile = (currentUser?.id || currentUser?._id) === id;
 
   const { data, isLoading } = useQuery({
     queryKey: ['userProfile', id],
@@ -68,7 +68,7 @@ const UserProfile = () => {
   const handleMessage = async () => {
     try {
       const res = await conversationApi.createConversation(id);
-      const convId = res.data?.data?._id;
+      const convId = res.data?.data?.id || res.data?.data?._id || (res.data as any)?.id || (res.data as any)?._id;
       if (convId) {
         Navigation.goToConversation(convId, data?.username);
       }
@@ -94,7 +94,7 @@ const UserProfile = () => {
           </View>
           <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.gap24]}>
             <FastImage 
-              source={data?.imageUrl ? { uri: data.imageUrl } : images.avater_random} 
+              source={(data?.avatarUrl || data?.imageUrl) ? { uri: data?.avatarUrl || data?.imageUrl } : images.avater_random} 
               style ={{height: 90, width: 90, borderWidth: 1 , borderRadius: 9999}}
             />
             <View>
