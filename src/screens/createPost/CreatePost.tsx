@@ -15,7 +15,7 @@ type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreatePost'>;
 const CreatePost = () => {
   const { top } = useSafeAreaInsets();
   const route = useRoute<RouteProps>();
-  const { uri } = route.params;
+  const { uri = '' } = route.params || {};
   const [caption, setCaption] = useState('');
   const [showCaptionInput, setShowCaptionInput] = useState(false);
   const [isUploading, setIsUploading] = useState(false);

@@ -9,7 +9,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { NavigationContainer } from '@react-navigation/native';
-import { commonStyles } from '~/constants';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -24,12 +23,12 @@ const queryClient = new QueryClient({
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <View style={commonStyles.container}>
+      <View style={{flex: 1}}>
         <SafeAreaProvider>
           <GestureHandlerRootView style={{flex: 1}}>
             <BottomSheetModalProvider>
                 <SheetProvider>
-                  <View style= {commonStyles.container}>
+                  <View style= {{flex: 1}}>
                       <NavigationContainer 
                         ref={navigationRef}
                         onStateChange={() => {

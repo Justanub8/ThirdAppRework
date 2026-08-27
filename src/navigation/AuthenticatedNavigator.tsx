@@ -6,7 +6,7 @@ import Conversation from '~/screens/conversation/Conversation';
 import NewMessage from '~/screens/new-message/NewMessage';
 import UserProfile from '~/screens/user-profile/UserProfile';
 import CreateContent from '~/screens/createContent/CreateContent';
-import CreatePost from '~/screens/createContent/CreatePost';
+import CreatePost from '~/screens/createPost/CreatePost';
 
 const Stack = createNativeStackNavigator<AuthenticatedStackParamList>();
 

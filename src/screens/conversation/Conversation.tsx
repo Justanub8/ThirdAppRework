@@ -1,28 +1,26 @@
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, NativeSyntheticEvent, NativeScrollEvent, KeyboardAvoidingView, Platform } from 'react-native'
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { FlashList } from '@shopify/flash-list'
-import { messageApi } from '~/api'
-import { ArrowToLeft, CallIcon, CameraLightIcon } from '~/assets/svgs'
-import { BaseText, BaseTextInput } from '~/components/rn-components'
-import { CustomHeader } from '~/components/headers'
-import { AuthenticatedStackParamList } from '~/navigation/types'
-import { Navigation } from '~/utils'
-import { RouteProp, useRoute } from '@react-navigation/native'
-import { IMessage } from '~/interfaces'
-import Message from '~/components/message/Message'
-import { PrimaryInput } from '~/components/inputs'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import FastImage from '@d11/react-native-fast-image'
-import { images } from '~/assets/images'
-import { COLORS, commonStyles, Typography } from '~/constants'
-import { useMessageMutation, useAuthStore } from '~/hooks'
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, NativeSyntheticEvent, NativeScrollEvent, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { FlashList } from '@shopify/flash-list';
+import { messageApi } from '~/api';
+import { ArrowToLeft, CallIcon, CameraLightIcon } from '~/assets/svgs';
+import { BaseText, BaseTextInput } from '~/components/rn-components';
+import { AuthenticatedStackParamList } from '~/navigation/types';
+import { Navigation } from '~/utils';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { IMessage } from '~/interfaces';
+import Message from '~/components/message/Message';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import FastImage from '@d11/react-native-fast-image';
+import { images } from '~/assets/images';
+import { COLORS, Typography } from '~/constants';
+import { useMessageMutation, useAuthStore } from '~/hooks';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Conversation'>;
 const SHOW_SCROLL_BUTTON_OFFSET = 300;
 
 const Conversation = () => {
     const route = useRoute<RouteProps>();
-    const { id, name } = route.params as any;
+    const { id = '', name } = route.params || {};
     const { user } = useAuthStore();
     const { createMessage } = useMessageMutation();
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -99,37 +97,70 @@ const Conversation = () => {
                 if (requestId === requestIdRef.current) {
                     setIsLoading(false);
                     setIsFetchingNextPage(false);
+                    setIsRefreshing(false);
                 }
             }
         },
         [id]
     );
 
-    const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-        const distanceFromBottom = contentSize.height - layoutMeasurement.height - contentOffset.y;
-        setShowScrollButton(distanceFromBottom > SHOW_SCROLL_BUTTON_OFFSET);
-        if (contentOffset.y <= 10 && !isFetchingRef.current && !isFetchingNextPage && !isFull && messages.length > 0) {
-            isFetchingRef.current = true;
-            fetchData(pageIndex + 1, true);
-        }
-    }, [isFetchingNextPage, isFull, messages.length, pageIndex, fetchData]);
-
-    const handleRefresh = useCallback(async () => {
-        setIsRefreshing(true);
-        try {
-            setIsFull(false);
-            await fetchData(1, false, true);
-        } finally {
-            setIsRefreshing(false);
-        }
+    useEffect(() => {
+        fetchData(1, false);
     }, [fetchData]);
 
+    const handleRefresh = useCallback(() => {
+        if (isFetchingRef.current) return;
+        setIsRefreshing(true);
+        fetchData(1, false, true);
+    }, [fetchData]);
+
+    const handleLoadMore = useCallback(() => {
+        if (isFetchingRef.current || isFull || isFetchingNextPage || isLoading) {
+            return;
+        }
+        isFetchingRef.current = true;
+        fetchData(pageIndex + 1, true);
+    }, [isFull, isFetchingNextPage, isLoading, pageIndex, fetchData]);
+
+    const handleScroll = useCallback(
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            if (contentOffset.y <= 100 && !isFetchingNextPage && !isFull && !isLoading) {
+                handleLoadMore();
+            }
+
+            const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+            if (distanceFromBottom > SHOW_SCROLL_BUTTON_OFFSET) {
+                setShowScrollButton(true);
+            } else {
+                setShowScrollButton(false);
+            }
+        },
+        [handleLoadMore, isFetchingNextPage, isFull, isLoading]
+    );
+
+    const renderItem = useCallback(
+        ({ item, index }: { item: IMessage; index: number }) => {
+            const previous = index > 0 ? messages[index - 1] : undefined;
+            return (
+                <Message
+                    item={item}
+                    previous={previous}
+                    isRefreshing={isRefreshing}
+                    currentUserId={user?.id || user?._id}
+                />
+            );
+        },
+        [messages, isRefreshing, user]
+    );
+
+    const keyExtractor = useCallback((item: IMessage) => item.id || item._id || Math.random().toString(), []);
+
     const renderHeader = useCallback(() => {
-        if(!isFetchingNextPage) return null;
+        if (!isFetchingNextPage) return null;
         return (
-            <View style={{ paddingVertical: 10, alignItems: 'center' }}>
-                <ActivityIndicator size="small" color="#000" />
+            <View style={{ paddingVertical: 12, alignItems: 'center' }}>
+                <ActivityIndicator size="small" color="#8E8E8E" />
             </View>
         );
     }, [isFetchingNextPage]);
@@ -137,94 +168,55 @@ const Conversation = () => {
     const renderEmpty = useCallback(() => {
         if (isLoading) return null;
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 50 }}>
-                <BaseText>Chưa có tin nhắn nào</BaseText>
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100 }}>
+                <BaseText typography={Typography.bodyMedium.medium} color="#8E8E8E">
+                    Chưa có tin nhắn nào. Hãy gửi lời chào!
+                </BaseText>
             </View>
         );
     }, [isLoading]);
 
-    const keyExtractor = useCallback((item: IMessage) => item.id || item._id || '', []);
-    const handleSend = async () => {
+    const handleSend = () => {
         if (!messageContent.trim()) return;
-        const text = messageContent.trim();
-        setMessageContent('');
-
-        const currentUid = user?.id || user?._id;
-        const tempId = `temp-${Date.now()}`;
-        const tempMessage: IMessage = {
-            id: tempId,
-            _id: tempId,
-            conversationId: id,
-            sender: user ? ({ id: currentUid, _id: currentUid, username: user.username, name: user.name, avatarUrl: user.avatarUrl, imageUrl: user.imageUrl } as any) : undefined,
-            senderId: currentUid,
-            content: text,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        };
-
-        setMessages(prev => [...prev, tempMessage]);
-        setTimeout(() => {
-            listRef.current?.scrollToEnd({ animated: true });
-        }, 50);
-
-        try {
-            const res = await createMessage.mutateAsync({ conversationId: id, content: text });
-            if (res.data && res.data.data) {
-                setMessages(prev => prev.map(m => (m.id === tempId || m._id === tempId) ? res.data.data : m));
+        createMessage.mutate(
+            { conversationId: id, content: messageContent },
+            {
+                onSuccess: (data: any) => {
+                    const newMsg: IMessage = data.data || data;
+                    setMessages(prev => [...prev, newMsg]);
+                    setMessageContent('');
+                    setTimeout(() => {
+                        listRef.current?.scrollToEnd({ animated: true });
+                    }, 50);
+                }
             }
-        } catch (error) {
-            setMessages(prev => prev.filter(m => m.id !== tempId && m._id !== tempId));
-            console.error("Lỗi gửi tin nhắn", error);
-        }
+        );
     };
 
-    const renderItem = useCallback(
-        ({ item, index }: { item: IMessage; index: number }) => {
-            return (
-                <Message 
-                    item={item} 
-                    previous={index > 0 ? messages[index - 1] : undefined}
-                    isRefreshing={isRefreshing}
-                    currentUserId={user?.id || user?._id}
-                />
-            );
-        },
-        [messages, isRefreshing, user?.id, user?._id]
-    );
-
-    useEffect(() => {
-        setIsFull(false);
-        fetchData(1, false);
-    }, [fetchData]);
-
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-            <View style={[commonStyles.alignItemsCenter, commonStyles.justifyBetween, commonStyles.flexRow, commonStyles.paddingHorizontal16, commonStyles.testBorder, {height: 60}]}>
-              <ArrowToLeft height={24} width={24} onPress={() => Navigation.pop()} style={{zIndex: 1}}/>
-              <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.gap12]}>
-                <FastImage source={images.avater_random} style = {{width: 40, height: 40, borderWidth: 1, borderColor: COLORS.border, borderRadius: 9999}}/>
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+              <ArrowToLeft height={24} width={24} onPress={() => Navigation.pop()} style={styles.zIndex1}/>
+              <View style={styles.headerUser}>
+                <FastImage source={images.avater_random} style={styles.headerAvatar}/>
                 <BaseText typography={Typography.bodyBold.medium}>{name}</BaseText>
               </View>
-              <CallIcon height={24} width={24} style={{zIndex: 1}}/>
+              <CallIcon height={24} width={24} style={styles.zIndex1}/>
             </View>
             
             <KeyboardAvoidingView
-                style={{ flex: 1 }}
+                style={styles.flex1}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+                keyboardVerticalOffset={0}
             >
-                <View style={{ flex: 1 }}>
+                <View style={styles.flex1}>
                     <FlashList
                         ref={listRef}
                         data={messages}
                         extraData={messages}
                         keyExtractor={keyExtractor}
                         renderItem={renderItem}
-                        contentContainerStyle={{
-                            paddingHorizontal: 16,
-                            paddingTop: 8,
-                            paddingBottom: 8,
-                        }}
+                        contentContainerStyle={styles.listContent}
                         showsVerticalScrollIndicator={false}
                         onScroll={handleScroll}
                         scrollEventThrottle={16}
@@ -233,7 +225,7 @@ const Conversation = () => {
                         refreshing={isRefreshing}
                         onRefresh={handleRefresh}
                     />
-                    <View style={{paddingBottom: 8 }}> 
+                    <View style={styles.inputContainer}> 
                         <View style={styles.messageInput}>
                             {!isTexting ? (
                             <TouchableOpacity style={styles.cameraIcon}>
@@ -258,7 +250,7 @@ const Conversation = () => {
                               listRef.current?.scrollToEnd({ animated: true });
                           }}
                       >
-                          <View style={{ transform: [{ rotate: '90deg' }] }}>
+                          <View style={styles.rotate90}>
                               <ArrowToLeft height={24} width={24} />
                           </View>
                       </TouchableOpacity>
@@ -266,7 +258,7 @@ const Conversation = () => {
                 </View>
             </KeyboardAvoidingView>
             {isLoading && !isRefreshing && (
-                <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', top: 50 }]}>
+                <View style={[StyleSheet.absoluteFill, styles.loadingOverlay]}>
                     <ActivityIndicator size="large" color="#000" />
                 </View>
             )}
@@ -277,6 +269,45 @@ const Conversation = () => {
 export default memo(Conversation);
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+    },
+    flex1: {
+        flex: 1,
+    },
+    header: {
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexDirection: 'row',
+        paddingHorizontal: 16,
+        borderWidth: 1,
+        borderColor: '#000000',
+        height: 60,
+    },
+    headerUser: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    headerAvatar: {
+        width: 40,
+        height: 40,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        borderRadius: 9999,
+    },
+    zIndex1: {
+        zIndex: 1,
+    },
+    listContent: {
+        paddingHorizontal: 16,
+        paddingTop: 8,
+        paddingBottom: 8,
+    },
+    inputContainer: {
+        paddingBottom: 8,
+    },
     fabContainer: {
         position: 'absolute',
         bottom: 40,
@@ -296,6 +327,9 @@ const styles = StyleSheet.create({
         shadowRadius: 6,
         elevation: 4,
     },
+    rotate90: {
+        transform: [{ rotate: '90deg' }],
+    },
     cameraIcon: {
         backgroundColor: "#eee7f1",
         borderRadius: 9999,
@@ -311,5 +345,10 @@ const styles = StyleSheet.create({
         gap: 12,
         marginHorizontal: 16,
         paddingHorizontal: 8,
+    },
+    loadingOverlay: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        top: 50,
     },
 });

@@ -1,59 +1,56 @@
-import * as React from 'react'
-import { create } from 'zustand'
-import { StyleSheet, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { commonStyles } from '~/constants'
-import { SizedBox } from '../separate-components'
-import Animated, { SlideInUp, SlideOutUp} from 'react-native-reanimated'
-import { BaseText } from '../rn-components'
-import { CrossIcon, HeartIcon } from '~/assets/svgs'
+import * as React from 'react';
+import { create } from 'zustand';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SizedBox } from '../separate-components';
+import Animated, { SlideInUp, SlideOutUp } from 'react-native-reanimated';
+import { BaseText } from '../rn-components';
+import { CrossIcon, HeartIcon } from '~/assets/svgs';
 
 type GlobalToastType = {
   visible: boolean,
   text: string,
   timeoutId?: NodeJS.Timeout;
   type?: 'error' | 'success';
-  showToast: (toast: {text?: string, type?: 'error' | 'success'}) => void;
+  showToast: (toast: { text?: string, type?: 'error' | 'success' }) => void;
   hide: () => void;
-}
+};
 
-export const useGlobalToast = create<GlobalToastType>((set,get) => ({
+export const useGlobalToast = create<GlobalToastType>((set, get) => ({
   visible: false,
   text: '',
   type: 'success',
   timeoutId: undefined,
-  showToast: ({text, type}: {text?: string, type?: 'error' | 'success'}) => {
-    set({visible: true, text, type});
+  showToast: ({ text, type }: { text?: string, type?: 'error' | 'success' }) => {
+    set({ visible: true, text, type });
     if (typeof get().timeoutId === 'number') {
-      clearTimeout(get().timeoutId)
+      clearTimeout(get().timeoutId);
     }
     const id = setTimeout(() => {
       get().hide();
-    },2000);
-    set({timeoutId: id});
+    }, 2000);
+    set({ timeoutId: id });
   },
-  hide: () => set({visible: false, text: ''})
+  hide: () => set({ visible: false, text: '' })
 }));
 
 const GlobalToast = () => {
-  const {visible, text, type } = useGlobalToast();
-  const {top} = useSafeAreaInsets();
+  const { visible, text, type } = useGlobalToast();
+  const { top } = useSafeAreaInsets();
 
-  return visible && type? (
+  return visible && type ? (
     <Animated.View
       entering={SlideInUp.duration(200)}
       exiting={SlideOutUp.duration(200)}
-      style = {
-        [
-          styles.containerMobile,
-          {
-            top,
-          }
-        ]
-      }
+      style={[
+        styles.containerMobile,
+        {
+          top,
+        }
+      ]}
     >
       <View
-        style = {[
+        style={[
           styles.content,
           {
             backgroundColor: 
@@ -63,7 +60,6 @@ const GlobalToast = () => {
           },
         ]}
       >
-        
         {type === 'error' ? (
           <CrossIcon
             width={18}
@@ -89,8 +85,8 @@ const GlobalToast = () => {
         </BaseText>
       </View>
     </Animated.View>
-  ) : null ;
-}
+  ) : null;
+};
 
 const styles = StyleSheet.create({
   containerMobile: {
@@ -100,16 +96,24 @@ const styles = StyleSheet.create({
     zIndex: 1000000,
     marginTop: 24,
     left: 24,
-    ...commonStyles.shadow,
-    borderRadius: 10
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 2.22,
+    elevation: 5,
+    borderRadius: 10,
   },
   content: {
     paddingVertical: 8,
     paddingHorizontal: 12,
     flexDirection: 'row',
-    alignItems: 'center'
-  }
-})
-const showToast = useGlobalToast.getState().showToast
-export { showToast}
-export default GlobalToast
+    alignItems: 'center',
+  },
+});
+
+const showToast = useGlobalToast.getState().showToast;
+export { showToast };
+export default GlobalToast;

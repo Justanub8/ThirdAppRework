@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { AuthStackParamList } from './types'
-import Login from '~/screens/auth/Login';
-import SignUp from '~/screens/auth/SignUp';
+import Login from '~/screens/login/Login';
+import SignUp from '~/screens/signUp/SignUp';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 

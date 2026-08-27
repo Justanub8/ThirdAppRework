@@ -1,9 +1,8 @@
 import { BaseTextInputProps, BaseText, BaseTextInput } from '../rn-components';
-import { commonStyles, Typography } from '~/constants';
+import { Typography } from '~/constants';
 import { SizedBox } from '../separate-components';
 
-
-import * as React from 'react'
+import * as React from 'react';
 import { StyleSheet, TextInput, View, ViewStyle } from "react-native";
 
 const PrimaryField = ({
@@ -29,12 +28,12 @@ const PrimaryField = ({
     inputRef?: React.RefObject<TextInput | null>;
     valueColor?: string;
 }) => {
-    return(
-        <View style = {[styles.container, {paddingVertical}]}>
-            <View style = {commonStyles.flex}>
+    return (
+        <View style={[styles.container, { paddingVertical }]}>
+            <View style={styles.flex}>
                 <BaseText 
-                    color = {'#616161'}
-                    typography = {Typography.bodyMedium.medium}
+                    color={'#616161'}
+                    typography={Typography.bodyMedium.medium}
                 >
                     {title}
                 </BaseText>
@@ -42,25 +41,26 @@ const PrimaryField = ({
                 <View>
                     {!disabled ? (
                         <BaseTextInput
-                        ref={inputRef}
-                        style={commonStyles.flex}
-                        color={'#212121'}
-                        typography={Typography.bodyBold.xxLarge}
-                        value={value}
-                        autoFocus={autofocus}
-                        keyboardType={keyboardType}
-                        onChangeText={ v => {
-                            if(onChangeText) {
-                                const textWithoutComa = v.replace(/,/g, '');
-                                const split = textWithoutComa?.split('.')
-                                onChangeText(split.slice(0,2)?.join('.'))
-                            }
-                        }}
+                            ref={inputRef}
+                            style={styles.flex}
+                            color={'#212121'}
+                            typography={Typography.bodyBold.xxLarge}
+                            value={value}
+                            autoFocus={autofocus}
+                            keyboardType={keyboardType}
+                            onChangeText={v => {
+                                if (onChangeText) {
+                                    const textWithoutComa = v.replace(/,/g, '');
+                                    const split = textWithoutComa?.split('.');
+                                    onChangeText(split.slice(0, 2)?.join('.'));
+                                }
+                            }}
                         /> 
                     ) : (
                         <BaseText
-                        color={!valueColor ? '#212121' : valueColor}
-                        typography={Typography.bodyBold.xxLarge}>
+                            color={!valueColor ? '#212121' : valueColor}
+                            typography={Typography.bodyBold.xxLarge}
+                        >
                             {value}
                         </BaseText>
                     )}
@@ -68,14 +68,17 @@ const PrimaryField = ({
             </View>
             {RightComponent}
         </View>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        alignItems: 'center'
-    }
-})
+        alignItems: 'center',
+    },
+    flex: {
+        flex: 1,
+    },
+});
 
-export default PrimaryField
+export default PrimaryField;

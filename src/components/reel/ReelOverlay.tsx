@@ -1,21 +1,21 @@
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
-import React, { useState, useEffect } from 'react'
-import { Typography, commonStyles } from '~/constants'
-import { BaseText, FastImage } from '~/components/rn-components'
-import { images } from '~/assets/images'
-import { CommentIcon, HeartIcon, MessageLightIcon, MoreIcon, NotificationIcon, RepostIcon } from '~/assets/svgs'
-import { SizedBox } from '~/components/separate-components'
-import { IReel } from '~/interfaces/reel'
-import LikeButton from '../buttons/LikeButton'
-import BookmarkButton from '../buttons/BookmarkButton'
-import { SheetManager } from 'react-native-actions-sheet'
-import { useFollowMutation, useAuthStore } from '~/hooks'
-import { RepostButton } from '../buttons'
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Typography } from '~/constants';
+import { BaseText, FastImage } from '~/components/rn-components';
+import { images } from '~/assets/images';
+import { CommentIcon, MessageLightIcon, MoreIcon } from '~/assets/svgs';
+import { SizedBox } from '~/components/separate-components';
+import { IReel } from '~/interfaces/reel';
+import LikeButton from '../buttons/LikeButton';
+import BookmarkButton from '../buttons/BookmarkButton';
+import { SheetManager } from 'react-native-actions-sheet';
+import { useFollowMutation, useAuthStore } from '~/hooks';
+import { RepostButton } from '../buttons';
 
 type ReelOverlayProps = {
   reel: IReel;
   progress?: number;
-}
+};
 
 const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
   const [isFollowing, setIsFollowing] = useState(!!reel.isFollowing);
@@ -43,7 +43,7 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
 
   useEffect(() => {
     setRepostCount(reel.repostCount || 0);
-  }, [reel.repostCount])
+  }, [reel.repostCount]);
 
   const handleFollowToggle = () => {
     if (!reelUserId) return;
@@ -151,17 +151,14 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
         </View>
       </View>
 
-      {/* Progress Bar */}
       {reel.media?.type === 'video' ? (
         <View style={[styles.progressBarContainer, { bottom: 4 }]}>
           <View style={[styles.progressBarActive, { width: `${progress * 100}%` }]} />
         </View>
-      ) : 
-      null }
-      
+      ) : null}
     </>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   bottomContainer: {
@@ -226,7 +223,7 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#ffffff',
     borderRadius: 1,
-  }
-})
+  },
+});
 
-export default ReelOverlay
+export default ReelOverlay;

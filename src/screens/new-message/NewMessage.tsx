@@ -4,7 +4,7 @@ import { CustomHeader } from '~/components/headers'
 import { CameraLightIcon, LeftArrow, MoreIcon, RightArrow } from '~/assets/svgs'
 import { PrimaryInput } from '~/components/inputs'
 import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components'
-import { commonStyles, Typography } from '~/constants'
+import { Typography } from '~/constants'
 import { Navigation } from '~/utils'
 import { images } from '~/assets/images'
 import { TouchableWithoutFeedback } from '@gorhom/bottom-sheet'
@@ -141,7 +141,12 @@ const NewMessage = () => {
                                 </BaseText>
                                 <BaseText> Các bạn theo dõi nhau trên Instagram</BaseText>
                                 <TouchableOpacity 
-                                    onPress={() => Navigation.goToUserProfile((currentContact?.id || currentContact?._id) as any)}
+                                    onPress={() => {
+                                        const contactProfileId = currentContact?.id || currentContact?._id;
+                                        if (contactProfileId) {
+                                            Navigation.goToUserProfile(contactProfileId);
+                                        }
+                                    }}
                                     style={{ borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: "#a4a4a4" }}
                                 >
                                     <BaseText style={{ color: "#ffffff" }}>

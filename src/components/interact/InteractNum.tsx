@@ -1,8 +1,9 @@
-import { BaseText } from '../rn-components'
-import { commonStyles, Typography } from '~/constants'
-import * as React from 'react'
-import { TouchableOpacity, View, } from 'react-native'
-import millify from 'millify'
+import { BaseText } from '../rn-components';
+import { Typography } from '~/constants';
+import * as React from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import millify from 'millify';
+
 const InteractNum = ({
     interactNum,
     accessory,
@@ -13,7 +14,7 @@ const InteractNum = ({
     onPress?: () => void
 }) => {
   return (
-    <View style = {[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.gap4]}>
+    <View style={styles.container}>
         {onPress ? (
             <TouchableOpacity onPress={onPress}>
                 {accessory ? accessory : null}
@@ -23,11 +24,19 @@ const InteractNum = ({
                 {accessory ? accessory : null}
             </View>
         )}
-        <BaseText typography = {Typography.bodyBold.small}>
-            {interactNum? millify(interactNum, {precision: 2}) : ''}
+        <BaseText typography={Typography.bodyBold.small}>
+            {interactNum ? millify(interactNum, { precision: 2 }) : ''}
         </BaseText>
     </View>
-  )
-}
+  );
+};
 
-export default InteractNum
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+});
+
+export default InteractNum;

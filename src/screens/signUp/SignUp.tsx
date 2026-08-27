@@ -1,17 +1,14 @@
-import { View, Text, TouchableOpacity, Platform, ScrollView } from 'react-native'
-import React from 'react'
-import { commonStyles, Typography } from '~/constants'
-import FastImage from '@d11/react-native-fast-image'
-import { images } from '~/assets/images'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { TextButton, PrimaryButton } from '~/components/buttons'
-import { SizedBox } from '~/components/separate-components'
-import { BaseText, BaseTextInput } from '~/components/rn-components'
-import { FacebookIcon } from '~/assets/svgs'
-import { Navigation } from '~/utils'
-import { KeyboardAvoidingView, Dimensions, StyleSheet } from 'react-native'
-
-import { useAuthMutation } from '~/hooks'
+import { View, TouchableOpacity, Platform, ScrollView, StyleSheet, Dimensions, KeyboardAvoidingView } from 'react-native';
+import React from 'react';
+import { Typography } from '~/constants';
+import FastImage from '@d11/react-native-fast-image';
+import { images } from '~/assets/images';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { TextButton } from '~/components/buttons';
+import { SizedBox } from '~/components/separate-components';
+import { BaseText, BaseTextInput } from '~/components/rn-components';
+import { FacebookIcon } from '~/assets/svgs';
+import { useAuthMutation } from '~/hooks';
 
 const SignUp = () => {
     const [email, setEmail] = React.useState("");
@@ -34,30 +31,28 @@ const SignUp = () => {
     };
     
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={commonStyles.container}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={{ flex: 1 }}
+            style={styles.keyboardAvoid}
         >
             <ScrollView 
-                contentContainerStyle={[commonStyles.paddingScrollHorizontal, { flexGrow: 1, paddingBottom: 24 }]}
+                contentContainerStyle={styles.scrollContent}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
                 <FastImage source={images.logo_transparent} resizeMode='contain' style={styles.logo}/>
-                <View style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.alignSelfCenter, commonStyles.gap8]}>
+                <View style={styles.facebookRow}>
                     <FacebookIcon height={24} width={24} color={'#246BFD'}/>
                     <TextButton
                         title='Login with Facebook'
                         typography={Typography.bodyMedium.large}
                         color={'#3797EF'}
-                        style = {commonStyles.alignSelfCenter}
+                        style={styles.alignCenter}
                     />
                 </View>
                 <SizedBox height={24}/>
-                <View
-                    style={[commonStyles.flexRow, commonStyles.alignItemsCenter, commonStyles.wFull, commonStyles.justifyCenter, commonStyles.gap16]}
-                >
+                <View style={styles.orDividerRow}>
                     <SizedBox height={1} backgroundColor={'#bdbdbd'} width={'40%'}/>
                     <BaseText color={'#757575'}>
                     OR
@@ -66,7 +61,7 @@ const SignUp = () => {
                 </View>
                 <SizedBox height={24}/>
                 <BaseTextInput
-                    value = {email}
+                    value={email}
                     placeholder='Mobile Number or Email'
                     onChangeText={setEmail}
                     autoCorrect={false}
@@ -76,7 +71,7 @@ const SignUp = () => {
                 />
                 <SizedBox height={16}/>
                 <BaseTextInput
-                    value = {fullname}
+                    value={fullname}
                     placeholder='Fullname'
                     onChangeText={setFullname}
                     autoCorrect={false}
@@ -84,7 +79,7 @@ const SignUp = () => {
                 />
                 <SizedBox height={16}/>
                 <BaseTextInput
-                    value = {username}
+                    value={username}
                     placeholder='Username'
                     onChangeText={setUsername}
                     autoCorrect={false}
@@ -93,7 +88,7 @@ const SignUp = () => {
                 />
                 <SizedBox height={16}/>
                 <BaseTextInput
-                    value = {password}
+                    value={password}
                     placeholder='Password'
                     onChangeText={setPassword}
                     secureTextEntry={true}
@@ -108,7 +103,7 @@ const SignUp = () => {
                     onPress={handleSignUp}
                     disabled={signUp.isPending}
                 >
-                  <BaseText typography={Typography.bodyBold.large} style={{color: "#ffffff"}}>
+                  <BaseText typography={Typography.bodyBold.large} style={{ color: "#ffffff" }}>
                     {signUp.isPending ? 'Signing Up...' : 'Sign Up'}
                   </BaseText>
                 </TouchableOpacity>
@@ -141,13 +136,42 @@ const SignUp = () => {
             </ScrollView>
         </KeyboardAvoidingView>
     </SafeAreaView>
-  )
-}
+  );
+};
+
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+    },
+    keyboardAvoid: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingHorizontal: 8,
+        flexGrow: 1,
+        paddingBottom: 24,
+    },
     logo: {
         alignSelf: 'center',
         width: 200,
         height: 180,
+    },
+    alignCenter: {
+        alignSelf: 'center',
+    },
+    facebookRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'center',
+        gap: 8,
+    },
+    orDividerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        justifyContent: 'center',
+        gap: 16,
     },
     background: {
         position: 'absolute',
@@ -179,5 +203,6 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       borderRadius: 6
     }
-})
-export default SignUp
+});
+
+export default SignUp;

@@ -1,21 +1,17 @@
-import { View, StyleSheet, Dimensions } from 'react-native'
-import React, { useState, useCallback, useRef } from 'react'
-import { commonStyles } from '~/constants'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { FlashList } from '@shopify/flash-list'
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
-import VideoReel from '~/components/reel/VideoReel'
-import ImageReel from '~/components/reel/ImageReel'
-import { IReel } from '~/interfaces/reel'
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { reelApi } from '~/api'
-
+import { View, StyleSheet, Dimensions } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { FlashList } from '@shopify/flash-list';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import VideoReel from '~/components/reel/VideoReel';
+import ImageReel from '~/components/reel/ImageReel';
+import { IReel } from '~/interfaces/reel';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { reelApi } from '~/api';
 
 const Reels = () => {
   const bottomTabHeight = useBottomTabBarHeight();
   const availableHeight = Dimensions.get('window').height - bottomTabHeight;
   const [activeIndex, setActiveIndex] = useState(0);
-
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({ 
     queryKey: ['Reels'], 
@@ -59,7 +55,7 @@ const Reels = () => {
   };
 
   return (
-    <View style={[commonStyles.container, { backgroundColor: '#000' }]}>
+    <View style={styles.container}>
       <FlashList
         data={reels}
         renderItem={renderItem}
@@ -76,7 +72,14 @@ const Reels = () => {
         onEndReachedThreshold={0.5}
       />
     </View>
-  )
-}
+  );
+};
 
-export default Reels
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+});
+
+export default Reels;

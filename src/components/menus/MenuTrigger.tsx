@@ -1,4 +1,4 @@
-import * as React from 'react'
+import * as React from 'react';
 import {
     Dimensions,
     Modal,
@@ -7,11 +7,10 @@ import {
     TouchableOpacity,
     View,
     ViewStyle,
-} from 'react-native'
-import { Gesture, GestureDetector } from "react-native-gesture-handler"
-import { runOnJS } from "react-native-worklets"
-import { commonStyles } from '~/constants'
-import { create } from "zustand"
+} from 'react-native';
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { runOnJS } from "react-native-worklets";
+import { create } from "zustand";
 
 const { width: widthScreen, height: heightScreen } = Dimensions.get('window');
 export const dimensions = { widthScreen, heightScreen, scale: (v: number) => v };
@@ -19,8 +18,8 @@ export const dimensions = { widthScreen, heightScreen, scale: (v: number) => v }
 interface MenuTriggerProps {
     children: React.JSX.Element;
     archon: React.JSX.Element;
-    archonContainerStyle?: StyleProp<ViewStyle>
-    modalContainerStyle?: StyleProp<ViewStyle>
+    archonContainerStyle?: StyleProp<ViewStyle>;
+    modalContainerStyle?: StyleProp<ViewStyle>;
 }
 export interface MenuTriggerRef {
     closeMenu: () => void;
@@ -28,60 +27,60 @@ export interface MenuTriggerRef {
 const PADDING_HORIZONTAL = 24;
 type MenuTriggerType = {
     visible: boolean;
-    layout: {x:number; y: number}
-    childrenLayout: {width: number, height: number}
-    archonLayout: { width: number, height: number}
+    layout: { x: number; y: number };
+    childrenLayout: { width: number; height: number };
+    archonLayout: { width: number; height: number };
     setVisible(visible: boolean): void;
-    setLayout(layout: {x: number ;y: number}): void;
-    setArchonLayout(archonLayout: {width: number; height: number}): void;
-    setChildrenLayout(childrenLayout: {width: number; height: number}) : void
-}
+    setLayout(layout: { x: number; y: number }): void;
+    setArchonLayout(archonLayout: { width: number; height: number }): void;
+    setChildrenLayout(childrenLayout: { width: number; height: number }): void;
+};
 export const useMenuTrigger = create<MenuTriggerType>(set => ({
     visible: false,
-    layout: {x: -dimensions.widthScreen, y: -dimensions.heightScreen},
-    childrenLayout: {width: 0 , height: 0},
-    archonLayout: {width: 0, height: 0},
-    setLayout(layout){
-        set({layout});
+    layout: { x: -dimensions.widthScreen, y: -dimensions.heightScreen },
+    childrenLayout: { width: 0, height: 0 },
+    archonLayout: { width: 0, height: 0 },
+    setLayout(layout) {
+        set({ layout });
     },
-    setArchonLayout(archonLayout){
-        set({archonLayout});
+    setArchonLayout(archonLayout) {
+        set({ archonLayout });
     },
-    setChildrenLayout(childrenLayout){
-        set({childrenLayout});
+    setChildrenLayout(childrenLayout) {
+        set({ childrenLayout });
     },
-    setVisible(visible){
-        set({visible});
+    setVisible(visible) {
+        set({ visible });
     },
-}))
+}));
 
 const MenuTrigger = React.forwardRef<MenuTriggerRef, MenuTriggerProps>(
-    ({children, archon, archonContainerStyle, modalContainerStyle}, ref) => {
-        const [visible, setVisible] = React.useState(false)
-        const [layout, setLayout] = React.useState<{x:number ; y: number}>({
+    ({ children, archon, archonContainerStyle, modalContainerStyle }, ref) => {
+        const [visible, setVisible] = React.useState(false);
+        const [layout, setLayout] = React.useState<{ x: number; y: number }>({
             x: -dimensions.widthScreen,
             y: -dimensions.heightScreen,
         });
-        const childrenLayout = React.useRef({width: 0, height: 0});
-        const archonLayout = React.useRef({width: 0, height: 0});
-        const openMenu = ({x,y}: {x: number; y: number}) => {
-            setLayout({x,y})
+        const childrenLayout = React.useRef({ width: 0, height: 0 });
+        const archonLayout = React.useRef({ width: 0, height: 0 });
+        const openMenu = ({ x, y }: { x: number; y: number }) => {
+            setLayout({ x, y });
             setVisible(true);
-        }
+        };
         const closeMenu = () => {
-            setVisible(false)
-        }
-        React.useImperativeHandle(ref, () =>({
+            setVisible(false);
+        };
+        React.useImperativeHandle(ref, () => ({
             closeMenu: () => {
                 closeMenu();
             },
-        }))
+        }));
         const gesture = React.useMemo(
             () => 
                 Gesture.Tap().onStart(event => {
                     runOnJS(openMenu)({
-                        x:event.absoluteX - event.x,
-                        y:event.absoluteY - event.y,
+                        x: event.absoluteX - event.x,
+                        y: event.absoluteY - event.y,
                     });
                 }),
             [],
@@ -98,12 +97,12 @@ const MenuTrigger = React.forwardRef<MenuTriggerRef, MenuTriggerProps>(
             const spaceBottom = dimensions.heightScreen - archonY2;
 
             const containerStyle: StyleProp<ViewStyle> = {};
-            if (spaceLeft < spaceRight){
+            if (spaceLeft < spaceRight) {
                 containerStyle.left = 
-                    archonX1 > PADDING_HORIZONTAL ? archonX1 : PADDING_HORIZONTAL
+                    archonX1 > PADDING_HORIZONTAL ? archonX1 : PADDING_HORIZONTAL;
             } else {
                 containerStyle.right =
-                    spaceRight > PADDING_HORIZONTAL ? spaceRight : PADDING_HORIZONTAL
+                    spaceRight > PADDING_HORIZONTAL ? spaceRight : PADDING_HORIZONTAL;
             }
 
             if (spaceTop > spaceBottom) {
@@ -119,58 +118,67 @@ const MenuTrigger = React.forwardRef<MenuTriggerRef, MenuTriggerProps>(
                 container: containerStyle,
             });
         }, [layout, archonLayout]);
+
         return (
             <>
-            <GestureDetector gesture = {gesture}>
+            <GestureDetector gesture={gesture}>
                 <TouchableOpacity
-                onLayout={event => {
-                    const width = event?.nativeEvent?.layout?.width || 0;
-                    const height = event?.nativeEvent?.layout?.height || 0;
-                }}
-                style = {archonContainerStyle}
+                    onLayout={event => {
+                        const width = event?.nativeEvent?.layout?.width || 0;
+                        const height = event?.nativeEvent?.layout?.height || 0;
+                    }}
+                    style={archonContainerStyle}
                 >
                     {archon}
                 </TouchableOpacity>
             </GestureDetector>
-            <Modal visible = {visible} transparent = { true}>
-                <View style = {styles.overlayStyle}>
+            <Modal visible={visible} transparent={true}>
+                <View style={styles.overlayStyle}>
                     <TouchableOpacity
-                    activeOpacity={1}
-                    style={StyleSheet.absoluteFill}
-                    onPress={closeMenu}
+                        activeOpacity={1}
+                        style={StyleSheet.absoluteFill}
+                        onPress={closeMenu}
                     >
                         {visible ? (
                             <View
-                            onLayout={event => {
-                                const width = event?.nativeEvent?.layout?.width || 0;
-                                const height = event?.nativeEvent?.layout?.height || 0;
-                                childrenLayout.current = { width, height};
-                            }}
-                            style = {[
-                                modalStyle.container,
-                                styles.childrenContainer,
-                                modalContainerStyle
-                            ]}
+                                onLayout={event => {
+                                    const width = event?.nativeEvent?.layout?.width || 0;
+                                    const height = event?.nativeEvent?.layout?.height || 0;
+                                    childrenLayout.current = { width, height };
+                                }}
+                                style={[
+                                    modalStyle.container,
+                                    styles.childrenContainer,
+                                    modalContainerStyle
+                                ]}
                             >
-                            {children}
-                        </View>
+                                {children}
+                            </View>
                         ) : null}              
                     </TouchableOpacity>
                 </View>
             </Modal>
             </>
-        )
+        );
     }
-)
+);
+
 const styles = StyleSheet.create({
     childrenContainer: {
         position: 'absolute',
-        ...commonStyles.shadow
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 2.22,
+        elevation: 5,
     },
     overlayStyle: {
         flex: 1,
-        backgroundColor: 'rgba(9, 16, 29, 0.8)'
-    }
-})
+        backgroundColor: 'rgba(9, 16, 29, 0.8)',
+    },
+});
 
-export default MenuTrigger
+export default MenuTrigger;

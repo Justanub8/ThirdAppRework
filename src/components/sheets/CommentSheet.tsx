@@ -1,16 +1,15 @@
-import React, { useState} from 'react';
+import React from 'react';
 import ActionSheet, { SheetProps } from 'react-native-actions-sheet';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { SizedBox } from '../separate-components';
 import { PrimaryInput } from '../inputs';
 import { FastImage } from '../rn-components';
-import { COLORS, commonStyles } from '~/constants';
+import { COLORS } from '~/constants';
 import { images } from '~/assets/images';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { commentApi } from '~/api/commentApi';
 import { FlashList } from '@shopify/flash-list';
 import Comment from '../comment/Comment';
-import { ActivityIndicator, Alert } from 'react-native';
 import { useCommentMutation } from '~/hooks';
 
 const CommentSheet = (props: SheetProps<"CommentSheet">) => {
@@ -34,12 +33,10 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
     enabled: !!targetId
   });
 
-  
-
   const handleSendComment = () => {
     if (!commentText.trim() || !targetId || !targetType) return;
     createComment.mutate(
-      {targetId, targetType, content: commentText},
+      { targetId, targetType, content: commentText },
       {
         onSuccess: () => {
           setCommentText('');
@@ -49,7 +46,6 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
   };
 
   const comments = data?.pages.flatMap(page => page.data) || [];
-  console.log("COMMENTS IN SHEET:", JSON.stringify(comments, null, 2));
 
   return (
     <ActionSheet 
@@ -61,7 +57,7 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
       containerStyle={styles.containerStyle}
     >
       <View style={{ flex: 1 }}>
-        <View style={{borderBottomColor: COLORS.border, borderBottomWidth: 1, paddingBottom: 8}}>
+        <View style={styles.header}>
           <Text style={styles.title}>Bình luận</Text>
         </View>
         {isLoading ? (
@@ -80,28 +76,26 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
             />
           </View>
         )}
-        <View style={{ backgroundColor: '#ffffff', borderTopColor: '#bdbdbd', borderTopWidth: 1, paddingHorizontal: 12}}>
+        <View style={styles.inputBar}>
           <SizedBox height={12}/>
-            <View style = {[commonStyles.flexRow, commonStyles.alignItemsCenter,commonStyles.gap8]}>
-              <FastImage source={images.avater_random} style = {{height: 48, width: 48, borderRadius: 9999}}/>
-              <View style={{ flex: 1 }}>
-                <PrimaryInput 
-                  placeholder='Tham gia cuộc trò chuyện...'
-                  value={commentText}
-                  onChangeText={setCommentText}
-                  onSubmitEditing={handleSendComment}
-                  returnKeyType="send"
-                />
-              </View>
+          <View style={styles.inputRow}>
+            <FastImage source={images.avater_random} style={styles.avatar}/>
+            <View style={styles.inputWrapper}>
+              <PrimaryInput 
+                placeholder='Tham gia cuộc trò chuyện...'
+                value={commentText}
+                onChangeText={setCommentText}
+                onSubmitEditing={handleSendComment}
+                returnKeyType="send"
+              />
             </View>
+          </View>
           <SizedBox height={12}/>
         </View>
       </View>
     </ActionSheet>
   );
 };
-
-export default CommentSheet;
 
 const styles = StyleSheet.create({
   containerStyle: {
@@ -117,10 +111,36 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     marginTop: 8,
   },
+  header: {
+    borderBottomColor: COLORS.border,
+    borderBottomWidth: 1,
+    paddingBottom: 8,
+  },
   title: {
     fontSize: 16,
     fontWeight: 'bold',
     marginVertical: 6,
-    textAlign: 'center'
-  }
+    textAlign: 'center',
+  },
+  inputBar: {
+    backgroundColor: '#ffffff',
+    borderTopColor: '#bdbdbd',
+    borderTopWidth: 1,
+    paddingHorizontal: 12,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  avatar: {
+    height: 48,
+    width: 48,
+    borderRadius: 9999,
+  },
+  inputWrapper: {
+    flex: 1,
+  },
 });
+
+export default CommentSheet;

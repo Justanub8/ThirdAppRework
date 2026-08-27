@@ -1,15 +1,14 @@
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
-import React, { useRef, useState, useEffect } from 'react'
-import { VideoRef, Video } from 'react-native-video'
-import ReelOverlay from './ReelOverlay'
-import { IReel } from '~/interfaces/reel'
-import { commonStyles } from '~/constants'
-import { MutedIcon, PlayIcon, UnmutedIcon } from '~/assets/svgs'
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { VideoRef, Video } from 'react-native-video';
+import ReelOverlay from './ReelOverlay';
+import { IReel } from '~/interfaces/reel';
+import { MutedIcon, PlayIcon, UnmutedIcon } from '~/assets/svgs';
 
 type VideoReelProps = {
   reel: IReel;
   isActive: boolean;
-}
+};
 
 const VideoReel = ({ reel, isActive }: VideoReelProps) => {
   const videoRef = useRef<VideoRef>(null);
@@ -38,28 +37,27 @@ const VideoReel = ({ reel, isActive }: VideoReelProps) => {
   const progress = duration > 0 ? currentTime / duration : 0;
 
   return (
-    <View style={{flex: 1}}>
+    <View style={styles.container}>
       <View style={styles.videoControl}>
         <TouchableOpacity
-        style={{width: '33%', height: '100%'}}
-        activeOpacity={1}
-        onPressIn={() => setPlaySpeed(2)}
-        onPressOut={() => setPlaySpeed(1)}
-      />
+          style={styles.touchSide}
+          activeOpacity={1}
+          onPressIn={() => setPlaySpeed(2)}
+          onPressOut={() => setPlaySpeed(1)}
+        />
 
-      <TouchableOpacity
-        style={{flexGrow: 1, flex: 1, height: '100%'}}
-        activeOpacity={1}
-        onPress={togglePlayPause}
-      />
-      
-      <TouchableOpacity
-        style={{width: '33%', height: '100%'}}
-        activeOpacity={1}
-        onPressIn={() => setPlaySpeed(2)}
-        onPressOut={() => {setPlaySpeed(1)}}
-      />
-      
+        <TouchableOpacity
+          style={styles.touchCenter}
+          activeOpacity={1}
+          onPress={togglePlayPause}
+        />
+        
+        <TouchableOpacity
+          style={styles.touchSide}
+          activeOpacity={1}
+          onPressIn={() => setPlaySpeed(2)}
+          onPressOut={() => setPlaySpeed(1)}
+        />
       </View>
       <Video
         ref={videoRef}
@@ -75,7 +73,7 @@ const VideoReel = ({ reel, isActive }: VideoReelProps) => {
         rate={playSpeed}
       />
       
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.2)' }]} pointerEvents="none" />
+      <View style={[StyleSheet.absoluteFill, styles.darkOverlay]} pointerEvents="none" />
 
       {!isPlaying && (
         <View style={styles.centerControls} pointerEvents="box-none">
@@ -95,14 +93,19 @@ const VideoReel = ({ reel, isActive }: VideoReelProps) => {
       )}
 
       <ReelOverlay reel={reel} progress={progress} />
-      
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  darkOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
   centerControls: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 5,
@@ -118,11 +121,20 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   videoControl: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
     flex: 1,
     zIndex: 4,
-  }
-})
+  },
+  touchSide: {
+    width: '33%',
+    height: '100%',
+  },
+  touchCenter: {
+    flexGrow: 1,
+    flex: 1,
+    height: '100%',
+  },
+});
 
-export default VideoReel
+export default VideoReel;

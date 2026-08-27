@@ -1,18 +1,18 @@
 import { PrimaryButton } from "../buttons";
 import { BaseText, BaseTextProps } from "../rn-components";
 import { SizedBox } from "../separate-components";
-import { Typography, commonStyles } from "~/constants";
-import * as React from 'react'
+import { Typography } from "~/constants";
+import * as React from 'react';
 import { StyleSheet, View } from "react-native";
-import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet'
+import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {create} from 'zustand'
+import { create } from 'zustand';
 
 type GlobalAlertType = {
     visible: boolean,
     closeOnTouchBackdrop?: boolean;
-    title: { text: string; textProp?:BaseTextProps}
-    message: { text: string; textProp?:BaseTextProps}
+    title: { text: string; textProp?: BaseTextProps }
+    message: { text: string; textProp?: BaseTextProps }
     buttons: {
         id: string,
         title: string,
@@ -21,8 +21,8 @@ type GlobalAlertType = {
         onPress?(): void;
     }[];
     alert(props : {
-        title: {text: string; textProp?: BaseTextProps};
-        message: {text: string; textProp?: BaseTextProps};
+        title: { text: string; textProp?: BaseTextProps };
+        message: { text: string; textProp?: BaseTextProps };
         buttons: {
             id: string;
             title: string;
@@ -38,8 +38,8 @@ type GlobalAlertType = {
 };
 const initState: {
     visible: boolean,
-    title: { text: string; textProp?:BaseTextProps}
-    message: { text: string; textProp?:BaseTextProps}
+    title: { text: string; textProp?: BaseTextProps }
+    message: { text: string; textProp?: BaseTextProps }
     buttons: {
         id: string,
         title: string,
@@ -51,7 +51,7 @@ const initState: {
     visible: false,
     title: {
         text: '',
-        textProp:{
+        textProp: {
             typography: Typography.heading.x4,
             color: '#3797EF',
             textAlign: 'center',
@@ -59,7 +59,7 @@ const initState: {
     },
     message: {
         text: '',
-        textProp:{
+        textProp: {
             typography: Typography.heading.x5,
             color: '#424242',
             textAlign: 'center',
@@ -67,19 +67,19 @@ const initState: {
     },
     buttons: []
 };
-export const useGlobalAlert = create<GlobalAlertType>((set,get) => ({
+export const useGlobalAlert = create<GlobalAlertType>((set, get) => ({
     ...initState,
     alert(props) {
         const currentState = get();
         set({
             visible: true,
-            title: { ...currentState.title, ...props.title},
-            message: { ...currentState.message, ...props.message},
+            title: { ...currentState.title, ...props.title },
+            message: { ...currentState.message, ...props.message },
             buttons: props.buttons,
             onClose: props?.onClose,
         });
     },
-    close(){
+    close() {
         set({
             visible: false,
             title: initState.title,
@@ -92,23 +92,23 @@ export const useGlobalAlert = create<GlobalAlertType>((set,get) => ({
 const bottomSheetRef = React.createRef<ActionSheetRef>();
 
 const GlobalAlert = () => {
-    const {title, message, buttons, onClose, closeOnTouchBackdrop} = 
+    const { title, message, buttons, onClose, closeOnTouchBackdrop } = 
         useGlobalAlert();
-    const {bottom} = useSafeAreaInsets();
+    const { bottom } = useSafeAreaInsets();
     return (
         <ActionSheet
-            ref = { bottomSheetRef}
-            closeOnTouchBackdrop = { closeOnTouchBackdrop}
+            ref={bottomSheetRef}
+            closeOnTouchBackdrop={closeOnTouchBackdrop}
             onClose={onClose}
             isModal={false}
-            safeAreaInsets={{top: 0, left: 0, bottom: 0, right: 0}}
-            containerStyle = {styles.container}
+            safeAreaInsets={{ top: 0, left: 0, bottom: 0, right: 0 }}
+            containerStyle={styles.container}
         >
-            <View style = {[styles.alert, {paddingBottom: bottom + 16}]}>
+            <View style={[styles.alert, { paddingBottom: bottom + 16 }]}>
                 <BaseText
-                    mt = {24}
-                    mb = {24}
-                    color = { '#246BFD' }
+                    mt={24}
+                    mb={24}
+                    color={'#246BFD'}
                     {...title.textProp}
                 >
                     {title.text}
@@ -119,30 +119,25 @@ const GlobalAlert = () => {
                     backgroundColor={'#eeeeee'}
                 />
                 <BaseText
-                    mt = {24}
-                    mb = {24}
-                    color = { '#246BFD' }
+                    mt={24}
+                    mb={24}
+                    color={'#246BFD'}
                     {...message.textProp} 
                 >
                     {message.text}
                 </BaseText>
-                <View 
-                    style = {[
-                        commonStyles.flexRow,
-                        commonStyles.gap12
-                    ]}
-                >
+                <View style={styles.buttonRow}>
                     {buttons.map(option => (
                         <PrimaryButton
-                            key = {option.id}
+                            key={option.id}
                             title={option.title}
                             color={option.color}
                             borderColor={'transparent'}
                             textColor={option.titleColor}
-                            style = {commonStyles.flex}
+                            style={styles.buttonItem}
                             onPress={() => {
                                 bottomSheetRef?.current?.hide();
-                                if(option.onPress){
+                                if (option.onPress) {
                                     option.onPress();
                                 }
                             }}
@@ -151,8 +146,8 @@ const GlobalAlert = () => {
                 </View>
             </View>
         </ActionSheet>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -167,6 +162,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingBottom: 16,
     },
+    buttonRow: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    buttonItem: {
+        flex: 1,
+    },
     handler: {
         width: 38,
         height: 3,
@@ -177,11 +179,11 @@ const styles = StyleSheet.create({
     },
 });
 
-export default GlobalAlert
+export default GlobalAlert;
 
 const alert = (props: {
-    title: {text: string; textProps?: BaseTextProps};
-    message: {text: string; textProps?: BaseTextProps};
+    title: { text: string; textProps?: BaseTextProps };
+    message: { text: string; textProps?: BaseTextProps };
     buttons: {
         id: string;
         title: string;
@@ -194,5 +196,5 @@ const alert = (props: {
 }) => {
     useGlobalAlert.getState().alert(props);
     bottomSheetRef.current?.show();
-}
-export {alert}
+};
+export { alert };
