@@ -1,5 +1,7 @@
 import { Platform } from 'react-native';
 import Config from 'react-native-config';
+import RNFS from 'react-native-fs';
+import { mediaApi } from '~/api';
 
 export const formatMediaUrl = (url?: string): string => {
   if (!url) return '';
@@ -14,7 +16,6 @@ export const formatMediaUrl = (url?: string): string => {
           host = match[1];
         }
       } catch {
-        // Fallback to localhost
       }
     }
 
@@ -27,3 +28,86 @@ export const formatMediaUrl = (url?: string): string => {
 
   return url;
 };
+
+export const resolveLocalMediaUri = async (uri: string, fileName?: string): Promise<string> => {
+  if (uri.startsWith('file://')) {
+    return uri;
+  }
+
+  const name = fileName || `media_${Date.now()}`;
+  const destPath = `${RNFS.CachesDirectoryPath}/${name}`;
+
+  try {
+    if (Platform.OS === 'android' && uri.startsWith('content://')) {
+      await RNFS.copyFile(uri, destPath);
+      return `file://${destPath}`;
+    }
+
+    if (
+      Platform.OS === 'ios' &&
+      (uri.startsWith('ph://') || uri.startsWith('assets-library://'))
+    ) {
+      await RNFS.copyAssetsFileIOS(uri, destPath, 0, 0);
+      return `file://${destPath}`;
+    }
+
+    await RNFS.copyFile(uri, destPath);
+    return `file://${destPath}`;
+  } catch (error) {
+    console.log('Error resolving local media uri:', error);
+    return uri;
+  }
+};
+
+export async function uploadMediaFromUri(
+  uri: string,
+  mediaType: 'photo' | 'video' | 'image',
+  getUploadUrlFn?: (fileName: string, contentType: string) => Promise<{ uploadUrl: string; key: string }>,
+): Promise<{ key: string; uploadUrl: string; contentType: string; fileName: string }> {
+  const ext =
+    uri.match(/\.(\w+)(\?.*)?$/)?.[1]?.toLowerCase() ||
+    (mediaType === 'video' ? 'mp4' : 'jpg');
+  const contentType =
+    mediaType === 'video'
+      ? `video/${ext === 'mov' ? 'quicktime' : 'mp4'}`
+      : `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+  const fileName = `${Date.now()}.${ext}`;
+
+  // 1. Resolve ph:// hoặc content:// -> file://
+  const localUri = await resolveLocalMediaUri(uri, fileName);
+
+  // 2. Lấy Presigned Upload URL
+  let uploadUrl: string;
+  let key: string;
+
+  if (getUploadUrlFn) {
+    const res = await getUploadUrlFn(fileName, contentType);
+    uploadUrl = res.uploadUrl;
+    key = res.key;
+  } else {
+    const res = await mediaApi.getUploadUrl({ filename: fileName, contentType });
+    uploadUrl = res.data.uploadUrl;
+    key = res.data.key;
+  }
+
+  // 3. Đọc blob và upload thẳng lên S3/MinIO
+  const response = await fetch(localUri);
+  const blob = await response.blob();
+
+  const res = await fetch(uploadUrl, {
+    method: 'PUT',
+    body: blob,
+    headers: { 'Content-Type': contentType },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Upload thất bại: ${res.status}`);
+  }
+
+  // 4. Xoá file tạm trong Cache sau khi hoàn tất
+  if (localUri.startsWith(`file://${RNFS.CachesDirectoryPath}`)) {
+    RNFS.unlink(localUri.replace('file://', '')).catch(() => {});
+  }
+
+  return { key, uploadUrl, contentType, fileName };
+}

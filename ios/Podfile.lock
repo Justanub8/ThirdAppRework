@@ -2148,6 +2148,8 @@ PODS:
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.14)
     - Yoga
+  - RNFS (2.20.0):
+    - React-Core
   - RNGestureHandler (3.1.0):
     - hermes-engine
     - RCTRequired
@@ -2556,6 +2558,7 @@ DEPENDENCIES:
   - ReactNativeDependencies (from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNFastImage (from `../node_modules/@d11/react-native-fast-image`)"
+  - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -2745,6 +2748,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-bootsplash"
   RNFastImage:
     :path: "../node_modules/@d11/react-native-fast-image"
+  RNFS:
+    :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNReanimated:
@@ -2849,6 +2854,7 @@ SPEC CHECKSUMS:
   ReactNativeDependencies: 2bd6854ade79bf1b60586d1ab7813a389df1b6bf
   RNBootSplash: 31b5c6d3ad199d6f6c3b8c6bfe98be74047b8ce5
   RNFastImage: 1707c1f88a4cd1d932020250e93679dbb535be64
+  RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 6206fc566272f60a2d57a0b3258c495a73b7dc90
   RNReanimated: 5cc36a25f9e60c523734a60783f84d363e73b4dc
   RNScreens: dcd5c85a822d9cbb21fc321bbbbcf918f3d48c23

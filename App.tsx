@@ -11,6 +11,8 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import { SocketProvider } from '~/context';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -28,19 +30,21 @@ const App = () => {
           <GestureHandlerRootView style={{flex: 1}}>
             <BottomSheetModalProvider>
                 <SheetProvider>
-                  <View style= {{flex: 1}}>
-                      <NavigationContainer 
-                        ref={navigationRef}
-                        onStateChange={() => {
-                          SheetManager.hideAll();
-                        }}
-                      >
-                          <RootNavigator/>
-                      </NavigationContainer>
-                      <GlobalToast />
-                      <GlobalLoading />
-                      <GlobalAlert />
-                  </View>
+                  <SocketProvider>
+                    <View style= {{flex: 1}}>
+                        <NavigationContainer 
+                          ref={navigationRef}
+                          onStateChange={() => {
+                            SheetManager.hideAll();
+                          }}
+                        >
+                            <RootNavigator/>
+                        </NavigationContainer>
+                        <GlobalToast />
+                        <GlobalLoading />
+                        <GlobalAlert />
+                    </View>
+                  </SocketProvider>
                 </SheetProvider>
             </BottomSheetModalProvider>
           </GestureHandlerRootView>

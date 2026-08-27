@@ -14,6 +14,7 @@ import FastImage from '@d11/react-native-fast-image';
 import { images } from '~/assets/images';
 import { COLORS, Typography } from '~/constants';
 import { useMessageMutation, useAuthStore } from '~/hooks';
+import { useSocket } from '~/context';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Conversation'>;
 const SHOW_SCROLL_BUTTON_OFFSET = 300;
@@ -22,6 +23,7 @@ const Conversation = () => {
     const route = useRoute<RouteProps>();
     const { id = '', name } = route.params || {};
     const { user } = useAuthStore();
+    const socket = useSocket();
     const { createMessage } = useMessageMutation();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isFetchingNextPage, setIsFetchingNextPage] = useState<boolean>(false);
@@ -36,6 +38,33 @@ const Conversation = () => {
     const requestIdRef = useRef(0);
     const isFetchingRef = useRef(false);
     const [messageContent, setMessageContent] = useState('');
+
+    useEffect(() => {
+        if (!socket || !id) return;
+
+        socket.emit('join_conversation', id);
+
+        const handleIncomingMessage = (msg: IMessage) => {
+            if (!msg) return;
+            const msgConvId = msg.conversationId;
+            if (!msgConvId || msgConvId === id) {
+                setMessages(prev => {
+                    const msgId = msg.id || msg._id;
+                    if (msgId && prev.some(m => (m.id || m._id) === msgId)) {
+                        return prev;
+                    }
+                    return [msg, ...prev];
+                });
+            }
+        };
+
+        socket.on('message', handleIncomingMessage);
+
+        return () => {
+            socket.off('message', handleIncomingMessage);
+        };
+    }, [socket, id]);
+
     useEffect(() => {
         Animated.timing(fadeAnim, {
             toValue: showScrollButton ? 1 : 0,
@@ -66,26 +95,27 @@ const Conversation = () => {
 
                 const res = await messageApi.getMessages(id, page, 20);
                 const resultData = res.data as any;
-                const rawMessages: IMessage[] = Array.isArray(resultData) ? resultData : (resultData?.items || resultData?.data || []);
-                const newMessages = [...rawMessages].reverse();
+                const rawMessages: IMessage[] = Array.isArray(resultData)
+                    ? resultData
+                    : (resultData?.items || resultData?.data || []);
 
                 if (requestId !== requestIdRef.current) {
                     return;
                 }
 
                 if (isLoadMore) {
-                    setMessages(prev => [...newMessages, ...prev]);
+                    setMessages(prev => [...prev, ...rawMessages]);
                 } else {
-                    setMessages(newMessages);
-                    setTimeout(() => {
-                        listRef.current?.scrollToEnd({ animated: false });
-                    }, 50);
+                    setMessages(rawMessages);
                 }
                 setPageIndex(page);
 
-                const currentTotal = (isLoadMore ? messagesRef.current.length : 0) + newMessages.length;
-                const totalRecord = Array.isArray(resultData) ? resultData.length : (resultData?.pagination?.total || resultData?.total_record || resultData?.total || 0);
-                if (newMessages.length < 20 || currentTotal >= totalRecord) {
+                const currentTotal = (isLoadMore ? messagesRef.current.length : 0) + rawMessages.length;
+                const totalRecord = Array.isArray(resultData)
+                    ? resultData.length
+                    : (resultData?.pagination?.total || resultData?.total_record || resultData?.total || 0);
+
+                if (rawMessages.length < 20 || currentTotal >= totalRecord) {
                     setIsFull(true);
                 } else {
                     setIsFull(false);
@@ -124,24 +154,19 @@ const Conversation = () => {
 
     const handleScroll = useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-            if (contentOffset.y <= 100 && !isFetchingNextPage && !isFull && !isLoading) {
-                handleLoadMore();
-            }
-
-            const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
-            if (distanceFromBottom > SHOW_SCROLL_BUTTON_OFFSET) {
+            const { contentOffset } = event.nativeEvent;
+            if (contentOffset.y > SHOW_SCROLL_BUTTON_OFFSET) {
                 setShowScrollButton(true);
             } else {
                 setShowScrollButton(false);
             }
         },
-        [handleLoadMore, isFetchingNextPage, isFull, isLoading]
+        []
     );
 
     const renderItem = useCallback(
         ({ item, index }: { item: IMessage; index: number }) => {
-            const previous = index > 0 ? messages[index - 1] : undefined;
+            const previous = index < messages.length - 1 ? messages[index + 1] : undefined;
             return (
                 <Message
                     item={item}
@@ -156,7 +181,7 @@ const Conversation = () => {
 
     const keyExtractor = useCallback((item: IMessage) => item.id || item._id || Math.random().toString(), []);
 
-    const renderHeader = useCallback(() => {
+    const renderFooter = useCallback(() => {
         if (!isFetchingNextPage) return null;
         return (
             <View style={{ paddingVertical: 12, alignItems: 'center' }}>
@@ -168,7 +193,7 @@ const Conversation = () => {
     const renderEmpty = useCallback(() => {
         if (isLoading) return null;
         return (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100 }}>
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100, transform: [{ scaleY: -1 }] }}>
                 <BaseText typography={Typography.bodyMedium.medium} color="#8E8E8E">
                     Chưa có tin nhắn nào. Hãy gửi lời chào!
                 </BaseText>
@@ -177,20 +202,39 @@ const Conversation = () => {
     }, [isLoading]);
 
     const handleSend = () => {
-        if (!messageContent.trim()) return;
-        createMessage.mutate(
-            { conversationId: id, content: messageContent },
-            {
-                onSuccess: (data: any) => {
-                    const newMsg: IMessage = data.data || data;
-                    setMessages(prev => [...prev, newMsg]);
-                    setMessageContent('');
-                    setTimeout(() => {
-                        listRef.current?.scrollToEnd({ animated: true });
-                    }, 50);
+        const content = messageContent.trim();
+        if (!content) return;
+
+        if (socket && socket.connected) {
+            socket.emit('message', {
+                conversationId: id,
+                content: content,
+                senderId: user?.id || user?._id,
+            });
+            console.log("tin nhắn đã được gửi đi qua socket", {
+                conversationId: id,
+                content: content,
+                senderId: user?.id || user?._id,
+            });
+            setMessageContent('');
+        } else {
+            createMessage.mutate(
+                { conversationId: id, content: content },
+                {
+                    onSuccess: (data: any) => {
+                        const newMsg: IMessage = data.data || data;
+                        setMessages(prev => {
+                            const msgId = newMsg.id || newMsg._id;
+                            if (msgId && prev.some(m => (m.id || m._id) === msgId)) {
+                                return prev;
+                            }
+                            return [newMsg, ...prev];
+                        });
+                        setMessageContent('');
+                    }
                 }
-            }
-        );
+            );
+        }
     };
 
     return (
@@ -212,6 +256,7 @@ const Conversation = () => {
                 <View style={styles.flex1}>
                     <FlashList
                         ref={listRef}
+                        inverted={true}
                         data={messages}
                         extraData={messages}
                         keyExtractor={keyExtractor}
@@ -220,7 +265,9 @@ const Conversation = () => {
                         showsVerticalScrollIndicator={false}
                         onScroll={handleScroll}
                         scrollEventThrottle={16}
-                        ListHeaderComponent={renderHeader}
+                        onEndReached={handleLoadMore}
+                        onEndReachedThreshold={0.3}
+                        ListFooterComponent={renderFooter}
                         ListEmptyComponent={renderEmpty}
                         refreshing={isRefreshing}
                         onRefresh={handleRefresh}
@@ -247,10 +294,10 @@ const Conversation = () => {
                       <TouchableOpacity
                           style={styles.fabButton}
                           onPress={() => {
-                              listRef.current?.scrollToEnd({ animated: true });
+                              listRef.current?.scrollToOffset({ offset: 0, animated: true });
                           }}
                       >
-                          <View style={styles.rotate90}>
+                          <View style={styles.rotateDown}>
                               <ArrowToLeft height={24} width={24} />
                           </View>
                       </TouchableOpacity>
@@ -327,8 +374,8 @@ const styles = StyleSheet.create({
         shadowRadius: 6,
         elevation: 4,
     },
-    rotate90: {
-        transform: [{ rotate: '90deg' }],
+    rotateDown: {
+        transform: [{ rotate: '-90deg' }],
     },
     cameraIcon: {
         backgroundColor: "#eee7f1",

@@ -135,12 +135,12 @@ export const Navigation = {
         }
     },
 
-    goToCreatePost: (uri: string) => {
+    goToCreatePost: (uri: string, mediaType?: 'image' | 'video') => {
         SheetManager.hideAll();
         if(navigationRef.isReady()){
             navigationRef.navigate('App' , {
                 screen: 'CreatePost',
-                params: {uri}
+                params: { uri, mediaType }
             })
         }
     }

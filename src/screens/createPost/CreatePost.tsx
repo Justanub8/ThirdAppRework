@@ -9,17 +9,24 @@ import { Typography } from '~/constants';
 import { Navigation } from '~/utils';
 import { usePostMutation } from '~/hooks';
 import { mediaApi } from '~/api';
+import Video from 'react-native-video';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreatePost'>;
 
 const CreatePost = () => {
   const { top } = useSafeAreaInsets();
   const route = useRoute<RouteProps>();
-  const { uri = '' } = route.params || {};
+  const { uri = '', mediaType } = route.params || {};
   const [caption, setCaption] = useState('');
   const [showCaptionInput, setShowCaptionInput] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const { createPost } = usePostMutation();
+
+  const isVideo = Boolean(
+    mediaType === 'video' ||
+    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(uri)
+  );
 
   const handleCreatePost = async () => {
     if (!uri || createPost.isPending || isUploading) return;
@@ -28,10 +35,11 @@ const CreatePost = () => {
       setIsUploading(true);
       const uploadRes = await mediaApi.uploadImage(uri);
       const uploadedUrl = uploadRes?.url || uri;
+      const finalType = isVideo ? 'video' : 'image';
 
       await createPost.mutateAsync({
-        caption: caption.trim() || 'Bài viết mới',
-        media: [{ url: uploadedUrl, type: 'image' }],
+        caption: caption.trim() || (isVideo ? 'Video mới' : 'Bài viết mới'),
+        media: [{ url: uploadedUrl, type: finalType }],
       });
       Alert.alert('Thành công', 'Đã tạo bài viết mới thành công!', [
         {
@@ -58,9 +66,18 @@ const CreatePost = () => {
           </TouchableOpacity> 
 
           <View style={styles.rightTools}>
-            <TouchableOpacity style={styles.iconButton}>
-              <UnmutedIcon width={20} height={20} color="#ffffff" />
-            </TouchableOpacity>
+            {isVideo && (
+              <TouchableOpacity 
+                style={styles.iconButton}
+                onPress={() => setIsMuted(prev => !prev)}
+              >
+                {isMuted ? (
+                  <MutedIcon width={20} height={20} color="#ffffff" />
+                ) : (
+                  <UnmutedIcon width={20} height={20} color="#ffffff" />
+                )}
+              </TouchableOpacity>
+            )}
             <TouchableOpacity 
               style={[styles.iconButton, showCaptionInput && styles.activeIconButton]}
               onPress={() => setShowCaptionInput(prev => !prev)}
@@ -78,11 +95,22 @@ const CreatePost = () => {
       </View>
       
       <View style={styles.imageWrapper}>
-        <Image
-          source={{ uri }}
-          resizeMode="cover"
-          style={styles.mainImage}
-        />
+        {isVideo ? (
+          <Video
+            source={{ uri }}
+            resizeMode="cover"
+            style={styles.mainImage}
+            repeat={true}
+            paused={false}
+            muted={isMuted}
+          />
+        ) : (
+          <Image
+            source={{ uri }}
+            resizeMode="cover"
+            style={styles.mainImage}
+          />
+        )}
         {showCaptionInput && (
           <View style={styles.captionOverlay}>
             <TextInput

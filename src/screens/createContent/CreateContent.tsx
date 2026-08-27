@@ -18,6 +18,13 @@ import { COLORS, Typography } from '~/constants'
 const { width } = Dimensions.get('window');
 const GRID_SIZE = width / 4;
 
+const formatDuration = (seconds?: number) => {
+  if (!seconds || seconds <= 0) return '';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+};
+
 const CreateContent = () => {
   const [photos, setPhotos] = useState<any[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
@@ -34,7 +41,11 @@ const CreateContent = () => {
         assetType: 'All',
       });
 
-      const newPhotos = res.edges.map(edge => edge.node.image);
+      const newPhotos = res.edges.map(edge => ({
+        ...edge.node.image,
+        type: edge.node.type,
+        playableDuration: edge.node.image.playableDuration,
+      }));
       setPhotos(prev => after ? [...prev, ...newPhotos] : newPhotos);
       setHasNextPage(res.page_info.has_next_page);
       setEndCursor(res.page_info.end_cursor);
@@ -49,8 +60,13 @@ const CreateContent = () => {
 
   useEffect(() => {
     fetchPhotos();
-    console.log(selectedPhoto)
   }, []);
+
+  const isSelectedVideo = Boolean(
+    selectedPhoto?.playableDuration ||
+    selectedPhoto?.type?.startsWith('video') ||
+    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(selectedPhoto?.uri || '')
+  );
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
@@ -58,7 +74,13 @@ const CreateContent = () => {
         title="Bài viết mới"
         LeftComponent={<CrossIcon width={32} height={32} onPress={() => Navigation.pop()} />}
         RightComponent={
-          <TouchableOpacity onPress={() => Navigation.goToCreatePost(selectedPhoto.uri)}>
+          <TouchableOpacity 
+            onPress={() => {
+              if (selectedPhoto?.uri) {
+                Navigation.goToCreatePost(selectedPhoto.uri, isSelectedVideo ? 'video' : 'image');
+              }
+            }}
+          >
             <BaseText typography={Typography.bodyBold.large} color={COLORS.blue}>
               Tiếp
             </BaseText>
@@ -68,11 +90,20 @@ const CreateContent = () => {
 
       <View style={styles.previewContainer}>
         {selectedPhoto && (
-          <Image
-            source={{ uri: selectedPhoto.uri }}
-            style={styles.previewImage}
-            resizeMode="cover"
-          />
+          <View style={styles.previewWrapper}>
+            <Image
+              source={{ uri: selectedPhoto.uri }}
+              style={styles.previewImage}
+              resizeMode="cover"
+            />
+            {isSelectedVideo && (
+              <View style={styles.previewVideoBadge}>
+                <BaseText typography={Typography.bodySemiBold.small} color="#ffffff">
+                  {formatDuration(selectedPhoto.playableDuration) || 'VIDEO'}
+                </BaseText>
+              </View>
+            )}
+          </View>
         )}
       </View>
 
@@ -104,6 +135,11 @@ const CreateContent = () => {
           onEndReachedThreshold={0.5}
           renderItem={({ item }) => {
             const isSelected = selectedPhoto?.uri === item.uri;
+            const isVideo = Boolean(
+              item.playableDuration ||
+              item.type?.startsWith('video') ||
+              /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(item.uri)
+            );
             return (
               <TouchableOpacity
                 activeOpacity={0.8}
@@ -115,6 +151,13 @@ const CreateContent = () => {
                   style={styles.gridImage}
                   resizeMode="cover"
                 />
+                {isVideo && (
+                  <View style={styles.videoBadge}>
+                    <BaseText typography={Typography.bodyRegular.xSmall} color="#ffffff">
+                      {formatDuration(item.playableDuration) || 'Video'}
+                    </BaseText>
+                  </View>
+                )}
               </TouchableOpacity>
             );
           }}
@@ -133,12 +176,26 @@ const styles = StyleSheet.create({
     height: width,
     backgroundColor: '#121212',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
-  previewImage: {
+  previewWrapper: {
     width: '95%',
     height: '95%',
-    borderRadius: 8
+    position: 'relative',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  previewVideoBadge: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
   },
   bottomSheetBackground: {
     borderTopLeftRadius: 16,
@@ -155,7 +212,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderColor: COLORS.border,
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   albumSelector: {
     flexDirection: 'row',
@@ -164,6 +221,7 @@ const styles = StyleSheet.create({
   gridItem: {
     width: GRID_SIZE,
     height: GRID_SIZE,
+    position: 'relative',
   },
   gridItemSelected: {
     opacity: 0.5,
@@ -171,6 +229,15 @@ const styles = StyleSheet.create({
   gridImage: {
     width: '100%',
     height: '100%',
+  },
+  videoBadge: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
   },
 });
 
