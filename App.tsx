@@ -11,7 +11,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { SocketProvider } from '~/context';
+import { SocketProvider, ThemeProvider } from '~/context';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,31 +25,33 @@ const queryClient = new QueryClient({
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <View style={{flex: 1}}>
-        <SafeAreaProvider>
-          <GestureHandlerRootView style={{flex: 1}}>
-            <BottomSheetModalProvider>
-                <SheetProvider>
-                  <SocketProvider>
-                    <View style= {{flex: 1}}>
-                        <NavigationContainer 
-                          ref={navigationRef}
-                          onStateChange={() => {
-                            SheetManager.hideAll();
-                          }}
-                        >
-                            <RootNavigator/>
-                        </NavigationContainer>
-                        <GlobalToast />
-                        <GlobalLoading />
-                        <GlobalAlert />
-                    </View>
-                  </SocketProvider>
-                </SheetProvider>
-            </BottomSheetModalProvider>
-          </GestureHandlerRootView>
-        </SafeAreaProvider>
-      </View>
+      <ThemeProvider>
+        <View style={{flex: 1}}>
+          <SafeAreaProvider>
+            <GestureHandlerRootView style={{flex: 1}}>
+              <BottomSheetModalProvider>
+                  <SheetProvider>
+                    <SocketProvider>
+                      <View style= {{flex: 1}}>
+                          <NavigationContainer 
+                            ref={navigationRef}
+                            onStateChange={() => {
+                              SheetManager.hideAll();
+                            }}
+                          >
+                              <RootNavigator/>
+                          </NavigationContainer>
+                          <GlobalToast />
+                          <GlobalLoading />
+                          <GlobalAlert />
+                      </View>
+                    </SocketProvider>
+                  </SheetProvider>
+              </BottomSheetModalProvider>
+            </GestureHandlerRootView>
+          </SafeAreaProvider>
+        </View>
+      </ThemeProvider>
     </QueryClientProvider>
   )
 }

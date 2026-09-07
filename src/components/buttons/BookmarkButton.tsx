@@ -19,8 +19,8 @@ const BookmarkButton = ({
     type, 
     initialBookmarked = false, 
     onBookmarkToggle, 
-    activeColor = '#000000', 
-    inactiveColor = '#000000' 
+    activeColor, 
+    inactiveColor 
 }: BookmarkButtonProps) => {
     const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
     const { createBookmark, deleteBookmark } = useBookmarkMutation();

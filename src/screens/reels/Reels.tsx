@@ -7,8 +7,10 @@ import ImageReel from '~/components/reel/ImageReel';
 import { IReel } from '~/interfaces/reel';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { reelApi } from '~/api';
+import { useTheme } from '~/hooks';
 
 const Reels = () => {
+  const { theme } = useTheme();
   const bottomTabHeight = useBottomTabBarHeight();
   const availableHeight = Dimensions.get('window').height - bottomTabHeight;
   const [activeIndex, setActiveIndex] = useState(0);
@@ -55,7 +57,7 @@ const Reels = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.black }]}>
       <FlashList
         data={reels}
         renderItem={renderItem}
@@ -78,7 +80,6 @@ const Reels = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
 });
 

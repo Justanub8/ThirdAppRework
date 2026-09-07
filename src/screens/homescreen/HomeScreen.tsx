@@ -1,7 +1,7 @@
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import * as React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '~/hooks';
+import { useAuthStore, useTheme, Theme } from '~/hooks';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { CreateIcon, NotificationIcon } from '~/assets/svgs';
 import { FastImage } from '~/components/rn-components';
@@ -16,6 +16,8 @@ import { FlashList } from '@shopify/flash-list';
 import { Navigation } from '~/utils';
 
 const HomeScreen = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const menuModalRef = React.useRef<BottomSheetModal>(null);
   const [activePostId, setActivePostId] = React.useState<string | null>(null);
 
@@ -92,10 +94,10 @@ const HomeScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.background,
   },
   topHeader: {
     flexDirection: 'row',
@@ -103,7 +105,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 8,
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: theme.border,
   },
   logo: {
     width: 120,
@@ -122,14 +124,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerModal: {
-    borderBottomColor: '#bdbdbd',
+    borderBottomColor: theme.divider,
     borderBottomWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   footerComponent: {
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: theme.border,
     height: 50,
   },
 });

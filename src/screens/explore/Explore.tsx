@@ -3,10 +3,12 @@ import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PrimaryInput } from '~/components/inputs';
 import { SearchLightIcon } from '~/assets/svgs';
+import { useTheme } from '~/hooks';
 
 const Explore = () => {
+  const { theme } = useTheme();
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={styles.container}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
       <PrimaryInput
         placeholder='Tìm kiếm'
         LeftComponent={SearchLightIcon}
@@ -18,7 +20,6 @@ const Explore = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 8,
   },
 });

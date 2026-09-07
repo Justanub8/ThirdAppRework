@@ -8,10 +8,11 @@ import { PrimaryInput } from '~/components/inputs';
 import { SizedBox } from '~/components/separate-components';
 import { BaseText } from '~/components/rn-components';
 import { FacebookIcon } from '~/assets/svgs';
-import { useLogin } from '~/hooks';
+import { useLogin, useTheme } from '~/hooks';
 import { Navigation } from '~/utils';
 
 const Login = () => {
+    const { theme } = useTheme();
     const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
     const mutationLogin = useLogin();
@@ -20,7 +21,7 @@ const Login = () => {
     };
 
     return (
-        <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
+        <SafeAreaView edges={['top', 'bottom']} style={[styles.container, { backgroundColor: theme.background }]}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={styles.keyboardAvoid}
@@ -51,7 +52,7 @@ const Login = () => {
                     <SizedBox height={16}/>
                     <TextButton
                         title='Forgot Password?'
-                        color={'#3797EF'}
+                        color={theme.blue}
                         style={styles.alignEnd}
                     />
                     <SizedBox height={36}/>
@@ -61,29 +62,29 @@ const Login = () => {
                     />
                     <SizedBox height={36}/>
                     <View style={styles.facebookRow}>
-                        <FacebookIcon height={20} width={20} color={'#246BFD'}/>
+                        <FacebookIcon height={20} width={20} color={theme.facebookBlue}/>
                         <TextButton
                             title='Login with Facebook'
-                            color={'#3797EF'}
+                            color={theme.blue}
                             style={styles.alignCenter}
                         />
                     </View>
                     <SizedBox height={24}/>
                     <View style={styles.orDividerRow}>
-                        <SizedBox height={1} backgroundColor={'#bdbdbd'} width={'40%'}/>
-                        <BaseText color={'#757575'}>
+                        <SizedBox height={1} backgroundColor={theme.divider} width={'40%'}/>
+                        <BaseText color={theme.grey}>
                         OR
                         </BaseText>
-                        <SizedBox height={1} backgroundColor={'#bdbdbd'} width={'40%'}/>
+                        <SizedBox height={1} backgroundColor={theme.divider} width={'40%'}/>
                     </View>
                     <SizedBox height={24}/>
                     <View style={styles.signUpRow}>
-                        <BaseText color={'#9e9e9e'}>
+                        <BaseText color={theme.muted}>
                             Don't have an account?
                         </BaseText>
                         <TextButton
                             title='Sign up.'
-                            style={{ color: '#3797EF' }}
+                            style={{ color: theme.blue }}
                             onPress={() => Navigation.goToSignUp()}
                         />
                     </View>
@@ -96,7 +97,6 @@ const Login = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
     },
     keyboardAvoid: {
         flex: 1,

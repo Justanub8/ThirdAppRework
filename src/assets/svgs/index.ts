@@ -1,36 +1,131 @@
-export {default as HomeBoldIcon} from './home-bold-icon.svg'
-export {default as HomeLightIcon} from './home-light-icon.svg'
-export {default as ReelBoldIcon} from './reel-bold-icon.svg'
-export {default as ReelLightIcon} from './reel-light-icon.svg'
-export {default as SearchBoldIcon} from './search-bold-icon.svg'
-export {default as SearchLightIcon} from './search-light-icon.svg'
-export {default as FacebookIcon} from './Shape.svg'
-export {default as CreateIcon} from './round-plus-icon.svg'
-export {default as NotificationIcon} from './heart-icon.svg'
-export {default as HeartIcon} from './heart-fill-icon.svg'
-export {default as MoreIcon} from './more-icon.svg'
-export {default as CommentIcon} from './comment-icon.svg'
-export {default as BookmarkLightIcon} from './bookmark-light-icon.svg'
-export {default as BookmarkBoldIcon} from './bookmark-bold-icon.svg'
-export {default as RepostIcon} from'./repost-icon.svg'
-export {default as MessageBoldIcon} from './message-bold-icon.svg'
-export {default as MessageLightIcon} from './message-light-icon.svg'
-export {default as NoteIcon} from './note-edit-svgrepo-com.svg'
-export {default as CrossIcon} from './cross-svgrepo-com.svg'
-export {default as MenuIcon} from './menu-svgrepo-com.svg'
-export {default as AddUserIcon} from './user-add-svgrepo-com.svg'
-export {default as GridIcon} from './grid-3x3-svgrepo-com.svg'
-export {default as AccountArrorIcon} from './account-pin-box-svgrepo-com.svg'
-export {default as LightArrowLeftIcon} from './light-arrow-left.svg'
-export {default as MutedIcon} from './volume-mute-svgrepo-com.svg'
-export {default as UnmutedIcon} from './volume-off-svgrepo-com.svg'
-export {default as PlayIcon} from './play-alt-svgrepo-com.svg'
-export {default as RightArrow} from './right-arrow-svgrepo-com.svg'
-export {default as LeftArrow} from './left-light.svg'
-export {default as ArrowToLeft} from './arrow-to-left.svg'
-export {default as ArrowToRight} from './arrow-to-right-svgrepo-com.svg'
-export {default as CallIcon} from './call-icon.svg'
-export {default as VideoCallIcon} from './videocall-cam-icon.svg'
-export {default as CameraLightIcon} from './camera-light.svg'
-export {default as TextAaIcon} from './text-aa-bold-svgrepo-com.svg'
-export {default as StickerIcon} from './sticker-smile-square-svgrepo-com.svg'
+import React from 'react';
+import { SvgProps } from 'react-native-svg';
+import { useTheme } from '~/context/ThemeContext';
+
+import RawHomeBoldIcon from './home-bold-icon.svg';
+import RawHomeLightIcon from './home-light-icon.svg';
+import RawReelBoldIcon from './reel-bold-icon.svg';
+import RawReelLightIcon from './reel-light-icon.svg';
+import RawSearchBoldIcon from './search-bold-icon.svg';
+import RawSearchLightIcon from './search-light-icon.svg';
+import RawFacebookIcon from './Shape.svg';
+import RawCreateIcon from './round-plus-icon.svg';
+import RawNotificationIcon from './heart-icon.svg';
+import RawHeartIcon from './heart-fill-icon.svg';
+import RawMoreIcon from './more-icon.svg';
+import RawCommentIcon from './comment-icon.svg';
+import RawBookmarkLightIcon from './bookmark-light-icon.svg';
+import RawBookmarkBoldIcon from './bookmark-bold-icon.svg';
+import RawRepostIcon from './repost-icon.svg';
+import RawMessageBoldIcon from './message-bold-icon.svg';
+import RawMessageLightIcon from './message-light-icon.svg';
+import RawNoteIcon from './note-edit-svgrepo-com.svg';
+import RawCrossIcon from './cross-svgrepo-com.svg';
+import RawMenuIcon from './menu-svgrepo-com.svg';
+import RawAddUserIcon from './user-add-svgrepo-com.svg';
+import RawGridIcon from './grid-3x3-svgrepo-com.svg';
+import RawAccountArrorIcon from './account-pin-box-svgrepo-com.svg';
+import RawLightArrowLeftIcon from './light-arrow-left.svg';
+import RawMutedIcon from './volume-mute-svgrepo-com.svg';
+import RawUnmutedIcon from './volume-off-svgrepo-com.svg';
+import RawPlayIcon from './play-alt-svgrepo-com.svg';
+import RawRightArrow from './right-arrow-svgrepo-com.svg';
+import RawLeftArrow from './left-light.svg';
+import RawArrowToLeft from './arrow-to-left.svg';
+import RawArrowToRight from './arrow-to-right-svgrepo-com.svg';
+import RawCallIcon from './call-icon.svg';
+import RawVideoCallIcon from './videocall-cam-icon.svg';
+import RawCameraLightIcon from './camera-light.svg';
+import RawTextAaIcon from './text-aa-bold-svgrepo-com.svg';
+import RawStickerIcon from './sticker-smile-square-svgrepo-com.svg';
+
+import RawCameraBoldIcon from './camera-bold.svg';
+import RawCheckCircleIcon from './check-circle.svg';
+import RawCheckIcon from './check.svg';
+import RawClockLightIcon from './clock-light.svg';
+import RawEyeHideIcon from './eye-hide.svg';
+import RawEyeShowIcon from './eye-show.svg';
+import RawFilterBoldIcon from './filter-bold.svg';
+import RawFilterLightIcon from './filter-light.svg';
+import RawFlashOffIcon from './flash-off.svg';
+import RawFlashIcon from './flash.svg';
+import RawFolderLightIcon from './folder-light.svg';
+import RawInfoCircleBoldIcon from './info-circle-bold.svg';
+import RawLightArrowRightIcon from './light-arrow-right.svg';
+import RawListBoldIcon from './list-bold.svg';
+import RawListLightIcon from './list-light.svg';
+import RawLocationLightIcon from './location-light.svg';
+import RawLockIcon from './lock.svg';
+import RawLogoutBoldIcon from './logout-bold.svg';
+import RawLogoutLightIcon from './logout-light.svg';
+import RawScanBoldIcon from './scan-bold.svg';
+import RawScanLightIcon from './scan-light.svg';
+
+export function withThemeIcon(SvgComponent: React.FC<SvgProps>, defaultColor?: string): React.FC<SvgProps> {
+  const ThemedIcon: React.FC<SvgProps> = (props) => {
+    const { theme } = useTheme();
+    const resolvedColor = props.color ?? defaultColor ?? theme.icon;
+    return React.createElement(SvgComponent, { ...props, color: resolvedColor });
+  };
+  ThemedIcon.displayName = SvgComponent.displayName || SvgComponent.name || 'ThemedIcon';
+  return ThemedIcon;
+}
+
+export const HomeBoldIcon = withThemeIcon(RawHomeBoldIcon);
+export const HomeLightIcon = withThemeIcon(RawHomeLightIcon);
+export const ReelBoldIcon = withThemeIcon(RawReelBoldIcon);
+export const ReelLightIcon = withThemeIcon(RawReelLightIcon);
+export const SearchBoldIcon = withThemeIcon(RawSearchBoldIcon);
+export const SearchLightIcon = withThemeIcon(RawSearchLightIcon);
+export const FacebookIcon = withThemeIcon(RawFacebookIcon);
+export const CreateIcon = withThemeIcon(RawCreateIcon);
+export const NotificationIcon = withThemeIcon(RawNotificationIcon);
+export const HeartIcon = withThemeIcon(RawHeartIcon);
+export const MoreIcon = withThemeIcon(RawMoreIcon);
+export const CommentIcon = withThemeIcon(RawCommentIcon);
+export const BookmarkLightIcon = withThemeIcon(RawBookmarkLightIcon);
+export const BookmarkBoldIcon = withThemeIcon(RawBookmarkBoldIcon);
+export const RepostIcon = withThemeIcon(RawRepostIcon);
+export const MessageBoldIcon = withThemeIcon(RawMessageBoldIcon);
+export const MessageLightIcon = withThemeIcon(RawMessageLightIcon);
+export const NoteIcon = withThemeIcon(RawNoteIcon);
+export const CrossIcon = withThemeIcon(RawCrossIcon);
+export const MenuIcon = withThemeIcon(RawMenuIcon);
+export const AddUserIcon = withThemeIcon(RawAddUserIcon);
+export const GridIcon = withThemeIcon(RawGridIcon);
+export const AccountArrorIcon = withThemeIcon(RawAccountArrorIcon);
+export const LightArrowLeftIcon = withThemeIcon(RawLightArrowLeftIcon);
+export const MutedIcon = withThemeIcon(RawMutedIcon);
+export const UnmutedIcon = withThemeIcon(RawUnmutedIcon);
+export const PlayIcon = withThemeIcon(RawPlayIcon);
+export const RightArrow = withThemeIcon(RawRightArrow);
+export const LeftArrow = withThemeIcon(RawLeftArrow);
+export const ArrowToLeft = withThemeIcon(RawArrowToLeft);
+export const ArrowToRight = withThemeIcon(RawArrowToRight);
+export const CallIcon = withThemeIcon(RawCallIcon);
+export const VideoCallIcon = withThemeIcon(RawVideoCallIcon);
+export const CameraLightIcon = withThemeIcon(RawCameraLightIcon);
+export const TextAaIcon = withThemeIcon(RawTextAaIcon);
+export const StickerIcon = withThemeIcon(RawStickerIcon);
+
+export const CameraBoldIcon = withThemeIcon(RawCameraBoldIcon);
+export const CheckCircleIcon = withThemeIcon(RawCheckCircleIcon);
+export const CheckIcon = withThemeIcon(RawCheckIcon);
+export const ClockLightIcon = withThemeIcon(RawClockLightIcon);
+export const EyeHideIcon = withThemeIcon(RawEyeHideIcon);
+export const EyeShowIcon = withThemeIcon(RawEyeShowIcon);
+export const FilterBoldIcon = withThemeIcon(RawFilterBoldIcon);
+export const FilterLightIcon = withThemeIcon(RawFilterLightIcon);
+export const FlashOffIcon = withThemeIcon(RawFlashOffIcon);
+export const FlashIcon = withThemeIcon(RawFlashIcon);
+export const FolderLightIcon = withThemeIcon(RawFolderLightIcon);
+export const InfoCircleBoldIcon = withThemeIcon(RawInfoCircleBoldIcon);
+export const LightArrowRightIcon = withThemeIcon(RawLightArrowRightIcon);
+export const ListBoldIcon = withThemeIcon(RawListBoldIcon);
+export const ListLightIcon = withThemeIcon(RawListLightIcon);
+export const LocationLightIcon = withThemeIcon(RawLocationLightIcon);
+export const LockIcon = withThemeIcon(RawLockIcon);
+export const LogoutBoldIcon = withThemeIcon(RawLogoutBoldIcon);
+export const LogoutLightIcon = withThemeIcon(RawLogoutLightIcon);
+export const ScanBoldIcon = withThemeIcon(RawScanBoldIcon);
+export const ScanLightIcon = withThemeIcon(RawScanLightIcon);

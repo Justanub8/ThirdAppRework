@@ -1,7 +1,8 @@
-import * as React from 'react-native'
-import { StyleProp, TextStyle, TextProps } from 'react-native'
+import React from 'react';
+import { StyleProp, TextStyle, TextProps } from 'react-native';
 import { Typography } from '~/constants';
-import Animated from 'react-native-reanimated'
+import { useTheme } from '~/hooks';
+import Animated from 'react-native-reanimated';
 
 export interface BaseTextProps extends TextProps {
     textAlign?: 'left' | 'right' | 'center';
@@ -50,7 +51,7 @@ const BaseText = ({
     borderRightWidth,
     borderTopColor,
     borderTopWidth,
-    color = '#212121',
+    color,
     mt,
     mb,
     ml,
@@ -67,6 +68,7 @@ const BaseText = ({
     typography = Typography.bodyRegular.medium,
     ...textProps
 }: BaseTextProps) => {
+  const { theme } = useTheme();
   return (
     <Animated.Text
       {...textProps}
@@ -74,7 +76,7 @@ const BaseText = ({
       style={[
         typography,
         {
-          color,
+          color: color ?? theme.text,
           textAlign: textAlign,
           textTransform,
           borderWidth,

@@ -1,18 +1,19 @@
 import React from 'react';
 import ActionSheet, { SheetProps } from 'react-native-actions-sheet';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { SizedBox } from '../separate-components';
 import { PrimaryInput } from '../inputs';
-import { FastImage } from '../rn-components';
-import { COLORS } from '~/constants';
+import { FastImage, BaseText } from '../rn-components';
 import { images } from '~/assets/images';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { commentApi } from '~/api/commentApi';
 import { FlashList } from '@shopify/flash-list';
 import Comment from '../comment/Comment';
-import { useCommentMutation } from '~/hooks';
+import { useCommentMutation, useTheme, Theme } from '~/hooks';
 
 const CommentSheet = (props: SheetProps<"CommentSheet">) => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const { targetId, targetType } = props.payload || {};
   const [commentText, setCommentText] = React.useState('');
   const { createComment } = useCommentMutation();
@@ -58,7 +59,7 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
     >
       <View style={{ flex: 1 }}>
         <View style={styles.header}>
-          <Text style={styles.title}>Bình luận</Text>
+          <BaseText style={styles.title}>Bình luận</BaseText>
         </View>
         {isLoading ? (
           <ActivityIndicator size="large" style={{ marginTop: 20 }} />
@@ -97,22 +98,22 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   containerStyle: {
     height: '70%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.sheet,
   },
   indicator: {
     width: 44,
     height: 5,
-    backgroundColor: '#d1d5db',
+    backgroundColor: theme.placeholder,
     borderRadius: 3,
     marginTop: 8,
   },
   header: {
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.divider,
     borderBottomWidth: 1,
     paddingBottom: 8,
   },
@@ -123,8 +124,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inputBar: {
-    backgroundColor: '#ffffff',
-    borderTopColor: '#bdbdbd',
+    backgroundColor: theme.sheet,
+    borderTopColor: theme.divider,
     borderTopWidth: 1,
     paddingHorizontal: 12,
   },

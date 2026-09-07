@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.2)',
   },
   centerControls: {
-    ...StyleSheet.absoluteFillObject,
+    ...(StyleSheet.absoluteFill as object),
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 5,
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   videoControl: {
-    ...StyleSheet.absoluteFillObject,
+    ...(StyleSheet.absoluteFill as object),
     flexDirection: 'row',
     flex: 1,
     zIndex: 4,

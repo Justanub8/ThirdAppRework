@@ -14,7 +14,7 @@ interface LikeButtonProps {
     onLikeToggle?: (isLiked: boolean) => void;
 }
 
-const LikeButton = ({ size, id, type, initialLiked = false, activeColor = '#F44336', inactiveColor = '#000000', onLikeToggle }: LikeButtonProps) => {
+const LikeButton = ({ size, id, type, initialLiked = false, activeColor = '#F44336', inactiveColor, onLikeToggle }: LikeButtonProps) => {
     const [isLiked, setIsLiked] = useState(initialLiked);
     const { createLike, deleteLike} = useLikeMutation();
 

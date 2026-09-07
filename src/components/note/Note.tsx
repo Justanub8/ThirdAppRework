@@ -2,8 +2,11 @@ import { View, StyleSheet } from 'react-native';
 import React from 'react';
 import { BaseText, FastImage } from '../rn-components';
 import { images } from '~/assets/images';
+import { useTheme, Theme } from '~/hooks';
 
 const Note = () => {
+    const { theme } = useTheme() 
+    const styles = React.useMemo(() => getStyles(theme), [theme])
   return (
     <View style={styles.container}>
         <View style={styles.noteContainer}>
@@ -16,17 +19,15 @@ const Note = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.background,
         borderWidth: 1,
-        borderColor: '#000000',
     },
     avatar: {
         height: 100,
         width: 100,
-        borderColor: '#000000',
         borderRadius: 99999,
         borderWidth: 1,
     },

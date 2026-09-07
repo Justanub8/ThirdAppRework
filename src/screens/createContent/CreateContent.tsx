@@ -13,7 +13,8 @@ import { CustomHeader } from '~/components/headers'
 import { CameraLightIcon, CrossIcon } from '~/assets/svgs'
 import { Navigation } from '~/utils'
 import { BaseText } from '~/components/rn-components'
-import { COLORS, Typography } from '~/constants'
+import { Typography } from '~/constants'
+import { useTheme, Theme } from '~/hooks'
 
 const { width } = Dimensions.get('window');
 const GRID_SIZE = width / 4;
@@ -26,6 +27,8 @@ const formatDuration = (seconds?: number) => {
 };
 
 const CreateContent = () => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => getStyles(theme), [theme]);
   const [photos, setPhotos] = useState<any[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [hasNextPage, setHasNextPage] = useState(true);
@@ -81,7 +84,7 @@ const CreateContent = () => {
               }
             }}
           >
-            <BaseText typography={Typography.bodyBold.large} color={COLORS.blue}>
+            <BaseText typography={Typography.bodyBold.large} color={theme.blue}>
               Tiếp
             </BaseText>
           </TouchableOpacity>
@@ -98,7 +101,7 @@ const CreateContent = () => {
             />
             {isSelectedVideo && (
               <View style={styles.previewVideoBadge}>
-                <BaseText typography={Typography.bodySemiBold.small} color="#ffffff">
+                <BaseText typography={Typography.bodySemiBold.small} color={theme.white}>
                   {formatDuration(selectedPhoto.playableDuration) || 'VIDEO'}
                 </BaseText>
               </View>
@@ -153,7 +156,7 @@ const CreateContent = () => {
                 />
                 {isVideo && (
                   <View style={styles.videoBadge}>
-                    <BaseText typography={Typography.bodyRegular.xSmall} color="#ffffff">
+                    <BaseText typography={Typography.bodyRegular.xSmall} color={theme.white}>
                       {formatDuration(item.playableDuration) || 'Video'}
                     </BaseText>
                   </View>
@@ -167,14 +170,15 @@ const CreateContent = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.background,
   },
   previewContainer: {
     width: width,
     height: width,
-    backgroundColor: '#121212',
+    backgroundColor: theme.darkBackground,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -192,7 +196,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 8,
     right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: theme.overlayDark,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4,
@@ -200,10 +204,12 @@ const styles = StyleSheet.create({
   bottomSheetBackground: {
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    backgroundColor: theme.background,
   },
   handleIndicator: {
     width: 40,
     height: 4,
+    backgroundColor: theme.divider,
   },
   toolbar: {
     flexDirection: 'row',
@@ -211,7 +217,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
     borderBottomWidth: 1,
   },
   albumSelector: {
@@ -234,7 +240,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 4,
     right: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: theme.overlaySubtle,
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 3,

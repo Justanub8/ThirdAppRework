@@ -1,10 +1,72 @@
 import { StyleSheet } from "react-native";
-export const COLORS ={
-    background: "#ffffff",
-    blue: "#445efe",
-    grey: "#eef0f6",
-    transparent: 'transparent',
-    border: "#9e9e9e"
+type ColorScheme = {
+  readonly background: string;
+  readonly text: string;
+  readonly icon: string;
+  readonly black: string;
+  readonly blue: string;
+  readonly grey: string;
+  readonly red: string;
+  readonly white: string;
+  readonly green: string;
+  readonly sheet: string;
+  readonly input: string;
+};
+
+export const COLORS: {light: ColorScheme, dark: ColorScheme, common: any} = {
+    light: {
+        background: '#ffffff',
+        text: '#000000',
+        icon: '#000000',
+        black: '#000000',
+        blue: '#0095F6',
+        grey: '#2B2B2B',
+        red: '#E63946',
+        white: '#ffffff',
+        green: '#2ECC71',
+        sheet: '#ffffff',
+        input: '#EAEAEA'
+    },
+    dark: {
+        background: '#000000',
+        text: '#ffffff',
+        icon: '#ffffff',
+        black: '#000000',
+        blue: '#0095F6',
+        grey: '#2B2B2B',
+        red: '#E63946',
+        white: '#ffffff',
+        green: '#2ECC71',
+        sheet: '#2B2B2B',
+        input: '#4A4A4A'
+    },
+    common: {
+        grey: '#757575',
+        subtext: '#8E8E8E',
+        muted: '#9E9E9E',
+        darkGrey: '#4A4A4A',
+        charcoal: '#616161',
+        darkSurface: '#333333',
+        darkBackground: '#121212',
+
+        border: '#000000',
+        divider: '#676767',
+        placeholder: '#CCCCCC',
+
+        inputBackgroundAlt: '#EAE7E7',
+        buttonLightGrey: '#EFEFEF',
+        buttonDisabled: '#A4A4A4',
+        bubbleLavender: '#EEE7F1',
+        
+        transparent: 'transparent',
+        facebookBlue: '#246BFD',
+        brandBlue: '#1877F2',
+
+        overlayDark: 'rgba(0, 0, 0, 0.65)',
+        overlayMedium: 'rgba(0, 0, 0, 0.45)',
+        overlaySubtle: 'rgba(0, 0, 0, 0.6)',
+        overlayLight: 'rgba(255, 255, 255, 0.35)',
+    }
 } as const  
 
 export const FONT_FAMILY = {

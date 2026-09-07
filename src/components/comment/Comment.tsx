@@ -56,7 +56,7 @@ const Comment = ({ item }: { item: IComment }) => {
                 </View>
             </View>
             <View style={styles.likeColumn}>
-                <LikeButton size={24} id={commentId} type="Comment" initialLiked={(item as any).isLiked} onLikeToggle={(isLiked) => setLikeCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))} inactiveColor="#000000" activeColor="#F44336" />
+                <LikeButton size={24} id={commentId} type="Comment" initialLiked={(item as any).isLiked} onLikeToggle={(isLiked) => setLikeCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))} activeColor="#F44336" />
                 <SizedBox height={4}/>
                 <BaseText typography={Typography.bodyRegular.small}>
                     {likeCount}

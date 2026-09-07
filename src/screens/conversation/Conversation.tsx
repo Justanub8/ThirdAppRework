@@ -13,13 +13,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FastImage from '@d11/react-native-fast-image';
 import { images } from '~/assets/images';
 import { COLORS, Typography } from '~/constants';
-import { useMessageMutation, useAuthStore } from '~/hooks';
+import { useMessageMutation, useAuthStore, useTheme, Theme } from '~/hooks';
 import { useSocket } from '~/context';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Conversation'>;
 const SHOW_SCROLL_BUTTON_OFFSET = 300;
 
 const Conversation = () => {
+    const { theme } = useTheme();
+    const styles = React.useMemo(() => getStyles(theme), [theme]);
     const route = useRoute<RouteProps>();
     const { id = '', name } = route.params || {};
     const { user } = useAuthStore();
@@ -185,21 +187,21 @@ const Conversation = () => {
         if (!isFetchingNextPage) return null;
         return (
             <View style={{ paddingVertical: 12, alignItems: 'center' }}>
-                <ActivityIndicator size="small" color="#8E8E8E" />
+                <ActivityIndicator size="small" color={theme.subtext} />
             </View>
         );
-    }, [isFetchingNextPage]);
+    }, [isFetchingNextPage, theme.subtext]);
 
     const renderEmpty = useCallback(() => {
         if (isLoading) return null;
         return (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100, transform: [{ scaleY: -1 }] }}>
-                <BaseText typography={Typography.bodyMedium.medium} color="#8E8E8E">
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100, transform: [{ scaleY: 1 }] }}>
+                <BaseText typography={Typography.bodyMedium.medium} color={theme.subtext}>
                     Chưa có tin nhắn nào. Hãy gửi lời chào!
                 </BaseText>
             </View>
         );
-    }, [isLoading]);
+    }, [isLoading, theme.subtext]);
 
     const handleSend = () => {
         const content = messageContent.trim();
@@ -306,7 +308,7 @@ const Conversation = () => {
             </KeyboardAvoidingView>
             {isLoading && !isRefreshing && (
                 <View style={[StyleSheet.absoluteFill, styles.loadingOverlay]}>
-                    <ActivityIndicator size="large" color="#000" />
+                    <ActivityIndicator size="large" color={theme.black} />
                 </View>
             )}
         </SafeAreaView>
@@ -315,10 +317,10 @@ const Conversation = () => {
 
 export default memo(Conversation);
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.background,
     },
     flex1: {
         flex: 1,
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingHorizontal: 16,
         borderWidth: 1,
-        borderColor: '#000000',
+        borderColor: theme.border,
         height: 60,
     },
     headerUser: {
@@ -341,7 +343,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: theme.border,
         borderRadius: 9999,
     },
     zIndex1: {
@@ -365,10 +367,10 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.background,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
+        shadowColor: theme.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.15,
         shadowRadius: 6,
@@ -378,15 +380,16 @@ const styles = StyleSheet.create({
         transform: [{ rotate: '-90deg' }],
     },
     cameraIcon: {
-        backgroundColor: "#eee7f1",
+        backgroundColor: theme.bubbleLavender,
         borderRadius: 9999,
         padding: 4,
     },
     messageInput: {
         borderWidth: 1,
+        borderColor: theme.border,
         borderRadius: 9999,
         height: 40,
-        backgroundColor: "#eaeaea",
+        backgroundColor: theme.input,
         alignItems: 'center',
         flexDirection: 'row',
         gap: 12,

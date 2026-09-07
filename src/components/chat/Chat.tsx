@@ -7,6 +7,7 @@ import { images } from '~/assets/images';
 import { CrossIcon } from '~/assets/svgs';
 import { Navigation } from '~/utils';
 import { IConversation } from '~/interfaces';
+import { Theme, useTheme } from '~/hooks';
 
 interface ChatProps {
     conversation: IConversation;
@@ -18,7 +19,8 @@ const Chat = ({ conversation, currentUserId }: ChatProps) => {
   const displayName = otherUser?.username || otherUser?.name || 'Unknown';
   const avatarUri = otherUser?.avatarUrl || otherUser?.imageUrl;
   const conversationId = conversation.id || conversation._id || '';
-  
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const targetDate = conversation.lastMessage?.createdAt || conversation.createdAt || new Date();
   const isToday = dayjs(targetDate).isSame(dayjs(), 'day');
   const timeDisplay = isToday 
@@ -64,9 +66,9 @@ const Chat = ({ conversation, currentUserId }: ChatProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles =(theme: Theme) =>  StyleSheet.create({
   chatContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.background,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

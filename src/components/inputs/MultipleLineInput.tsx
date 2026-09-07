@@ -2,6 +2,7 @@ import * as React from 'react'
 import { StyleSheet, View, Pressable, TextInput, ViewStyle, StyleProp, TextInputProps } from 'react-native'
 import { Typography } from '~/constants';
 import { BaseTextInput } from '../rn-components'
+import { useTheme } from '~/hooks';
 
 interface MultipleLineInputProps extends TextInputProps{
     maxLine?: number,
@@ -15,6 +16,7 @@ const MultipleLineInput = ({
     disabled,
     ...restProps
 }: MultipleLineInputProps) =>{
+    const { theme } = useTheme();
     const [isFocused, setIsFocused] = React.useState(false)
     const ref = React.useRef<TextInput>(null);
     return (
@@ -25,6 +27,7 @@ const MultipleLineInput = ({
             }}
             style = {[
                 styles.message,
+                { backgroundColor: theme.input, borderColor: isFocused ? (theme.facebookBlue ?? '#246BFD') : theme.input },
                 isFocused && styles.focused,
                 {
                     minHeight: 28 + 22.4* maxLine
@@ -37,8 +40,8 @@ const MultipleLineInput = ({
             numberOfLines={3}
             lineHeight={22.4}
             typography={Typography.bodySemiBold.large}
-            color={'#212121'}
-            placeholderTextColor={'#9e9e9e'}
+            color={theme.text}
+            placeholderTextColor={restProps.placeholderTextColor ?? theme.placeholder ?? '#9e9e9e'}
             onFocus={() => {
                 setIsFocused(true);
             }}
@@ -48,7 +51,6 @@ const MultipleLineInput = ({
             {...restProps}/>
             {disabled && 
             <View style={[styles.disabled]}/>
-    
             }
         </Pressable>
     )
@@ -57,16 +59,13 @@ const MultipleLineInput = ({
 const styles = StyleSheet.create({
     message: {
         borderRadius: 16,
-        backgroundColor: '#fafafa',
         width: '100%',
         paddingHorizontal: 20,
         paddingVertical: 16,
         borderWidth: 1,
-        borderColor: '#fafafa',
     },
     focused: {
         borderColor: '#246BFD',
-        backgroundColor: 'rgba(36, 107, 253, 0.08)'
     },
     disabled: {
         ...StyleSheet.absoluteFill,

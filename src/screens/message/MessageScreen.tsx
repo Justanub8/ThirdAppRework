@@ -13,9 +13,11 @@ import Note from '~/components/note/Note';
 import Chat from '~/components/chat/Chat';
 import { conversationApi } from '~/api';
 import { useAuthStore } from '~/hooks/useAuthStore';
+import { useTheme } from '~/hooks';
 import { Navigation } from '~/utils';
 
 const MessageScreen = () => {
+  const { theme } = useTheme();
   const user = useAuthStore(state => state.user);
 
   const { data: rawConversations, refetch } = useQuery({
@@ -42,9 +44,9 @@ const MessageScreen = () => {
   }, [rawConversations]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView style={styles.scrollContent}>
-          <View style={styles.header}>
+          <View style={[styles.header, { borderColor: theme.border }]}>
             <View style={styles.headerPlaceholder}></View>
             <BaseText typography={Typography.bodyBold.xxxLarge} numberOfLines={1}>
               {user?.username || 'Message'}
@@ -67,7 +69,7 @@ const MessageScreen = () => {
             <BaseText typography={Typography.bodyBold.large}>
               Tin nhắn
             </BaseText>
-            <BaseText typography={Typography.bodyRegular.medium} color={'#616161'}>
+            <BaseText typography={Typography.bodyRegular.medium} color={theme.charcoal}>
               Tin nhắn đang chờ 
             </BaseText>
           </View>
@@ -98,7 +100,7 @@ const MessageScreen = () => {
             <BaseText typography={Typography.bodyBold.large}>
               Tài khoản nên theo dõi 
             </BaseText>
-            <TextButton title='Xem tất cả' color={'#3797EF'} typography={Typography.bodyRegular.medium}/>
+            <TextButton title='Xem tất cả' color={theme.blue} typography={Typography.bodyRegular.medium}/>
           </View>
           <SizedBox height={24}/>
           {null}
@@ -111,7 +113,6 @@ const MessageScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
     paddingHorizontal: 8,
@@ -119,7 +120,6 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#000000',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },

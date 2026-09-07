@@ -11,7 +11,7 @@ type Props = {
 const SizedBox = ({
     width = undefined,
     height = undefined,
-    backgroundColor= COLORS.transparent,
+    backgroundColor = COLORS.common.transparent,
     children,
     borderRadius,
 }: PropsWithChildren<Props>) => {

@@ -13,12 +13,14 @@ import { userApi } from '~/api/userApi';
 import { conversationApi } from '~/api/conversationApi';
 import { AuthenticatedStackParamList } from '~/navigation/types';
 import { Navigation } from '~/utils';
-import { useFollowMutation, useAuthStore } from '~/hooks';
+import { useFollowMutation, useAuthStore, useTheme, Theme } from '~/hooks';
 import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'UserProfile'>;
  
 const UserProfile = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const route = useRoute<RouteProps>();
   const id = route.params?.id;
   const currentUser = useAuthStore(state => state.user);
@@ -133,7 +135,7 @@ const UserProfile = () => {
                 style={[styles.button, isFollowing ? styles.followingButton : styles.followButton, styles.flex1]}
                 onPress={handleFollowToggle}
               >
-                <BaseText color={isFollowing ? '#000000' : '#FFFFFF'} typography={Typography.bodyBold.medium}>
+                <BaseText color={isFollowing ? theme.black : theme.white} typography={Typography.bodyBold.medium}>
                   {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
                 </BaseText>
               </TouchableOpacity>
@@ -142,10 +144,10 @@ const UserProfile = () => {
               style={[styles.button, styles.flex1]}
               onPress={handleMessage}
             >
-              <BaseText color={'#FFFFFF'} typography={Typography.bodyBold.medium}>Nhắn tin</BaseText>
+              <BaseText color={theme.white} typography={Typography.bodyBold.medium}>Nhắn tin</BaseText>
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
-              <AddUserIcon height={20} width={20} color={'#FFFFFF'}
+              <AddUserIcon height={20} width={20} color={theme.white}
                 onPress={() => console.log(data)}
               />
             </TouchableOpacity>
@@ -183,10 +185,10 @@ const UserProfile = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.background,
   },
   paddingHorizontal: {
     paddingHorizontal: 8,
@@ -205,6 +207,7 @@ const styles = StyleSheet.create({
     height: 90,
     width: 90,
     borderWidth: 1,
+    borderColor: theme.border,
     borderRadius: 9999,
   },
   statsRow: {
@@ -225,13 +228,13 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#757575',
+    backgroundColor: theme.grey,
   },
   followButton: {
-    backgroundColor: '#3797EF',
+    backgroundColor: theme.blue,
   },
   followingButton: {
-    backgroundColor: '#EFEFEF',
+    backgroundColor: theme.buttonLightGrey,
   },
   iconButton: {
     borderRadius: 10,
@@ -239,17 +242,17 @@ const styles = StyleSheet.create({
     width: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#757575',
+    backgroundColor: theme.grey,
   },
   tabContainer: {
     height: 500,
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: theme.border,
   },
   modalOption: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: theme.border,
     gap: 16,
   },
 });

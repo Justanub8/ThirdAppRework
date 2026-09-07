@@ -19,7 +19,7 @@ const RepostButton = ({
     initialReposted = false,
     onRepostToggle,
     activeColor = '#23d04e',
-    inactiveColor = '#000000'
+    inactiveColor
 } : RepostButtonProps) => {
     const [isReposted, setIsReposted] = useState(initialReposted);
     const { createRepost, deleteRepost } = useRepostMutation();

@@ -4,6 +4,7 @@ import * as React from 'react'
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import { useTheme, Theme } from '~/hooks';
 
 const CustomHeader = ({
     title,
@@ -15,6 +16,8 @@ const CustomHeader = ({
     LeftComponent?: React.JSX.Element,
 }) => {
     const navigation = useNavigation();
+    const { theme } = useTheme();
+    const styles = React.useMemo(() => getStyles(theme), [theme]);
     return (
         <View style = {{paddingTop: 0}}>
             <View style = {styles.container}>
@@ -36,7 +39,7 @@ const CustomHeader = ({
     )
 }
 
-const styles = StyleSheet.create({
+const getStyles =(theme: Theme) =>  StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -44,7 +47,7 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         marginHorizontal: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0'
+        borderBottomColor: theme.divider
     }
 })
 

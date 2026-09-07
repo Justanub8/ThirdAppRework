@@ -13,9 +13,11 @@ import { userApi } from '~/api'
 import { IProfileUser } from '~/interfaces'
 import { PrimaryButton } from '~/components/buttons'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useConversationMutation, useMessageMutation } from '~/hooks'
+import { useConversationMutation, useMessageMutation, useTheme, Theme } from '~/hooks'
 
 const NewMessage = () => {
+    const { theme } = useTheme();
+    const styles = React.useMemo(() => getStyles(theme), [theme]);
     const [isFront, setIsFront] = useState(false);
     const [isTexting, setIsTexting] = useState(false);
     const [messageContent, setMessageContent] = useState('');
@@ -117,7 +119,7 @@ const NewMessage = () => {
                                             <View>
                                                 <BaseText typography={Typography.bodySemiBold.medium}>{item.username}</BaseText>
                                                 {item.name && (
-                                                    <BaseText typography={Typography.bodyRegular.small} color="#8e8e8e">
+                                                    <BaseText typography={Typography.bodyRegular.small} color={theme.subtext}>
                                                         {item.name}
                                                     </BaseText>
                                                 )}
@@ -147,9 +149,9 @@ const NewMessage = () => {
                                             Navigation.goToUserProfile(contactProfileId);
                                         }
                                     }}
-                                    style={{ borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: "#a4a4a4" }}
+                                    style={{ borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: theme.buttonDisabled }}
                                 >
-                                    <BaseText style={{ color: "#ffffff" }}>
+                                    <BaseText style={{ color: theme.white }}>
                                         Xem trang cá nhân
                                     </BaseText>
                                 </TouchableOpacity>
@@ -178,10 +180,10 @@ const NewMessage = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.background,
     },
     inputContainer: {
         alignItems: 'center',
@@ -195,7 +197,7 @@ const styles = StyleSheet.create({
     avatar: {
         borderRadius: 9999,
         borderWidth: 1,
-        borderColor: '#000000',
+        borderColor: theme.border,
     },
     contactContainer: {
         flexDirection: 'row',
@@ -207,7 +209,7 @@ const styles = StyleSheet.create({
         flex: 1,
         position: 'relative',
         borderWidth: 1,
-        borderColor: "#000",
+        borderColor: theme.border,
     },
     card: {
         position: 'absolute',
@@ -215,13 +217,14 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'white',
+        backgroundColor: theme.background,
     },
     messageInput: {
         borderWidth: 1,
+        borderColor: theme.border,
         borderRadius: 9999,
         height: 40,
-        backgroundColor: "#eaeaea",
+        backgroundColor: theme.input,
         alignItems: 'center',
         flexDirection: 'row',
         gap: 12,
@@ -229,7 +232,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
     },
     cameraIcon: {
-        backgroundColor: "#eee7f1",
+        backgroundColor: theme.bubbleLavender,
         borderRadius: 9999,
         padding: 4,
     },

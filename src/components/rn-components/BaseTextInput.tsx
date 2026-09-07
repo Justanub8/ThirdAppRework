@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {StyleProp, TextInput, TextInputProps, TextStyle} from 'react-native';
 import { FONT_FAMILY } from '~/constants';
+import { useTheme } from '~/hooks';
 export interface BaseTextProps extends TextInputProps {
   textAlign?: 'left' | 'right' | 'center';
   fontFace?: TextStyle['fontFamily'];
@@ -47,7 +48,7 @@ const BaseTextInput = (
     borderRightWidth,
     borderTopColor,
     borderTopWidth,
-    color = '#212121',
+    color,
     mt,
     mb,
     ml,
@@ -65,16 +66,18 @@ const BaseTextInput = (
   }: BaseTextProps,
   ref: React.LegacyRef<TextInput>,
 ) => {
+  const { theme } = useTheme();
   return (
     <TextInput
       ref={ref}
+      placeholderTextColor={textProps.placeholderTextColor ?? theme.placeholder}
       {...textProps}
       allowFontScaling={false}
       style={[
         {fontFamily: FONT_FAMILY.medium},
         typography,
         {
-          color,
+          color: color ?? theme.text,
           textAlign: textAlign,
           textTransform,
           borderWidth,

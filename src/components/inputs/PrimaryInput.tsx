@@ -5,6 +5,7 @@ import * as React from 'react';
 import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { SvgProps } from "react-native-svg";
 import { useState, useMemo } from "react";
+import { useTheme } from "~/hooks";
 
 interface PrimaryInputProps extends BaseTextInputProps {
     RightComponent?: React.FC<SvgProps> | React.ReactNode;
@@ -16,17 +17,18 @@ const PrimaryInput = ({
     RightComponent,
     ...textProps
 }: PrimaryInputProps) => {
+    const { theme } = useTheme();
     const [isFocused, setIsFocused] = useState(false);
     const ref = React.useRef<TextInput>(null);
     const iconColor = useMemo(() => {
         if (isFocused) {
-            return '#246BFD';
+            return theme.facebookBlue ?? '#246BFD';
         }
         if (textProps?.value){
-            return '#212121';
+            return theme.icon;
         }
-        return '#9e9e9e';
-    }, [textProps?.value, isFocused]);
+        return theme.placeholder ?? '#9e9e9e';
+    }, [textProps?.value, isFocused, theme]);
 
     return (
         <TouchableOpacity
@@ -34,12 +36,18 @@ const PrimaryInput = ({
                 ref.current?.focus();
             }}
             activeOpacity={0.7}
-            style={[styles.container, isFocused && styles.focused]}
+            style={[
+                styles.container,
+                { backgroundColor: theme.input, borderColor: isFocused ? (theme.facebookBlue ?? '#246BFD') : theme.input },
+                isFocused && styles.focused,
+            ]}
         >
             {!!LeftComponent && ( 
                 <>
-                    {typeof LeftComponent === 'function' ? (
-                        <LeftComponent width={24} height={24} color={iconColor}/>
+                    {React.isValidElement(LeftComponent) ? (
+                        LeftComponent
+                    ) : (typeof LeftComponent === 'function' || typeof LeftComponent === 'object') ? (
+                        React.createElement(LeftComponent as any, { width: 24, height: 24, color: iconColor })
                     ) : (
                         LeftComponent
                     )}
@@ -53,7 +61,7 @@ const PrimaryInput = ({
                     ? Typography.bodySemiBold.large
                     : Typography.bodyRegular.large
                 }
-                placeholderTextColor={'#9e9e9e'}
+                placeholderTextColor={textProps.placeholderTextColor ?? theme.placeholder ?? '#9e9e9e'}
                 style={styles.input}
                 onFocus={() => {
                     setIsFocused(true);
@@ -66,8 +74,10 @@ const PrimaryInput = ({
             {!!RightComponent && (
                 <>
                     <SizedBox width={12}/>
-                    {typeof RightComponent === 'function' ? (
-                        <RightComponent width={20} height={20} color={iconColor} />
+                    {React.isValidElement(RightComponent) ? (
+                        RightComponent
+                    ) : (typeof RightComponent === 'function' || typeof RightComponent === 'object') ? (
+                        React.createElement(RightComponent as any, { width: 20, height: 20, color: iconColor })
                     ) : (
                         RightComponent
                     )}
@@ -81,15 +91,12 @@ const styles = StyleSheet.create({
     container: {
         padding: 8,
         borderRadius: 40,
-        backgroundColor: '#eeeeee',
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(36, 107, 253, 0.08)',
     },
     focused : {
         borderColor: '#246BFD',
-        backgroundColor: 'rgba(36, 107, 253, 0.08)',
     },
     input: {
         flex: 1,

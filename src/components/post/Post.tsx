@@ -155,7 +155,7 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
             <View style={styles.actionRow}>
                 <View style={styles.actionGroup}>
                     <InteractNum 
-                        accessory={<LikeButton size={24} id={postId} type="Post" initialLiked={post.isLiked} onLikeToggle={(isLiked) => setLikeCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))} inactiveColor="#000000" activeColor="#F44336" />} 
+                        accessory={<LikeButton size={24} id={postId} type="Post" initialLiked={post.isLiked} onLikeToggle={(isLiked) => setLikeCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))} activeColor="#F44336" />} 
                         interactNum={likeCount}
                     />
                     <InteractNum 

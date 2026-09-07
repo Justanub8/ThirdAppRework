@@ -11,9 +11,11 @@ import { SizedBox } from '~/components/separate-components';
 import SlideUpModal from '~/components/slide-up/SlideUpModal';
 import { useQuery } from '@tanstack/react-query';
 import { userApi } from '~/api/userApi';
-import { useAuthStore } from '~/hooks';
+import { useAuthStore, useTheme, Theme } from '~/hooks';
 
 const Profile = () => {
+  const { theme, mode, setMode } = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const { logoutLocal } = useAuthStore();
   const { data, refetch } = useQuery({
     queryKey: ['my-profile'],
@@ -42,7 +44,7 @@ const Profile = () => {
             <BaseText typography={Typography.bodyBold.xxxLarge}>
               {data?.username}
             </BaseText>
-            <MenuIcon height={36} width={36} onPress={() => logoutLocal()}/>
+            <MenuIcon height={36} width={36} onPress={() => setMode(mode === 'dark' ? 'light' : 'dark')}/>
           </View>
           <View style={styles.profileInfoRow}>
             <FastImage 
@@ -87,13 +89,13 @@ const Profile = () => {
 
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity style={[styles.button, styles.flex1]}>
-              <BaseText color={'#FFFFFF'} typography={Typography.bodyBold.medium}>Chỉnh sửa</BaseText>
+              <BaseText color={theme.white} typography={Typography.bodyBold.medium}>Chỉnh sửa</BaseText>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.button, styles.flex1]}>
-              <BaseText color={'#FFFFFF'} typography={Typography.bodyBold.medium}>Chia sẻ trang cá nhân</BaseText>
+              <BaseText color={theme.white} typography={Typography.bodyBold.medium}>Chia sẻ trang cá nhân</BaseText>
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
-              <AddUserIcon height={20} width={20} color={'#FFFFFF'}
+              <AddUserIcon height={20} width={20} color={theme.white}
                 onPress={() => console.log(data)}
               />
             </TouchableOpacity>
@@ -131,10 +133,10 @@ const Profile = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.background,
   },
   paddingHorizontal: {
     paddingHorizontal: 8,
@@ -153,6 +155,7 @@ const styles = StyleSheet.create({
     height: 90,
     width: 90,
     borderWidth: 1,
+    borderColor: theme.border,
     borderRadius: 9999,
   },
   statsRow: {
@@ -171,12 +174,12 @@ const styles = StyleSheet.create({
   tabContainer: {
     height: 500,
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: theme.border,
   },
   modalOption: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: theme.border,
     gap: 16,
   },
   button: {
@@ -184,7 +187,7 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#757575',
+    backgroundColor: theme.grey,
   },
   iconButton: {
     borderRadius: 10,
@@ -192,7 +195,7 @@ const styles = StyleSheet.create({
     width: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#757575',
+    backgroundColor: theme.grey,
   },
 });
 

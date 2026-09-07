@@ -7,13 +7,15 @@ import { ArrowToRight, CrossIcon, MenuIcon, MutedIcon, StickerIcon, TextAaIcon, 
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
 import { Navigation } from '~/utils';
-import { usePostMutation } from '~/hooks';
+import { usePostMutation, useTheme, Theme } from '~/hooks';
 import { mediaApi } from '~/api';
 import Video from 'react-native-video';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreatePost'>;
 
 const CreatePost = () => {
+  const { theme } = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const { top } = useSafeAreaInsets();
   const route = useRoute<RouteProps>();
   const { uri = '', mediaType } = route.params || {};
@@ -62,7 +64,7 @@ const CreatePost = () => {
       <View style={[{ paddingTop: top + 10 }, styles.toolBar]}>
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.iconButton} onPress={() => Navigation.pop()}>
-            <CrossIcon width={24} height={24} color="#ffffff" />
+            <CrossIcon width={24} height={24} color={theme.white} />
           </TouchableOpacity> 
 
           <View style={styles.rightTools}>
@@ -72,9 +74,9 @@ const CreatePost = () => {
                 onPress={() => setIsMuted(prev => !prev)}
               >
                 {isMuted ? (
-                  <MutedIcon width={20} height={20} color="#ffffff" />
+                  <MutedIcon width={20} height={20} color={theme.white} />
                 ) : (
-                  <UnmutedIcon width={20} height={20} color="#ffffff" />
+                  <UnmutedIcon width={20} height={20} color={theme.white} />
                 )}
               </TouchableOpacity>
             )}
@@ -82,13 +84,13 @@ const CreatePost = () => {
               style={[styles.iconButton, showCaptionInput && styles.activeIconButton]}
               onPress={() => setShowCaptionInput(prev => !prev)}
             >
-              <TextAaIcon width={16} height={16} color="#ffffff" />
+              <TextAaIcon width={16} height={16} color={theme.white} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
-              <StickerIcon width={20} height={20} color="#ffffff" />
+              <StickerIcon width={20} height={20} color={theme.white} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
-              <MenuIcon width={20} height={20} color="#ffffff" />
+              <MenuIcon width={20} height={20} color={theme.white} />
             </TouchableOpacity>
           </View>
         </View>
@@ -115,7 +117,7 @@ const CreatePost = () => {
           <View style={styles.captionOverlay}>
             <TextInput
               placeholder="Caption cho bài đăng"
-              placeholderTextColor="#cccccc"
+              placeholderTextColor={theme.placeholder}
               value={caption}
               onChangeText={setCaption}
               style={styles.captionInput}
@@ -130,14 +132,14 @@ const CreatePost = () => {
         <TouchableOpacity 
           style={styles.storyButton}
         >
-          <BaseText typography={Typography.bodyBold.medium} color="#ffffff">
+          <BaseText typography={Typography.bodyBold.medium} color={theme.white}>
             Your Story
           </BaseText>
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.storyButton}
         >
-          <BaseText typography={Typography.bodyBold.medium} color="#ffffff">
+          <BaseText typography={Typography.bodyBold.medium} color={theme.white}>
             Close Friends
           </BaseText>
         </TouchableOpacity>
@@ -147,9 +149,9 @@ const CreatePost = () => {
           disabled={createPost.isPending || isUploading}
         >
           {createPost.isPending || isUploading ? (
-            <ActivityIndicator size="small" color="#000000" />
+            <ActivityIndicator size="small" color={theme.black} />
           ) : (
-            <ArrowToRight width={24} height={24} color="#000000" />
+            <ArrowToRight width={24} height={24} color={theme.black} />
           )}
         </TouchableOpacity>
       </View>
@@ -157,10 +159,10 @@ const CreatePost = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: theme.black,
   },
   toolBar: {
     position: 'absolute',
@@ -182,7 +184,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: theme.overlayMedium,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
@@ -190,9 +192,9 @@ const styles = StyleSheet.create({
     height: 40,
   },
   activeIconButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    backgroundColor: theme.overlayLight,
     borderWidth: 1,
-    borderColor: '#ffffff',
+    borderColor: theme.white,
   },
   imageWrapper: {
     width: '100%',
@@ -213,7 +215,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   captionInput: {
-    color: '#ffffff',
+    color: theme.white,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -226,7 +228,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   storyButton: {
-    backgroundColor: '#333333',
+    backgroundColor: theme.darkSurface,
     borderRadius: 9999,
     justifyContent: 'center',
     alignItems: 'center',
@@ -234,7 +236,7 @@ const styles = StyleSheet.create({
     height: 44,
   },
   nextButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.white,
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
