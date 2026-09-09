@@ -2,6 +2,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { Typography } from '~/constants';
 import { BaseText, FastImage } from '~/components/rn-components';
+import { Avatar } from '~/components/avatar';
 import { images } from '~/assets/images';
 import { CommentIcon, MessageLightIcon, MoreIcon } from '~/assets/svgs';
 import { SizedBox } from '~/components/separate-components';
@@ -61,9 +62,10 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
       <View style={[styles.bottomContainer, { bottom: 20 }]} pointerEvents="box-none">
         <View style={styles.bottomLeft} pointerEvents="box-none">
             <View style={styles.reelInformation} pointerEvents="box-none">
-              <FastImage 
-                source={(reel.user?.avatarUrl || reel.user?.imageUrl) ? { uri: reel.user?.avatarUrl || reel.user?.imageUrl } : images.avater_random} 
-                style={styles.avatar}
+              <Avatar 
+                url={reel.user?.avatarUrl || reel.user?.imageUrl} 
+                size={36}
+                id={reelUserId}
               />
               <BaseText color={'#ffffff'} typography={Typography.bodyBold.medium}>
                 {reel.user?.username || 'user'}
@@ -180,11 +182,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  avatar: {
-    height: 36,
-    width: 36,
-    borderRadius: 18,
-  }, 
   followButton: {
     borderWidth: 1,
     borderColor: '#ffffff',

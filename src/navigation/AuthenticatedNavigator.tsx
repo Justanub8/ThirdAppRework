@@ -7,6 +7,7 @@ import NewMessage from '~/screens/new-message/NewMessage';
 import UserProfile from '~/screens/user-profile/UserProfile';
 import CreateContent from '~/screens/createContent/CreateContent';
 import CreatePost from '~/screens/createPost/CreatePost';
+import Story from '~/screens/story/Story';
 
 const Stack = createNativeStackNavigator<AuthenticatedStackParamList>();
 
@@ -24,6 +25,7 @@ const AuthenticatedNavigator: React.FC = () => {
             <Stack.Screen name='UserProfile' component={UserProfile}/>
             <Stack.Screen name='CreateContent' component={CreateContent}/>
             <Stack.Screen name='CreatePost' component={CreatePost}/>
+            <Stack.Screen name='Story' component={Story}/>
         </Stack.Navigator>
     )
 }

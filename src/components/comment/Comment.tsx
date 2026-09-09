@@ -1,7 +1,8 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { SizedBox } from '../separate-components';
 import { Typography } from '~/constants';
-import { FastImage, BaseText } from '../rn-components';
+import { BaseText } from '../rn-components';
+import { Avatar } from '../avatar';
 import * as React from 'react';
 import { images } from '~/assets/images';
 import { TextButton } from '../buttons';
@@ -23,12 +24,11 @@ const Comment = ({ item }: { item: IComment }) => {
         <SizedBox height={8}/>
         <View style={styles.commentRow}>
             <View style={styles.contentSection}>
-                <TouchableOpacity onPress={() => { if (commentUserId) Navigation.goToUserProfile(commentUserId); }}>
-                    <FastImage 
-                      source={(item.user?.avatarUrl || item.user?.imageUrl) ? { uri: item.user?.avatarUrl || item.user?.imageUrl } : images.avater_random} 
-                      style={styles.avatar}
-                    />
-                </TouchableOpacity>
+                <Avatar 
+                  url={item.user?.avatarUrl || item.user?.imageUrl} 
+                  size={36}
+                  id={commentUserId}
+                />
                 <View style={styles.textContainer}>
                     <View>
                         <BaseText typography={Typography.bodyBold.medium} onPress={() => { if (commentUserId) Navigation.goToUserProfile(commentUserId); }}>
@@ -81,12 +81,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     flex: 1,
-  },
-  avatar: {
-    height: 40,
-    width: 40,
-    borderRadius: 9999,
-    borderWidth: 1,
   },
   textContainer: {
     flex: 1,

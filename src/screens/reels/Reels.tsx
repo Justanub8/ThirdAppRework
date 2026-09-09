@@ -12,6 +12,7 @@ import { useIsFocused } from '@react-navigation/native';
 
 const Reels = () => {
   const { theme } = useTheme();
+  const isFocused = useIsFocused();
   const bottomTabHeight = useBottomTabBarHeight();
   const availableHeight = Dimensions.get('window').height - bottomTabHeight;
   const [activeIndex, setActiveIndex] = useState(0);
@@ -45,17 +46,17 @@ const Reels = () => {
     }
   }, []);
 
-  const renderItem = ({ item, index }: { item: IReel, index: number }) => {
+  const renderItem = useCallback(({ item, index }: { item: IReel, index: number }) => {
     return (
       <View style={{ height: availableHeight, width: '100%' }}>
         {item.media?.type === 'video' ? (
-          <VideoReel reel={item} isActive={index === activeIndex && useIsFocused()} />
+          <VideoReel reel={item} isActive={index === activeIndex && isFocused} />
         ) : (
           <ImageReel reel={item} />
         )}
       </View>
     );
-  };
+  }, [availableHeight, activeIndex, isFocused]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.black }]}>

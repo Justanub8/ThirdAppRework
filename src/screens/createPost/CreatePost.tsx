@@ -1,5 +1,5 @@
 import { View, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, TextInput } from 'react-native'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { RouteProp, useRoute } from '@react-navigation/native'
 import { AuthenticatedStackParamList } from '~/navigation/types'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,7 +23,12 @@ const CreatePost = () => {
   const [showCaptionInput, setShowCaptionInput] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [hasVideoError, setHasVideoError] = useState(false);
   const { createPost } = usePostMutation();
+
+  useEffect(() => {
+    setHasVideoError(false);
+  }, [uri]);
 
   const isVideo = Boolean(
     mediaType === 'video' ||
@@ -98,14 +103,23 @@ const CreatePost = () => {
       
       <View style={styles.imageWrapper}>
         {isVideo ? (
-          <Video
-            source={{ uri }}
-            resizeMode="cover"
-            style={styles.mainImage}
-            repeat={true}
-            paused={false}
-            muted={isMuted}
-          />
+          hasVideoError ? (
+            <View style={[styles.mainImage, styles.errorContainer]}>
+              <BaseText color={theme.white} typography={Typography.bodyMedium.medium}>
+                Không thể phát nội dung
+              </BaseText>
+            </View>
+          ) : (
+            <Video
+              source={{ uri }}
+              resizeMode="cover"
+              style={styles.mainImage}
+              repeat={true}
+              paused={false}
+              muted={isMuted}
+              onError={() => setHasVideoError(true)}
+            />
+          )
         ) : (
           <Image
             source={{ uri }}
@@ -205,6 +219,11 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 24,
+  },
+  errorContainer: {
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   captionOverlay: {
     position: 'absolute',

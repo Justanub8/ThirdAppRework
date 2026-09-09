@@ -1,9 +1,11 @@
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
 import { VideoRef, Video } from 'react-native-video';
 import ReelOverlay from './ReelOverlay';
 import { IReel } from '~/interfaces/reel';
 import { MutedIcon, PlayIcon, UnmutedIcon } from '~/assets/svgs';
+import { BaseText } from '~/components/rn-components';
+import { Typography } from '~/constants';
 
 type VideoReelProps = {
   reel: IReel;
@@ -13,19 +15,35 @@ type VideoReelProps = {
 const VideoReel = ({ reel, isActive }: VideoReelProps) => {
   const videoRef = useRef<VideoRef>(null);
   
-  const [isPlaying, setIsPlaying] = useState(isActive);
+  const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [duration, setDuration] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
   const [playSpeed, setPlaySpeed] = useState(1);
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsPlaying(isActive);
+    setHasError(false);
+    setIsPaused(false);
+    setIsLoading(true);
+  }, [reel.media?.url]);
+
+  useEffect(() => {
+    if (!isActive) {
+      setIsPaused(false);
+    }
   }, [isActive]);
 
   const togglePlayPause = () => {
-    setIsPlaying(!isPlaying);
+    if (hasError) return;
+    setIsPaused(prev => !prev);
+  };
+
+  const handleSpeedChange = (speed: number) => {
+    if (hasError) return;
+    setPlaySpeed(speed);
   };
 
   const handleProgress = (data: any) => {
@@ -38,44 +56,73 @@ const VideoReel = ({ reel, isActive }: VideoReelProps) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.videoControl}>
-        <TouchableOpacity
-          style={styles.touchSide}
-          activeOpacity={1}
-          onPressIn={() => setPlaySpeed(2)}
-          onPressOut={() => setPlaySpeed(1)}
-        />
+      {!hasError && (
+        <View style={styles.videoControl}>
+          <TouchableOpacity
+            style={styles.touchSide}
+            activeOpacity={1}
+            onPressIn={() => handleSpeedChange(2)}
+            onPressOut={() => handleSpeedChange(1)}
+          />
 
-        <TouchableOpacity
-          style={styles.touchCenter}
-          activeOpacity={1}
-          onPress={togglePlayPause}
+          <TouchableOpacity
+            style={styles.touchCenter}
+            activeOpacity={1}
+            onPress={togglePlayPause}
+          />
+          
+          <TouchableOpacity
+            style={styles.touchSide}
+            activeOpacity={1}
+            onPressIn={() => handleSpeedChange(2)}
+            onPressOut={() => handleSpeedChange(1)}
+          />
+        </View>
+      )}
+
+      {hasError ? (
+        <View style={[StyleSheet.absoluteFill, styles.errorContainer]}>
+          <BaseText color="#FFFFFF" typography={Typography.bodyMedium.medium}>
+            Không thể phát nội dung
+          </BaseText>
+        </View>
+      ) : (
+        <Video
+          ref={videoRef}
+          source={{ uri: reel.media?.url }} 
+          style={StyleSheet.absoluteFill}
+          resizeMode='contain'
+          paused={!isActive || isPaused} 
+          muted={isMuted}     
+          repeat={true}
+          onLoadStart={() => setIsLoading(true)}
+          onReadyForDisplay={() => setIsLoading(false)}
+          onLoad={(meta) => {
+            setIsLoading(false);
+            setDuration(meta.duration);
+          }}
+          onBuffer={(data: any) => setIsLoading(Boolean(data?.isBuffering))}
+          onProgress={handleProgress}
+          progressUpdateInterval={100}
+          rate={playSpeed}
+          onError={() => {
+            setIsLoading(false);
+            setHasError(true);
+          }}
         />
-        
-        <TouchableOpacity
-          style={styles.touchSide}
-          activeOpacity={1}
-          onPressIn={() => setPlaySpeed(2)}
-          onPressOut={() => setPlaySpeed(1)}
-        />
-      </View>
-      <Video
-        ref={videoRef}
-        source={{ uri: reel.media?.url }} 
-        style={StyleSheet.absoluteFill}
-        resizeMode='contain'
-        paused={!isPlaying} 
-        muted={isMuted}     
-        repeat={true}
-        onLoad={(meta) => setDuration(meta.duration)}
-        onProgress={handleProgress}
-        progressUpdateInterval={100}
-        rate={playSpeed}
-      />
+      )}
       
-      <View style={[StyleSheet.absoluteFill, styles.darkOverlay]} pointerEvents="none" />
+      {!hasError && (
+        <View style={[StyleSheet.absoluteFill, styles.darkOverlay]} pointerEvents="none" />
+      )}
 
-      {!isPlaying && (
+      {isLoading && !hasError && isActive && !isPaused && (
+        <View style={styles.centerLoading} pointerEvents="none">
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      )}
+
+      {!hasError && isActive && isPaused && (
         <View style={styles.centerControls} pointerEvents="box-none">
           <TouchableOpacity 
             style={styles.muteButton}
@@ -103,6 +150,17 @@ const styles = StyleSheet.create({
   },
   darkOverlay: {
     backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  errorContainer: {
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centerLoading: {
+    ...(StyleSheet.absoluteFill as object),
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 4,
   },
   centerControls: {
     ...(StyleSheet.absoluteFill as object),

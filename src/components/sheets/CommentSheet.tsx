@@ -3,17 +3,19 @@ import ActionSheet, { SheetProps } from 'react-native-actions-sheet';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { SizedBox } from '../separate-components';
 import { PrimaryInput } from '../inputs';
-import { FastImage, BaseText } from '../rn-components';
+import { BaseText } from '../rn-components';
+import { Avatar } from '../avatar';
 import { images } from '~/assets/images';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { commentApi } from '~/api/commentApi';
 import { FlashList } from '@shopify/flash-list';
 import Comment from '../comment/Comment';
-import { useCommentMutation, useTheme, Theme } from '~/hooks';
+import { useCommentMutation, useTheme, Theme, useAuthStore } from '~/hooks';
 
 const CommentSheet = (props: SheetProps<"CommentSheet">) => {
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
+  const currentUser = useAuthStore(state => state.user);
   const { targetId, targetType } = props.payload || {};
   const [commentText, setCommentText] = React.useState('');
   const { createComment } = useCommentMutation();
@@ -80,7 +82,11 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
         <View style={styles.inputBar}>
           <SizedBox height={12}/>
           <View style={styles.inputRow}>
-            <FastImage source={images.avater_random} style={styles.avatar}/>
+            <Avatar 
+              url={currentUser?.avatarUrl || currentUser?.imageUrl} 
+              size={48} 
+              disabled 
+            />
             <View style={styles.inputWrapper}>
               <PrimaryInput 
                 placeholder='Tham gia cuộc trò chuyện...'
@@ -133,11 +139,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  avatar: {
-    height: 48,
-    width: 48,
-    borderRadius: 9999,
   },
   inputWrapper: {
     flex: 1,

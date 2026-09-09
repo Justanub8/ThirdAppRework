@@ -6,7 +6,7 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { CreateIcon, NotificationIcon } from '~/assets/svgs';
 import { FastImage } from '~/components/rn-components';
 import { images } from '~/assets/images';
-import Story from '~/components/common/Story';
+import { Avatar } from '~/components/avatar';
 import Post from '~/components/post/Post';
 import { SizedBox } from '~/components/separate-components';
 import SlideUpModal from '~/components/slide-up/SlideUpModal';
@@ -47,7 +47,7 @@ const HomeScreen = () => {
     }
   });
   
-  const { logoutLocal } = useAuthStore();
+  const { user: currentUser, logoutLocal } = useAuthStore();
   
   const posts = React.useMemo(() => data?.pages.flatMap(page => page.data) || [], [data?.pages]);
 
@@ -58,10 +58,18 @@ const HomeScreen = () => {
           <FastImage source={images.logo_transparent} resizeMode='contain' style={styles.logo}/>
           <NotificationIcon width={32} height={32} onPress={() => { logoutLocal(); }}/>
       </View>
-      <Story username='justanub'/>
-      <SizedBox height={24}/>
+      <View style={{ paddingHorizontal: 12, paddingTop: 8 }}>
+        <Avatar 
+          url={currentUser?.avatarUrl || currentUser?.imageUrl}
+          username={currentUser?.username || 'Tin của bạn'} 
+          size={76} 
+          hasActiveStory={true} 
+          id={currentUser?.id || ''}
+        />
+      </View>
+      <SizedBox height={16}/>
     </View>
-  ), [logoutLocal]);
+  ), [currentUser, logoutLocal]);
 
   const keyExtractor = React.useCallback((item: any) => item.id, []);
 

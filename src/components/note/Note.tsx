@@ -1,7 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import React from 'react';
-import { BaseText, FastImage } from '../rn-components';
-import { images } from '~/assets/images';
+import { Avatar } from '../avatar';
 import { useTheme, Theme } from '~/hooks';
 
 const Note = () => {
@@ -10,10 +9,7 @@ const Note = () => {
   return (
     <View style={styles.container}>
         <View style={styles.noteContainer}>
-            <FastImage source={images.avater_random} style={styles.avatar}/>
-            <BaseText>
-                SomeName
-            </BaseText>
+            <Avatar size={80} username="SomeName" />
         </View>
     </View>
   );
@@ -23,12 +19,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.background,
-        borderWidth: 1,
-    },
-    avatar: {
-        height: 100,
-        width: 100,
-        borderRadius: 99999,
         borderWidth: 1,
     },
     noteContainer: {

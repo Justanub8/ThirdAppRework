@@ -3,7 +3,8 @@ import React, { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Typography } from '~/constants';
 import { CreateIcon, MenuIcon, AddUserIcon, ReelLightIcon } from '~/assets/svgs';
-import { BaseText, FastImage } from '~/components/rn-components';
+import { BaseText } from '~/components/rn-components';
+import { Avatar } from '~/components/avatar';
 import { useFocusEffect } from '@react-navigation/native';
 import { images } from '~/assets/images';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
@@ -47,9 +48,10 @@ const Profile = () => {
             <MenuIcon height={36} width={36} onPress={() => setMode(mode === 'dark' ? 'light' : 'dark')}/>
           </View>
           <View style={styles.profileInfoRow}>
-            <FastImage 
-              source={(data?.avatarUrl || data?.imageUrl) ? { uri: data?.avatarUrl || data?.imageUrl } : images.avater_random} 
-              style={styles.avatar}
+            <Avatar 
+              url={data?.avatarUrl || data?.imageUrl} 
+              size={86} 
+              id={data?.id} 
             />
             <View>
               <BaseText typography={Typography.bodyBold.medium}>
@@ -150,13 +152,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 24,
-  },
-  avatar: {
-    height: 90,
-    width: 90,
-    borderWidth: 1,
-    borderColor: theme.border,
-    borderRadius: 9999,
   },
   statsRow: {
     flexDirection: 'row',

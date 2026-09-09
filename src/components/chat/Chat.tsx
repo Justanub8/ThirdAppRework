@@ -2,7 +2,8 @@ import { View, StyleSheet, Button, TouchableOpacity } from 'react-native';
 import React from 'react';
 import dayjs from 'dayjs';
 import { Typography } from '~/constants';
-import { BaseText, FastImage } from '../rn-components';
+import { BaseText } from '../rn-components';
+import { Avatar } from '../avatar';
 import { images } from '~/assets/images';
 import { CrossIcon } from '~/assets/svgs';
 import { Navigation } from '~/utils';
@@ -33,9 +34,10 @@ const Chat = ({ conversation, currentUserId }: ChatProps) => {
         onPress={() => Navigation.goToConversation(conversationId, displayName, avatarUri)}
     >
         <View style={styles.leftRow}>
-            <FastImage 
-                source={avatarUri ? { uri: avatarUri } : images.avater_random} 
-                style={styles.avatar} 
+            <Avatar 
+                url={avatarUri} 
+                size={56} 
+                disabled 
             />
             <View style={styles.infoColumn}>
                 <BaseText typography={Typography.bodyBold.medium}>
@@ -97,13 +99,6 @@ const getStyles =(theme: Theme) =>  StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-  },
-  avatar: {
-    height: 56,
-    width: 56,
-    borderWidth: 1,
-    borderRadius: 9999,
-    borderColor: '#000000',
   },
   followButton: {
     borderColor: '#000000',

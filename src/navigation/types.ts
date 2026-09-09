@@ -19,6 +19,7 @@ export type AuthenticatedStackParamList = {
     UserProfile: { id: string };
     CreateContent: undefined;
     CreatePost: { uri: string; mediaType?: 'image' | 'video' };
+    Story: { userId: string};
 };
 
 export type MainTabParamList = {

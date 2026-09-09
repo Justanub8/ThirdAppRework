@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Typography } from '~/constants';
 import { MenuIcon, AddUserIcon, ReelLightIcon, ArrowToLeft } from '~/assets/svgs';
-import { BaseText, FastImage } from '~/components/rn-components';
+import { BaseText } from '~/components/rn-components';
+import { Avatar } from '~/components/avatar';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { images } from '~/assets/images';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
@@ -90,9 +91,10 @@ const UserProfile = () => {
             <MenuIcon height={36} width={36} onPress={() => { console.log(id); }}/>
           </View>
           <View style={styles.profileInfoRow}>
-            <FastImage 
-              source={(data?.avatarUrl || data?.imageUrl) ? { uri: data?.avatarUrl || data?.imageUrl } : images.avater_random} 
-              style={styles.avatar}
+            <Avatar 
+              url={data?.avatarUrl || data?.imageUrl} 
+              size={86} 
+              id={id} 
             />
             <View>
               <BaseText typography={Typography.bodyBold.medium}>
@@ -203,13 +205,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 24,
-  },
-  avatar: {
-    height: 90,
-    width: 90,
-    borderWidth: 1,
-    borderColor: theme.border,
-    borderRadius: 9999,
   },
   statsRow: {
     flexDirection: 'row',

@@ -3,7 +3,8 @@ import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { conversationApi, messageApi } from '~/api';
 import { ArrowToLeft, CallIcon, CameraLightIcon } from '~/assets/svgs';
-import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components';
+import { BaseText, BaseTextInput } from '~/components/rn-components';
+import { Avatar } from '~/components/avatar';
 import { AuthenticatedStackParamList } from '~/navigation/types';
 import { Navigation } from '~/utils';
 import { RouteProp, useRoute } from '@react-navigation/native';
@@ -265,9 +266,10 @@ const Conversation = () => {
 
                 activeOpacity={0.8}
               >
-                <FastImage 
-                  source={displayAvatar ? { uri: displayAvatar } : images.avater_random} 
-                  style={styles.headerAvatar}
+                <Avatar 
+                  url={displayAvatar} 
+                  size={36} 
+                  disabled 
                 />
                 <BaseText typography={Typography.bodyBold.medium}>{displayName}</BaseText>
               </TouchableOpacity>
@@ -359,14 +361,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
-    },
-    headerAvatar: {
-        width: 40,
-        height: 40,
-        borderWidth: 1,
-        borderColor: theme.border,
-        borderRadius: 20,
-        overflow: 'hidden',
     },
     zIndex1: {
         zIndex: 1,

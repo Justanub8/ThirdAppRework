@@ -143,5 +143,15 @@ export const Navigation = {
                 params: { uri, mediaType }
             })
         }
+    },
+
+    goToStory: (userId: string ) => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate('App',{
+                screen: 'Story',
+                params: { userId }
+            })
+        }
     }
 };

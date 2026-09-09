@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { CustomHeader } from '~/components/headers'
 import { CameraLightIcon, LeftArrow, MoreIcon, RightArrow } from '~/assets/svgs'
 import { PrimaryInput } from '~/components/inputs'
-import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components'
+import { BaseText, BaseTextInput } from '~/components/rn-components'
+import { Avatar } from '~/components/avatar'
 import { Typography } from '~/constants'
 import { Navigation } from '~/utils'
 import { images } from '~/assets/images'
@@ -116,9 +117,10 @@ const NewMessage = () => {
                                                 handleChooseContact(item);
                                             }}
                                         >
-                                            <FastImage 
-                                                source={itemAvatar ? { uri: itemAvatar } : images.avater_random} 
-                                                style={[styles.avatar, { width: 48, height: 48 }]}
+                                            <Avatar 
+                                                url={itemAvatar} 
+                                                size={48} 
+                                                disabled 
                                             />
                                             <View>
                                                 <BaseText typography={Typography.bodySemiBold.medium}>{item.username}</BaseText>
@@ -137,9 +139,10 @@ const NewMessage = () => {
                     <View style={[styles.card, { zIndex: isFront ? 3 : 1 }]}>
                         <View style={{ justifyContent: 'space-between', flex: 1 }}>
                             <View style={{ alignItems: 'center', padding: 16, gap: 8 }}> 
-                                <FastImage 
-                                    source={(currentContact?.avatarUrl || currentContact?.imageUrl) ? { uri: currentContact?.avatarUrl || currentContact?.imageUrl } : images.avater_random} 
-                                    style={[styles.avatar, { width: 80, height: 80 }]}
+                                <Avatar 
+                                    url={currentContact?.avatarUrl || currentContact?.imageUrl} 
+                                    size={80} 
+                                    id={currentContact?.id} 
                                 />
                                 <BaseText typography={Typography.bodyBold.large}>{currentContact?.username}</BaseText>
                                 <BaseText>
@@ -198,11 +201,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     toWhomInput: {
         flex: 1,
         marginLeft: 8,
-    },
-    avatar: {
-        borderRadius: 9999,
-        borderWidth: 1,
-        borderColor: theme.border,
     },
     contactContainer: {
         flexDirection: 'row',

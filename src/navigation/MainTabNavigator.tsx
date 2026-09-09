@@ -6,14 +6,15 @@ import Reels from '~/screens/reels/Reels';
 import Message from '~/screens/message/MessageScreen';
 import Explore from '~/screens/explore/Explore';
 import Profile from '~/screens/profile/Profile';
-import { useTheme } from '~/hooks';
+import { useTheme, useAuthStore } from '~/hooks';
 import { HomeBoldIcon, HomeLightIcon, MessageBoldIcon, MessageLightIcon, ReelBoldIcon, ReelLightIcon, SearchBoldIcon, SearchLightIcon } from '~/assets/svgs';
-import { FastImage } from '~/components/rn-components';
+import { Avatar } from '~/components/avatar';
 import { images } from '~/assets/images';
 const ICON_SIZE = 36;
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const MainTabNavigator: React.FC = () => {
     const { theme } = useTheme();
+    const currentUser = useAuthStore(state => state.user);
     return (
         <Tab.Navigator
         screenOptions={{
@@ -82,11 +83,14 @@ const MainTabNavigator: React.FC = () => {
                 component={Profile}
                 options={{
                     tabBarIcon(props){
-                        return props.focused ? (
-                            <FastImage source={images.avater_random} style={{height: ICON_SIZE, width: ICON_SIZE, borderRadius: 9999, borderWidth: 1, borderColor: theme.border}}/>
-                        ) : (
-                            <FastImage source={images.avater_random} style={{height: ICON_SIZE, width: ICON_SIZE, borderRadius: 9999, borderWidth: 1, borderColor: theme.border}}/>
-                        )
+                        return (
+                            <Avatar
+                                url={currentUser?.avatarUrl || currentUser?.imageUrl}
+                                size={28}
+                                disabled
+                                style={props.focused ? { borderWidth: 2, borderColor: theme.text, borderRadius: 9999 } : undefined}
+                            />
+                        );
                     }
                 }}
             />
