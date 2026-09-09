@@ -24,7 +24,7 @@ const UserProfile = () => {
   const route = useRoute<RouteProps>();
   const id = route.params?.id;
   const currentUser = useAuthStore(state => state.user);
-  const isOwnProfile = (currentUser?.id || currentUser?._id) === id;
+  const isOwnProfile = currentUser?.id === id;
 
   const { data, isLoading } = useQuery({
     queryKey: ['userProfile', id],
@@ -64,9 +64,10 @@ const UserProfile = () => {
   const handleMessage = async () => {
     try {
       const res = await conversationApi.createConversation(id);
-      const convId = res.data?.data?.id || res.data?.data?._id || (res.data as any)?.id || (res.data as any)?._id;
+      const convId = res.data?.data?.id || (res.data as any)?.id;
       if (convId) {
-        Navigation.goToConversation(convId, data?.username);
+        const avatarUri = data?.avatarUrl || data?.imageUrl;
+        Navigation.goToConversation(convId, data?.username, avatarUri);
       }
     } catch (err) {
       console.error('Failed to create conversation', err);

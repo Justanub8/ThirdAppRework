@@ -36,14 +36,15 @@ const NewMessage = () => {
     });
 
     const handleChooseContact = async (contact: IProfileUser) => {
-        const contactId = contact?.id || contact?._id;
+        const contactId = contact?.id;
         if (!contactId) return;
         try {
             const res = await createConversation.mutateAsync(contactId);
-            const convId = res.data?.data?.id || res.data?.data?._id || (res.data as any)?.id || (res.data as any)?._id;
+            const convId = res.data?.data?.id || (res.data as any)?.id;
             if (convId) {
                 setConversationId(convId);
             }
+
         } catch (error) {
             console.log("Lỗi khi tìm/tạo cuộc trò chuyện", error);
         }
@@ -54,7 +55,9 @@ const NewMessage = () => {
         try {
             await createMessage.mutateAsync({ conversationId: conversationId, content: messageContent });
             setMessageContent('');
-            Navigation.goToConversation(conversationId);
+            const contactName = currentContact?.username || currentContact?.name;
+            const contactAvatar = currentContact?.avatarUrl || currentContact?.imageUrl;
+            Navigation.goToConversation(conversationId, contactName, contactAvatar);
         } catch (error) {
             console.log("Lỗi khi gửi tin nhắn", error);
         }
@@ -101,8 +104,9 @@ const NewMessage = () => {
                             <View style={{ gap: 12 }}>
                                 {users.map((item) => {
                                     const itemAvatar = item.avatarUrl || item.imageUrl;
-                                    const itemKey = item.id || item._id;
+                                    const itemKey = item.id;
                                     return (
+
                                         <TouchableOpacity 
                                             key={itemKey} 
                                             style={styles.contactContainer} 
@@ -144,10 +148,11 @@ const NewMessage = () => {
                                 <BaseText> Các bạn theo dõi nhau trên Instagram</BaseText>
                                 <TouchableOpacity 
                                     onPress={() => {
-                                        const contactProfileId = currentContact?.id || currentContact?._id;
+                                        const contactProfileId = currentContact?.id;
                                         if (contactProfileId) {
                                             Navigation.goToUserProfile(contactProfileId);
                                         }
+
                                     }}
                                     style={{ borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: theme.buttonDisabled }}
                                 >

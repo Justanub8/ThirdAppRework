@@ -3,7 +3,6 @@ import { IMessage } from "./message";
 
 export interface IConversation {
     id?: string;
-    _id?: string;
     participants: IProfileUser[];
     lastMessage?: IMessage;
     isGroup: boolean;

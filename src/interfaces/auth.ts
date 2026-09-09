@@ -29,6 +29,12 @@ export interface IResponseLogin {
     refreshToken?: string;
     user?: IProfileUser;
 }
+export interface IResponseRefreshToken {
+    message: string;
+    accessToken: string;
+    refreshToken?: string;
+}
+
 export interface IToken {
     access: string,
     refresh: string,
@@ -46,7 +52,6 @@ export interface IVerifyOtpPayload {
 }
 export interface IProfileUser {
     id?: string;
-    _id?: string;
     username: string;
     email: string;
     name?: string;

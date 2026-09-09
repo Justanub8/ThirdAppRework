@@ -1,20 +1,20 @@
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, NativeSyntheticEvent, NativeScrollEvent, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { FlashList } from '@shopify/flash-list';
-import { messageApi } from '~/api';
+import { conversationApi, messageApi } from '~/api';
 import { ArrowToLeft, CallIcon, CameraLightIcon } from '~/assets/svgs';
-import { BaseText, BaseTextInput } from '~/components/rn-components';
+import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components';
 import { AuthenticatedStackParamList } from '~/navigation/types';
 import { Navigation } from '~/utils';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { IMessage } from '~/interfaces';
 import Message from '~/components/message/Message';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import FastImage from '@d11/react-native-fast-image';
 import { images } from '~/assets/images';
 import { COLORS, Typography } from '~/constants';
 import { useMessageMutation, useAuthStore, useTheme, Theme } from '~/hooks';
 import { useSocket } from '~/context';
+import { useQuery } from '@tanstack/react-query';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Conversation'>;
 const SHOW_SCROLL_BUTTON_OFFSET = 300;
@@ -23,10 +23,27 @@ const Conversation = () => {
     const { theme } = useTheme();
     const styles = React.useMemo(() => getStyles(theme), [theme]);
     const route = useRoute<RouteProps>();
-    const { id = '', name } = route.params || {};
+    const { id = '', name: initialName, imageUrl: initialImageUrl } = route.params || {};
     const { user } = useAuthStore();
     const socket = useSocket();
     const { createMessage } = useMessageMutation();
+
+    const { data: conversationData } = useQuery({
+        queryKey: ['conversation', id],
+        queryFn: async () => {
+            const res = await conversationApi.getConversationById(id);
+            return res.data?.data || (res.data as any);
+        },
+        enabled: !!id,
+    });
+
+    const currentUserId = user?.id;
+    const otherUser = conversationData?.participants?.find(
+        (p: any) => p.id !== currentUserId
+    ) || conversationData?.participants?.[0];
+
+    const displayName = initialName || otherUser?.username || otherUser?.name || 'Unknown';
+    const displayAvatar = initialImageUrl || otherUser?.avatarUrl || otherUser?.imageUrl;
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isFetchingNextPage, setIsFetchingNextPage] = useState<boolean>(false);
     const [isTexting, setIsTexting] = useState(false);
@@ -51,12 +68,13 @@ const Conversation = () => {
             const msgConvId = msg.conversationId;
             if (!msgConvId || msgConvId === id) {
                 setMessages(prev => {
-                    const msgId = msg.id || msg._id;
-                    if (msgId && prev.some(m => (m.id || m._id) === msgId)) {
+                    const msgId = msg.id;
+                    if (msgId && prev.some(m => m.id === msgId)) {
                         return prev;
                     }
                     return [msg, ...prev];
                 });
+
             }
         };
 
@@ -174,14 +192,14 @@ const Conversation = () => {
                     item={item}
                     previous={previous}
                     isRefreshing={isRefreshing}
-                    currentUserId={user?.id || user?._id}
+                    currentUserId={user?.id}
                 />
             );
         },
         [messages, isRefreshing, user]
     );
 
-    const keyExtractor = useCallback((item: IMessage) => item.id || item._id || Math.random().toString(), []);
+    const keyExtractor = useCallback((item: IMessage) => item.id || Math.random().toString(), []);
 
     const renderFooter = useCallback(() => {
         if (!isFetchingNextPage) return null;
@@ -192,16 +210,7 @@ const Conversation = () => {
         );
     }, [isFetchingNextPage, theme.subtext]);
 
-    const renderEmpty = useCallback(() => {
-        if (isLoading) return null;
-        return (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100, transform: [{ scaleY: 1 }] }}>
-                <BaseText typography={Typography.bodyMedium.medium} color={theme.subtext}>
-                    Chưa có tin nhắn nào. Hãy gửi lời chào!
-                </BaseText>
-            </View>
-        );
-    }, [isLoading, theme.subtext]);
+    
 
     const handleSend = () => {
         const content = messageContent.trim();
@@ -211,12 +220,12 @@ const Conversation = () => {
             socket.emit('message', {
                 conversationId: id,
                 content: content,
-                senderId: user?.id || user?._id,
+                senderId: user?.id,
             });
             console.log("tin nhắn đã được gửi đi qua socket", {
                 conversationId: id,
                 content: content,
-                senderId: user?.id || user?._id,
+                senderId: user?.id,
             });
             setMessageContent('');
         } else {
@@ -226,8 +235,8 @@ const Conversation = () => {
                     onSuccess: (data: any) => {
                         const newMsg: IMessage = data.data || data;
                         setMessages(prev => {
-                            const msgId = newMsg.id || newMsg._id;
-                            if (msgId && prev.some(m => (m.id || m._id) === msgId)) {
+                            const msgId = newMsg.id;
+                            if (msgId && prev.some(m => m.id === msgId)) {
                                 return prev;
                             }
                             return [newMsg, ...prev];
@@ -237,16 +246,31 @@ const Conversation = () => {
                 }
             );
         }
+
     };
 
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
               <ArrowToLeft height={24} width={24} onPress={() => Navigation.pop()} style={styles.zIndex1}/>
-              <View style={styles.headerUser}>
-                <FastImage source={images.avater_random} style={styles.headerAvatar}/>
-                <BaseText typography={Typography.bodyBold.medium}>{name}</BaseText>
-              </View>
+              <TouchableOpacity 
+                style={styles.headerUser}
+                onPress={() => {
+                  const targetUserId = otherUser?.id;
+                  if (targetUserId) {
+                    Navigation.goToUserProfile(targetUserId);
+                  }
+                }}
+                disabled={!otherUser?.id}
+
+                activeOpacity={0.8}
+              >
+                <FastImage 
+                  source={displayAvatar ? { uri: displayAvatar } : images.avater_random} 
+                  style={styles.headerAvatar}
+                />
+                <BaseText typography={Typography.bodyBold.medium}>{displayName}</BaseText>
+              </TouchableOpacity>
               <CallIcon height={24} width={24} style={styles.zIndex1}/>
             </View>
             
@@ -270,7 +294,6 @@ const Conversation = () => {
                         onEndReached={handleLoadMore}
                         onEndReachedThreshold={0.3}
                         ListFooterComponent={renderFooter}
-                        ListEmptyComponent={renderEmpty}
                         refreshing={isRefreshing}
                         onRefresh={handleRefresh}
                     />
@@ -299,9 +322,7 @@ const Conversation = () => {
                               listRef.current?.scrollToOffset({ offset: 0, animated: true });
                           }}
                       >
-                          <View style={styles.rotateDown}>
-                              <ArrowToLeft height={24} width={24} />
-                          </View>
+                        <ArrowToLeft height={24} width={24} />
                       </TouchableOpacity>
                     </Animated.View>
                 </View>
@@ -344,7 +365,8 @@ const getStyles = (theme: Theme) => StyleSheet.create({
         height: 40,
         borderWidth: 1,
         borderColor: theme.border,
-        borderRadius: 9999,
+        borderRadius: 20,
+        overflow: 'hidden',
     },
     zIndex1: {
         zIndex: 1,
@@ -375,9 +397,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
         shadowOpacity: 0.15,
         shadowRadius: 6,
         elevation: 4,
-    },
-    rotateDown: {
-        transform: [{ rotate: '-90deg' }],
     },
     cameraIcon: {
         backgroundColor: theme.bubbleLavender,

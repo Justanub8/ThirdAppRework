@@ -1,19 +1,21 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { zustandStorage } from '~/store/auth.store';
+import { IProfileUser } from '~/interfaces';
 
 export type AuthStorage = {
-    user: any | null;
+    user: IProfileUser | null;
     accessToken: string | null;
     refreshToken: string | null;
     saveUser: (payload: { 
-        user?: any | null; 
+        user?: IProfileUser | null; 
         accessToken: string | null; 
         refreshToken?: string | null;
     }) => void;
-    updateUser: (user: any | null) => void;
+    updateUser: (user: IProfileUser | null) => void;
     logoutLocal: () => void;
 }
+
 
 export const useAuthStore = create<AuthStorage>()(
     persist(

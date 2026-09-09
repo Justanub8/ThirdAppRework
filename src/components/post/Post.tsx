@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Dimensions, FlatList } from 'react-native';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Typography } from '~/constants';
 import { BaseText } from '../rn-components';
@@ -10,7 +10,6 @@ import { images } from '~/assets/images';
 import { SizedBox } from '../separate-components';
 import { IPost } from '~/interfaces/post';
 import { SheetManager } from 'react-native-actions-sheet';
-import { FlashList } from '@shopify/flash-list';
 import LikeButton from '../buttons/LikeButton';
 import BookmarkButton from '../buttons/BookmarkButton';
 import { IMedia } from '~/interfaces';
@@ -28,10 +27,10 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
     const [isFollowing, setIsFollowing] = useState(!!post.isFollowing);
     const windowWidth = Dimensions.get('window').width;
     const currentUser = useAuthStore(state => state.user);
-    const postUserId = post.user?.id || post.user?._id;
-    const currentUserId = currentUser?.id || currentUser?._id;
+    const postUserId = post.user?.id;
+    const currentUserId = currentUser?.id;
     const isOwnPost = !!currentUserId && currentUserId === postUserId;
-    const postId = post.id || post._id || '';
+    const postId = post.id || '';
 
     useEffect(() => {
         setLikeCount(post.likeCount);
@@ -139,10 +138,10 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
             </View>
         </View>
         <View style={{ width: windowWidth, aspectRatio: 1 }}>
-            <FlashList
+            <FlatList
                 data={post.media || []}
                 renderItem={renderItem}
-                keyExtractor={(item, index) => item?.id || item?._id || index.toString()}
+                keyExtractor={(item, index) => item?.id || index.toString()}
                 pagingEnabled={true}
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={viewabilityConfig}

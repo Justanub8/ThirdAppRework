@@ -15,10 +15,10 @@ interface ChatProps {
 }
 
 const Chat = ({ conversation, currentUserId }: ChatProps) => {
-  const otherUser = conversation.participants.find((p: any) => (p.id || p._id) !== currentUserId) || conversation.participants[0];
+  const otherUser = conversation.participants.find((p: any) => p.id !== currentUserId) || conversation.participants[0];
   const displayName = otherUser?.username || otherUser?.name || 'Unknown';
   const avatarUri = otherUser?.avatarUrl || otherUser?.imageUrl;
-  const conversationId = conversation.id || conversation._id || '';
+  const conversationId = conversation.id || '';
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
   const targetDate = conversation.lastMessage?.createdAt || conversation.createdAt || new Date();
@@ -30,7 +30,7 @@ const Chat = ({ conversation, currentUserId }: ChatProps) => {
   return (
     <TouchableOpacity 
         style={styles.chatContainer}
-        onPress={() => Navigation.goToConversation(conversationId, displayName)}
+        onPress={() => Navigation.goToConversation(conversationId, displayName, avatarUri)}
     >
         <View style={styles.leftRow}>
             <FastImage 

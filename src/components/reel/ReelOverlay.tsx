@@ -23,10 +23,10 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
   const [bookmarkCount, setBookmarkCount] = useState(reel.bookmarkCount || 0);
   const [repostCount, setRepostCount] = useState(reel.repostCount || 0);
   const currentUser = useAuthStore(state => state.user);
-  const reelUserId = reel.user?.id || reel.user?._id;
-  const currentUserId = currentUser?.id || currentUser?._id;
+  const reelUserId = reel.user?.id;
+  const currentUserId = currentUser?.id;
   const isOwnReel = !!currentUserId && currentUserId === reelUserId;
-  const reelId = reel.id || reel._id || '';
+  const reelId = reel.id || '';
   const { createFollow, deleteFollow } = useFollowMutation();
 
   useEffect(() => {

@@ -2,7 +2,6 @@ import { IProfileUser } from "./auth";
 
 export interface IComment {
     id?: string;
-    _id?: string;
     userId?: string;
     user: IProfileUser;
     targetId: string;

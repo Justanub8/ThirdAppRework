@@ -11,8 +11,8 @@ import { Navigation } from '~/utils';
 
 const Comment = ({ item }: { item: IComment }) => {
   const [likeCount, setLikeCount] = React.useState(item.likeCount);
-  const commentUserId = item.user?.id || item.user?._id;
-  const commentId = item.id || item._id || '';
+  const commentUserId = item.user?.id;
+  const commentId = item.id || '';
 
   React.useEffect(() => {
       setLikeCount(item.likeCount);

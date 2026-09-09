@@ -68,7 +68,7 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
             <FlashList
               data={comments}
               renderItem={({ item }) => <Comment item={item} />}
-              keyExtractor={(item: any) => item.id || item._id || ''}
+              keyExtractor={(item: any) => item.id || ''}
               onEndReached={() => {
                 if (hasNextPage) fetchNextPage();
               }}

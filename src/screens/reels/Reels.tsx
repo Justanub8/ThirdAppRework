@@ -8,6 +8,7 @@ import { IReel } from '~/interfaces/reel';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { reelApi } from '~/api';
 import { useTheme } from '~/hooks';
+import { useIsFocused } from '@react-navigation/native';
 
 const Reels = () => {
   const { theme } = useTheme();
@@ -48,7 +49,7 @@ const Reels = () => {
     return (
       <View style={{ height: availableHeight, width: '100%' }}>
         {item.media?.type === 'video' ? (
-          <VideoReel reel={item} isActive={index === activeIndex} />
+          <VideoReel reel={item} isActive={index === activeIndex && useIsFocused()} />
         ) : (
           <ImageReel reel={item} />
         )}
@@ -61,7 +62,7 @@ const Reels = () => {
       <FlashList
         data={reels}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id || item._id || ''}
+        keyExtractor={(item) => item.id || ''}
         pagingEnabled={true}
         showsVerticalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}

@@ -3,7 +3,6 @@ import { IMedia } from "./media";
 
 export interface IEmoji {
     id?: string;
-    _id?: string;
     content: string;
     messageId: string;
     senderId: string;
@@ -14,7 +13,6 @@ export interface IEmoji {
 
 export interface IMessage {
     id?: string;
-    _id?: string;
     conversationId: string;
     senderId?: string;
     sender?: IProfileUser;
@@ -31,10 +29,8 @@ export interface IResponseGetMessage {
 
 export interface INote { 
     id?: string;
-    _id?: string;
     userId: {
         id?: string;
-        _id?: string;
         username: string;
         avatar?: string;
     };

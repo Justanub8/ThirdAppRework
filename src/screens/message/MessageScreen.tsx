@@ -76,15 +76,16 @@ const MessageScreen = () => {
           <SizedBox height={24}/>
           <View>
             {conversations.map((conv: any) => {
-              const convKey = conv.id || conv._id;
+              const convKey = conv.id;
               return (
                 <View key={convKey} style={styles.chatItem}>
                   <Chat 
                     conversation={conv}
-                    currentUserId={user?.id || user?._id}
+                    currentUserId={user?.id}
                   />
                 </View>
               );
+
             })}
           </View>
           <SizedBox height={24}/>

@@ -1,4 +1,10 @@
-import { ILoginPayLoad, IResponseLogin, ISignUpPayload, IResponseSignUp } from "~/interfaces";
+import {
+    ILoginPayLoad,
+    IResponseLogin,
+    ISignUpPayload,
+    IResponseSignUp,
+    IResponseRefreshToken,
+} from "~/interfaces";
 import axiosInstance from "~/services/axiosClient";
 
 export const authApi = {
@@ -17,8 +23,11 @@ export const authApi = {
     },
     
     refreshToken: (refreshToken: string) => 
-        axiosInstance.post<{ message: string; accessToken: string }>('/auth/refresh-token', { refreshToken }),
+        axiosInstance.post<IResponseRefreshToken>('/auth/refresh-token', { refreshToken }),
     
     getMe: () => 
         axiosInstance.get<{ user: IResponseLogin['user'] }>('/auth/me'),
+
+    logout: () =>
+        axiosInstance.post<{ message: string }>('/auth/logout'),
 };

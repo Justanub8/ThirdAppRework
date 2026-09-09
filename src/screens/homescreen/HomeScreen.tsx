@@ -23,9 +23,10 @@ const HomeScreen = () => {
 
   const onViewableItemsChanged = React.useCallback(({ viewableItems }: { viewableItems: any[] }) => {
     if (viewableItems && viewableItems.length > 0) {
-      setActivePostId(viewableItems[0].item.id || viewableItems[0].item._id);
+      setActivePostId(viewableItems[0].item.id);
     }
   }, []);
+
 
   const viewabilityConfig = React.useRef({
     itemVisiblePercentThreshold: 50,
@@ -62,14 +63,15 @@ const HomeScreen = () => {
     </View>
   ), [logoutLocal]);
 
-  const keyExtractor = React.useCallback((item: any) => item.id || item._id, []);
+  const keyExtractor = React.useCallback((item: any) => item.id, []);
 
   const renderItem = React.useCallback(
     ({ item }: { item: any }) => (
-      <Post post={item} isActive={(item.id || item._id) === activePostId} />
+      <Post post={item} isActive={item.id === activePostId} />
     ),
     [activePostId]
   );
+
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.container}>

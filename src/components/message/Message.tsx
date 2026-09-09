@@ -16,10 +16,10 @@ interface MessageProps {
 }
 
 const Message = ({ item, previous, isRefreshing, currentUserId }: MessageProps) => {
-    const storeUserId = useAuthStore(state => state.user?.id || state.user?._id);
+    const storeUserId = useAuthStore(state => state.user?.id);
     const userId = currentUserId || storeUserId;
     const senderObj = item.sender || (typeof item.senderId === 'object' ? item.senderId : null);
-    const messageSenderId = senderObj?.id || senderObj?._id || (typeof item.senderId === 'string' ? item.senderId : undefined);
+    const messageSenderId = senderObj?.id || (typeof item.senderId === 'string' ? item.senderId : undefined);
     const isMyMessage = !!userId && messageSenderId === userId;
     const senderDisplayName = senderObj?.username || senderObj?.name || 'Unknown';
     const [showTime, setShowTime] = React.useState(false);

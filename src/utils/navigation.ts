@@ -97,12 +97,12 @@ export const Navigation = {
         }
     },
 
-    goToConversation: (id: string, name?: string) => {
+    goToConversation: (id: string, name?: string, imageUrl?: string) => {
         SheetManager.hideAll();
         if (navigationRef.isReady()){
             navigationRef.navigate("App", {
                 screen: 'Conversation',
-                params: {id, name}
+                params: {id, name, imageUrl}
             });
         }
     },

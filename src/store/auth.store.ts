@@ -1,7 +1,11 @@
 import { createMMKV } from 'react-native-mmkv';
 import { StateStorage } from 'zustand/middleware';
 
-export const storage = createMMKV();
+// Secure encrypted MMKV storage instance with AES encryption
+export const storage = createMMKV({
+    id: 'auth-storage-secure',
+    encryptionKey: 'ThirdAppSecureKey2026!',
+});
 
 export const zustandStorage: StateStorage = {
     setItem: (name, value) => {

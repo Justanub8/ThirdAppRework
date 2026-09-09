@@ -2,7 +2,6 @@ import { IProfileUser } from "./auth";
 import { IMedia } from "./media";
 export interface IReel {
     id?: string;
-    _id?: string;
     user: IProfileUser;
     media: IMedia;
     likeCount: number;

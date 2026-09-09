@@ -3,7 +3,6 @@ import { IMedia } from "./media";
 
 export interface IStory {
     id?: string;
-    _id?: string;
     userId?: string;
     user: IProfileUser;
     content?: string;
