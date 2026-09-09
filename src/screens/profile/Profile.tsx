@@ -6,18 +6,17 @@ import { CreateIcon, MenuIcon, AddUserIcon, ReelLightIcon } from '~/assets/svgs'
 import { BaseText } from '~/components/rn-components';
 import { Avatar } from '~/components/avatar';
 import { useFocusEffect } from '@react-navigation/native';
-import { images } from '~/assets/images';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { SizedBox } from '~/components/separate-components';
 import SlideUpModal from '~/components/slide-up/SlideUpModal';
 import { useQuery } from '@tanstack/react-query';
 import { userApi } from '~/api/userApi';
 import { useAuthStore, useTheme, Theme } from '~/hooks';
+import { SheetManager } from 'react-native-actions-sheet';
 
 const Profile = () => {
   const { theme, mode, setMode } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
-  const { logoutLocal } = useAuthStore();
   const { data, refetch } = useQuery({
     queryKey: ['my-profile'],
     queryFn: async () => {
@@ -31,8 +30,6 @@ const Profile = () => {
       refetch();
     }, [refetch])
   );
-
-  const createModalRef = React.useRef<BottomSheetModal>(null);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -40,7 +37,7 @@ const Profile = () => {
           <View style={styles.headerRow}>
             <CreateIcon 
               height={36} width={36}
-              onPress={() => createModalRef.current?.present()}
+              onPress={() => SheetManager.show('CreateSheet')}
             />
             <BaseText typography={Typography.bodyBold.xxxLarge}>
               {data?.username}
@@ -108,28 +105,6 @@ const Profile = () => {
         <View style={styles.tabContainer}>
           {/* <AccountTopTab/> */}
         </View>
-        <SlideUpModal
-          ref={createModalRef}
-          modalTitle='Tạo'
-          renderComponent={
-            <View>
-              <TouchableOpacity 
-                style={styles.modalOption} 
-                onPress={() => { 
-                  createModalRef.current?.close();
-                }}
-              >
-                <ReelLightIcon height={14} width={14}/>
-                <BaseText>Thước phim</BaseText>
-              </TouchableOpacity>
-              <BaseText>Edits</BaseText>
-              <BaseText>Tin</BaseText>
-              <BaseText>Tin nổi bật</BaseText>
-              <BaseText>Video trực tiếp</BaseText>
-              <BaseText>AI</BaseText>
-            </View>
-          }
-        />
       </ScrollView>
     </SafeAreaView>
   );

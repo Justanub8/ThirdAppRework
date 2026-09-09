@@ -26,7 +26,7 @@ const formatDuration = (seconds?: number) => {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-const CreateContent = () => {
+const SelectPostMedia = () => {
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
   const [photos, setPhotos] = useState<any[]>([]);
@@ -235,6 +235,7 @@ const getStyles = (theme: Theme) => StyleSheet.create({
   gridImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 0,
   },
   videoBadge: {
     position: 'absolute',
@@ -247,4 +248,4 @@ const getStyles = (theme: Theme) => StyleSheet.create({
   },
 });
 
-export default CreateContent;
+export default SelectPostMedia;

@@ -126,7 +126,7 @@ const Story = () => {
 
   return (
     <View style={styles.container}>
-      <View style={StyleSheet.absoluteFill}>
+      <View style={styles.mediaWrapper}>
         {isVideo && mediaUrl ? (
           hasVideoError ? (
             <View style={[StyleSheet.absoluteFill, styles.errorContainer]}>
@@ -138,8 +138,8 @@ const Story = () => {
             <Video
               ref={videoRef}
               source={{ uri: mediaUrl }}
-              style={StyleSheet.absoluteFill}
-              resizeMode="cover"
+              style={styles.media}
+              resizeMode="contain"
               paused={isPaused}
               onLoad={(data) => setDuration(data.duration || 1)}
               onProgress={(data) => {
@@ -156,11 +156,15 @@ const Story = () => {
         ) : mediaUrl ? (
           <FastImage
             source={{ uri: mediaUrl }}
-            style={StyleSheet.absoluteFill}
-            resizeMode="cover"
+            style={styles.media}
+            resizeMode="contain"
           />
         ) : (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#181818', justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
+              <BaseText color="#888888" typography={Typography.bodyMedium.medium} style={{ textAlign: 'center' }}>
+                Không có nội dung hiển thị
+              </BaseText>
+          </View>
         )}
       </View>
 
@@ -241,6 +245,18 @@ const getStyles = (theme: Theme) =>
     container: {
       flex: 1,
       backgroundColor: '#000000',
+    },
+    mediaWrapper: {
+      zIndex: 0,
+      ...StyleSheet.absoluteFill,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#000000',
+    },
+    media: {
+      width: '100%',
+      height: '100%',
+      zIndex: -1
     },
     centerContainer: {
       flex: 1,

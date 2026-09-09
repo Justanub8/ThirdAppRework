@@ -159,30 +159,7 @@ const UserProfile = () => {
         <SizedBox height={24}/>
 
         <View style={styles.tabContainer}>
-          {/* <AccountTopTab/> */}
         </View>
-        <SlideUpModal
-          ref={createModalRef}
-          modalTitle='Tạo'
-          renderComponent={
-            <View>
-              <TouchableOpacity 
-                style={styles.modalOption} 
-                onPress={() => { 
-                  createModalRef.current?.close();
-                }}
-              >
-                <ReelLightIcon height={14} width={14}/>
-                <BaseText>Thước phim</BaseText>
-              </TouchableOpacity>
-              <BaseText>Edits</BaseText>
-              <BaseText>Tin</BaseText>
-              <BaseText>Tin nổi bật</BaseText>
-              <BaseText>Video trực tiếp</BaseText>
-              <BaseText>AI</BaseText>
-            </View>
-          }
-        />
       </ScrollView>
     </SafeAreaView>
   );

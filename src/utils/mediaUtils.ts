@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import Config from 'react-native-config';
 import RNFS from 'react-native-fs';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { mediaApi } from '~/api';
 
 export const formatMediaUrl = (url?: string): string => {
@@ -34,7 +35,9 @@ export const resolveLocalMediaUri = async (uri: string, fileName?: string): Prom
     return uri;
   }
 
-  const name = fileName || `media_${Date.now()}`;
+  const extMatch = /\.(\w+)(\?.*)?$/.exec(uri);
+  const ext = extMatch ? `.${extMatch[1]}` : '';
+  const name = fileName || `media_${Date.now()}${ext}`;
   const destPath = `${RNFS.CachesDirectoryPath}/${name}`;
 
   try {
@@ -43,9 +46,20 @@ export const resolveLocalMediaUri = async (uri: string, fileName?: string): Prom
       return `file://${destPath}`;
     }
 
+    if (Platform.OS === 'ios' && uri.startsWith('ph://')) {
+      try {
+        const asset = await CameraRoll.iosGetImageDataById(uri, { convertHeicImages: true });
+        if (asset?.node?.image?.filepath) {
+          return asset.node.image.filepath;
+        }
+      } catch (err) {
+        console.log('Error getting image data by internal id:', err);
+      }
+    }
+
     if (
       Platform.OS === 'ios' &&
-      (uri.startsWith('ph://') || uri.startsWith('assets-library://'))
+      uri.startsWith('assets-library://')
     ) {
       await RNFS.copyAssetsFileIOS(uri, destPath, 0, 0);
       return `file://${destPath}`;

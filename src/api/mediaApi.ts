@@ -20,16 +20,22 @@ export const mediaApi = {
     const fileUri = await resolveLocalMediaUri(rawUri);
 
     const formData = new FormData();
-    const filename = fileUri.split('/').pop() || `file_${Date.now()}`;
-    const match = /\.(\w+)$/.exec(filename);
-    const ext = match ? match[1].toLowerCase() : 'jpg';
-    const isVideo = ['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp', 'm4v'].includes(ext);
-    const type = isVideo ? (ext === 'mov' ? 'video/quicktime' : `video/${ext}`) : (match ? `image/${ext}` : 'image/jpeg');
+    const cleanUri = fileUri.split('?')[0];
+    const rawName = cleanUri.split('/').pop() || `file_${Date.now()}`;
+    const isExplicitVideo = /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(cleanUri) || /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(rawUri);
+    const match = /\.(\w+)$/.exec(rawName);
+    const ext = match ? match[1].toLowerCase() : (isExplicitVideo ? 'mp4' : 'jpg');
+    const isVideo = isExplicitVideo || ['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp', 'm4v'].includes(ext);
+    const mimeType = isVideo
+      ? (ext === 'mov' ? 'video/quicktime' : (ext === 'mp4' ? 'video/mp4' : `video/${ext}`))
+      : (ext === 'png' ? 'image/png' : (ext === 'webp' ? 'image/webp' : 'image/jpeg'));
+
+    const uploadName = rawName.includes('.') ? rawName : `${rawName}.${isVideo ? 'mp4' : 'jpg'}`;
 
     formData.append('file', {
       uri: fileUri,
-      name: filename.includes('.') ? filename : `${filename}.${isVideo ? 'mp4' : 'jpg'}`,
-      type: type,
+      name: uploadName,
+      type: mimeType,
     } as any);
 
     if (postId) formData.append('postId', postId);

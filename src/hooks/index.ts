@@ -10,4 +10,5 @@ export * from './usePostMutation';
 export * from './useConversationMutation';
 export * from './useMessageMutation';
 export * from './useAuthMutation';
+export * from './useStoryMutation';
 export * from '~/context/ThemeContext';

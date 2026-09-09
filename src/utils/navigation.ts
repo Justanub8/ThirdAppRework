@@ -126,11 +126,11 @@ export const Navigation = {
         }
     },
 
-    goToCreateContent: () => {
+    goToSelectPostMedia: () => {
         SheetManager.hideAll();
         if(navigationRef.isReady()){
             navigationRef.navigate('App' , {
-                screen: 'CreateContent'
+                screen: 'SelectPostMedia'
             })
         }
     },
@@ -141,6 +141,25 @@ export const Navigation = {
             navigationRef.navigate('App' , {
                 screen: 'CreatePost',
                 params: { uri, mediaType }
+            })
+        }
+    },
+
+    goToSelectStoryMedia: () => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate('App', {
+                screen: 'SelectStoryMedia'
+            })
+        }
+    },
+
+    goToCreateStory: (uri: string, mediaType?: 'image' | 'video') => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate('App', {
+                screen: 'CreateStory',
+                params: { uri, mediaType}
             })
         }
     },

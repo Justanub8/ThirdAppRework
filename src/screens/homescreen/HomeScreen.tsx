@@ -54,7 +54,7 @@ const HomeScreen = () => {
   const renderHeader = React.useCallback(() => (
     <View>
       <View style={styles.topHeader}>
-          <CreateIcon width={36} height={36} onPress={() => { Navigation.goToCreateContent(); }}/>
+          <CreateIcon width={36} height={36} onPress={() => { Navigation.goToSelectPostMedia(); }}/>
           <FastImage source={images.logo_transparent} resizeMode='contain' style={styles.logo}/>
           <NotificationIcon width={32} height={32} onPress={() => { logoutLocal(); }}/>
       </View>

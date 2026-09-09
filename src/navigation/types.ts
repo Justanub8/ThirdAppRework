@@ -17,8 +17,10 @@ export type AuthenticatedStackParamList = {
     Conversation: { id: string; name?: string, imageUrl?: string };
     NewMessage: undefined;
     UserProfile: { id: string };
-    CreateContent: undefined;
+    SelectPostMedia: undefined;
     CreatePost: { uri: string; mediaType?: 'image' | 'video' };
+    SelectStoryMedia: undefined;
+    CreateStory: { uri: string; mediaType?: 'image' | 'video'};
     Story: { userId: string};
 };
 

@@ -60,6 +60,10 @@ import RawLogoutBoldIcon from './logout-bold.svg';
 import RawLogoutLightIcon from './logout-light.svg';
 import RawScanBoldIcon from './scan-bold.svg';
 import RawScanLightIcon from './scan-light.svg';
+import RawSettingIcon from './setting-icon.svg';
+import RawStarIcon from './star-icon.svg';
+import RawMusicIcon from './music-icon.svg';
+import RawScribbleIcon from './scribble-icon.svg';
 
 export function withThemeIcon(SvgComponent: React.FC<SvgProps>, defaultColor?: string): React.FC<SvgProps> {
   const ThemedIcon: React.FC<SvgProps> = (props) => {
@@ -129,3 +133,8 @@ export const LogoutBoldIcon = withThemeIcon(RawLogoutBoldIcon);
 export const LogoutLightIcon = withThemeIcon(RawLogoutLightIcon);
 export const ScanBoldIcon = withThemeIcon(RawScanBoldIcon);
 export const ScanLightIcon = withThemeIcon(RawScanLightIcon);
+export const SettingIcon = withThemeIcon(RawSettingIcon);
+export const MusicIcon = withThemeIcon(RawMusicIcon);
+export const ScribbleIcon = withThemeIcon(RawScribbleIcon);
+export const Scribble = withThemeIcon(RawScribbleIcon);
+export const StarIcon = withThemeIcon(RawStarIcon);
