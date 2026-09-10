@@ -119,6 +119,10 @@ export const Navigation = {
     goToUserProfile: (id: string) => {
         SheetManager.hideAll();
         if(navigationRef.isReady()){
+            const currentRoute = navigationRef.getCurrentRoute();
+            if (currentRoute?.name === 'UserProfile' && (currentRoute?.params as any)?.id === id) {
+                return;
+            }
             navigationRef.navigate('App',{
                 screen: 'UserProfile',
                 params: {id}
@@ -170,6 +174,15 @@ export const Navigation = {
             navigationRef.navigate('App',{
                 screen: 'Story',
                 params: { userId }
+            })
+        }
+    },
+
+    goToMyActiveStory: () => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate('App',{
+                screen: 'MyActiveStory'
             })
         }
     }

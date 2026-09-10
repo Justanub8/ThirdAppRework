@@ -22,6 +22,7 @@ export type AuthenticatedStackParamList = {
     SelectStoryMedia: undefined;
     CreateStory: { uri: string; mediaType?: 'image' | 'video'};
     Story: { userId: string};
+    MyActiveStory: undefined;
 };
 
 export type MainTabParamList = {

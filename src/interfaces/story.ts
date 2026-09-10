@@ -9,12 +9,14 @@ export interface IStory {
     mediaId?: string;
     media?: IMedia;
     likeCount: number;
-    commentCount: number;
+    viewCount: number;
     createdAt: Date;
     updatedAt?: Date;
     isLiked?: boolean;
+    isViewed?: boolean;
 }
 
 export interface IResponseGetStory {
     story: IStory;
+    isAllViewed?: boolean;
 }

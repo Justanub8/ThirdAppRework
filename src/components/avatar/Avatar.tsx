@@ -11,7 +11,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { FastImage, BaseText } from '../rn-components';
 import { images } from '~/assets/images';
 import { Navigation } from '~/utils';
-import { useTheme } from '~/hooks';
+import { useTheme, useAuthStore } from '~/hooks';
 
 export interface AvatarProps {
   url?: string | null;
@@ -21,6 +21,7 @@ export interface AvatarProps {
   size: number;
   username?: string;
   disabled?: boolean;
+  onPress?: () => void;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -33,7 +34,7 @@ const STORY_GRADIENT_COLORS = [
   '#E1306C',
   '#e300c8',
   '#833AB4',
-];
+  ];
 
 const SEEN_STORY_COLORS = ['#8E8E93', '#C7C7CC'];
 
@@ -45,9 +46,11 @@ const Avatar: React.FC<AvatarProps> = ({
   size = 40,
   username,
   disabled = false,
+  onPress,
   style,
 }) => {
   const { theme } = useTheme();
+  const currentUserId = useAuthStore((state) => state.user?.id);
 
   const imageSource = React.useMemo(() => {
     if (!url) return images.avater_random;
@@ -58,12 +61,24 @@ const Avatar: React.FC<AvatarProps> = ({
 
 
   const handlePress = () => {
-    if (!id) return;
-    if (hasActiveStory ) {
-        Navigation.goToStory(id)
-        return;
+    if (onPress) {
+      onPress();
+      return;
     }
-      Navigation.goToUserProfile(id);
+    if (!id) return;
+    if (hasActiveStory) {
+      if (currentUserId && id === currentUserId) {
+        Navigation.goToMyActiveStory();
+      } else {
+        Navigation.goToStory(id);
+      }
+      return;
+    }
+    if (currentUserId && id === currentUserId) {
+      Navigation.goToProfile();
+      return;
+    }
+    Navigation.goToUserProfile(id);
   };
 
   const gapWidth = Math.max(2, Math.round(size * 0.04));

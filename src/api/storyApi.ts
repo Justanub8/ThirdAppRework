@@ -23,4 +23,7 @@ export const storyApi = {
     
     deleteStory: (storyId: string) => 
         axiosInstance.delete<{ message: string }>(`/story/${storyId}`),
+    
+    viewStory: (storyId: string) =>
+        axiosInstance.post<{ message: string; story: IStory }>(`/story/${storyId}/view`),
 };

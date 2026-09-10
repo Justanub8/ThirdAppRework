@@ -6,14 +6,16 @@ export const useLikeMutation = () => {
     const queryClient = useQueryClient();
 
     const updateCacheOptimistically = async (targetId: string, targetType: string, isLike: boolean) => {
-        const queryKeys =
+        const baseQueryKeys =
             targetType === 'Reel'
                 ? [['Reel'], ['Reels']]
                 : targetType === 'Comment'
                 ? [['comments']]
+                : targetType === 'Story'
+                ? [['story'], ['stories'], ['my-story']]
                 : [['Post'], ['Posts']];
 
-        const previousDataMap: Array<{ queryKey: any[]; data: any }> = [];
+        const previousDataMap: Array<{ queryKey: any; data: any }> = [];
 
         const updateItem = (item: any) => {
             if (!item || item.id !== targetId) return item;
@@ -28,9 +30,15 @@ export const useLikeMutation = () => {
 
         const updatePage = (page: any) => {
             if (!page) return page;
+            if (Array.isArray(page)) {
+                return page.map(updateItem);
+            }
             const newPage = { ...page };
             if (Array.isArray(page.data)) {
                 newPage.data = page.data.map(updateItem);
+            }
+            if (Array.isArray(page.stories)) {
+                newPage.stories = page.stories.map(updateItem);
             }
             if (Array.isArray(page.reels)) {
                 newPage.reels = page.reels.map(updateItem);
@@ -38,26 +46,33 @@ export const useLikeMutation = () => {
             return newPage;
         };
 
-        for (const queryKey of queryKeys) {
-            await queryClient.cancelQueries({ queryKey });
-            const previousData = queryClient.getQueryData(queryKey);
-            if (previousData) {
-                previousDataMap.push({ queryKey, data: previousData });
+        const updateData = (old: any) => {
+            if (!old) return old;
+            if (Array.isArray(old)) {
+                return old.map(updateItem);
             }
+            if (Array.isArray(old.pages)) {
+                return {
+                    ...old,
+                    pages: old.pages.map(updatePage),
+                };
+            }
+            return updatePage(old);
+        };
 
-            queryClient.setQueryData(queryKey, (old: any) => {
-                if (!old) return old;
-                if (Array.isArray(old.pages)) {
-                    return {
-                        ...old,
-                        pages: old.pages.map(updatePage),
-                    };
+        for (const baseKey of baseQueryKeys) {
+            await queryClient.cancelQueries({ queryKey: baseKey });
+            const matchingQueries = queryClient.getQueriesData({ queryKey: baseKey });
+
+            for (const [qKey, previousData] of matchingQueries) {
+                if (previousData !== undefined) {
+                    previousDataMap.push({ queryKey: qKey, data: previousData });
+                    queryClient.setQueryData(qKey, (old: any) => updateData(old));
                 }
-                return updatePage(old);
-            });
+            }
         }
 
-        return { previousDataMap, queryKeys };
+        return { previousDataMap, baseQueryKeys };
     };
 
     const createLike = useMutation({
@@ -79,8 +94,8 @@ export const useLikeMutation = () => {
             Alert.alert("Lỗi thích nội dung");
         },
         onSettled: (_data, _error, _variables, context: any) => {
-            if (context?.queryKeys) {
-                context.queryKeys.forEach((key: any[]) => {
+            if (context?.baseQueryKeys) {
+                context.baseQueryKeys.forEach((key: any[]) => {
                     queryClient.invalidateQueries({ queryKey: key });
                 });
             }
@@ -106,8 +121,8 @@ export const useLikeMutation = () => {
             Alert.alert("Lỗi bỏ thích nội dung");
         },
         onSettled: (_data, _error, _variables, context: any) => {
-            if (context?.queryKeys) {
-                context.queryKeys.forEach((key: any[]) => {
+            if (context?.baseQueryKeys) {
+                context.baseQueryKeys.forEach((key: any[]) => {
                     queryClient.invalidateQueries({ queryKey: key });
                 });
             }

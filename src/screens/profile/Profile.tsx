@@ -13,6 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { userApi } from '~/api/userApi';
 import { useAuthStore, useTheme, Theme } from '~/hooks';
 import { SheetManager } from 'react-native-actions-sheet';
+import { Navigation } from '~/utils';
 
 const Profile = () => {
   const { theme, mode, setMode } = useTheme();
@@ -49,6 +50,8 @@ const Profile = () => {
               url={data?.avatarUrl || data?.imageUrl} 
               size={86} 
               id={data?.id} 
+              hasActiveStory={data?.hasActiveStory}
+              isSeenStory={data?.isSeenStory}
             />
             <View>
               <BaseText typography={Typography.bodyBold.medium}>

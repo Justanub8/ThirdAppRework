@@ -3,14 +3,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Avatar from '~/components/avatar';
 import { CrossIcon, HeartIcon, MessageLightIcon, NotificationIcon } from '~/assets/svgs';
-import { Navigation } from '~/utils';
-import { useTheme, Theme } from '~/hooks';
+import { Navigation, timeAgo } from '~/utils';
+import { useTheme, Theme, useLikeMutation } from '~/hooks';
 import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components';
-import { useQuery } from '@tanstack/react-query';
-import { storyApi } from '~/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { storyApi, viewApi } from '~/api';
 import { AuthenticatedStackParamList } from '~/navigation/types';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import { MultiProgressBar } from './MultipleProgressBar';
+import { MultiProgressBar } from './components/MultipleProgressBar';
 import { Video, VideoRef } from 'react-native-video';
 import { Typography } from '~/constants';
 
@@ -24,8 +24,9 @@ const Story = () => {
   const route = useRoute<RouteProps>();
   const { top, bottom } = useSafeAreaInsets();
   const { userId } = route.params;
+  const { createLike, deleteLike } = useLikeMutation();
+  const queryClient = useQueryClient();
 
-  const [isLiked, setIsLiked] = useState(false);
   const [messageContent, setMessageContent] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -47,11 +48,59 @@ const Story = () => {
       return response.data?.data || [];
     },
     enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
   });
 
   const totalStories = stories.length;
   const currentStory = stories[activeIndex];
   const isVideo = currentStory?.media?.type === 'video';
+  const isCurrentStoryLiked = Boolean(currentStory?.isLiked);
+
+  // Auto record view when current story is viewed
+  useEffect(() => {
+    if (!currentStory?.id) return;
+
+    if (!currentStory.isViewed) {
+      // 1. Optimistically update view state in story cache
+      queryClient.setQueryData(['story', userId], (old: any) => {
+        if (!Array.isArray(old)) return old;
+        const updated = old.map((item: any) =>
+          item.id === currentStory.id
+            ? { ...item, isViewed: true, viewCount: (item.viewCount || 0) + 1 }
+            : item
+        );
+        // If all stories are viewed, optimistically mark profile as seen
+        const allViewed = updated.length > 0 && updated.every((s: any) => s.isViewed);
+        if (allViewed) {
+          queryClient.setQueryData(['userProfile', userId], (oldProfile: any) => {
+            if (!oldProfile) return oldProfile;
+            return { ...oldProfile, isSeenStory: true };
+          });
+        }
+        return updated;
+      });
+
+      // 2. Call view API in background
+      viewApi.createView({ targetId: currentStory.id, targetType: 'Story' }).catch(() => {});
+    }
+  }, [currentStory?.id, currentStory?.isViewed, userId, queryClient]);
+
+  // When leaving the screen, invalidate queries to ensure consistency
+  useEffect(() => {
+    return () => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile', userId] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    };
+  }, [userId, queryClient]);
+
+  const handleToggleLike = useCallback(() => {
+    if (!currentStory?.id) return;
+    if (currentStory.isLiked) {
+      deleteLike.mutate({ targetId: currentStory.id, targetType: 'Story' });
+    } else {
+      createLike.mutate({ targetId: currentStory.id, targetType: 'Story' });
+    }
+  }, [currentStory, createLike, deleteLike]);
 
   const handleNext = useCallback(() => {
     if (activeIndex < totalStories - 1) {
@@ -123,6 +172,7 @@ const Story = () => {
 
   const mediaUrl = currentStory?.media?.url;
   const author = currentStory?.user;
+  const createdAt = currentStory?.createdAt;
 
   return (
     <View style={styles.container}>
@@ -206,6 +256,9 @@ const Story = () => {
                 <BaseText color="#FFFFFF" typography={Typography.bodyBold.medium}>
                 {author?.username || 'user'}
                 </BaseText>
+                <BaseText color="#FFFFFF" typography={Typography.bodyRegular.small}>
+                {timeAgo(createdAt)}
+                </BaseText>
             </View>
           <TouchableOpacity onPress={() => Navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <CrossIcon width={28} height={28} color="#FFFFFF" />
@@ -228,8 +281,11 @@ const Story = () => {
         <TouchableOpacity onPress={handleSend}>
           <MessageLightIcon width={26} height={26} color="#FFFFFF" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setIsLiked(!isLiked)}>
-          {isLiked ? (
+        <TouchableOpacity
+          onPress={handleToggleLike}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          {isCurrentStoryLiked ? (
             <HeartIcon width={28} height={28} color="#FF3040" />
           ) : (
             <NotificationIcon width={28} height={28} color="#FFFFFF" />

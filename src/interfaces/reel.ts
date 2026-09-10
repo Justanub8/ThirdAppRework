@@ -5,6 +5,7 @@ export interface IReel {
     user: IProfileUser;
     media: IMedia;
     likeCount: number;
+    viewCount?: number;
     shareCount: number;
     repostCount: number;
     commentCount: number;

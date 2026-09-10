@@ -11,6 +11,7 @@ import { commentApi } from '~/api/commentApi';
 import { FlashList } from '@shopify/flash-list';
 import Comment from '../comment/Comment';
 import { useCommentMutation, useTheme, Theme, useAuthStore } from '~/hooks';
+import { Typography } from '~/constants';
 
 const CommentSheet = (props: SheetProps<"CommentSheet">) => {
   const { theme } = useTheme();
@@ -71,6 +72,13 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
               data={comments}
               renderItem={({ item }) => <Comment item={item} />}
               keyExtractor={(item: any) => item.id || ''}
+              ListEmptyComponent={
+                <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 40 }}>
+                  <BaseText style={{ color: theme.placeholder }}>Chưa có bình luận nào</BaseText>
+                  <SizedBox height={6} />
+                  <BaseText typography={Typography.bodyRegular.small} style={{ color: theme.placeholder }}>Hãy là người đầu tiên bình luận!</BaseText>
+                </View>
+              }
               onEndReached={() => {
                 if (hasNextPage) fetchNextPage();
               }}

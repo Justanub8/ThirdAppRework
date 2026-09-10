@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Typography } from '~/constants';
 import { MenuIcon, AddUserIcon, ReelLightIcon, ArrowToLeft } from '~/assets/svgs';
 import { BaseText } from '~/components/rn-components';
 import { Avatar } from '~/components/avatar';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp, useRoute, useFocusEffect } from '@react-navigation/native';
 import { images } from '~/assets/images';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { SizedBox } from '~/components/separate-components';
@@ -27,7 +27,7 @@ const UserProfile = () => {
   const currentUser = useAuthStore(state => state.user);
   const isOwnProfile = currentUser?.id === id;
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['userProfile', id],
     queryFn: async () => {
       if (!id) return null;
@@ -36,6 +36,12 @@ const UserProfile = () => {
     },
     enabled: !!id,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
@@ -95,6 +101,8 @@ const UserProfile = () => {
               url={data?.avatarUrl || data?.imageUrl} 
               size={86} 
               id={id} 
+              hasActiveStory={data?.hasActiveStory}
+              isSeenStory={data?.isSeenStory}
             />
             <View>
               <BaseText typography={Typography.bodyBold.medium}>

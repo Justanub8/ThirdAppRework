@@ -38,7 +38,7 @@ import RawVideoCallIcon from './videocall-cam-icon.svg';
 import RawCameraLightIcon from './camera-light.svg';
 import RawTextAaIcon from './text-aa-bold-svgrepo-com.svg';
 import RawStickerIcon from './sticker-smile-square-svgrepo-com.svg';
-
+import RawPersonWithShadowIcon from './person-with-shadow-icon.svg';
 import RawCameraBoldIcon from './camera-bold.svg';
 import RawCheckCircleIcon from './check-circle.svg';
 import RawCheckIcon from './check.svg';
@@ -111,7 +111,7 @@ export const VideoCallIcon = withThemeIcon(RawVideoCallIcon);
 export const CameraLightIcon = withThemeIcon(RawCameraLightIcon);
 export const TextAaIcon = withThemeIcon(RawTextAaIcon);
 export const StickerIcon = withThemeIcon(RawStickerIcon);
-
+export const PersonWithShadowIcon = withThemeIcon(RawPersonWithShadowIcon);
 export const CameraBoldIcon = withThemeIcon(RawCameraBoldIcon);
 export const CheckCircleIcon = withThemeIcon(RawCheckCircleIcon);
 export const CheckIcon = withThemeIcon(RawCheckIcon);

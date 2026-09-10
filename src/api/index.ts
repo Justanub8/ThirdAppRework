@@ -13,3 +13,4 @@ export * from './followApi';
 export * from './conversationApi';
 export * from './messageApi';
 export * from './mediaApi';
+export * from './viewApi';

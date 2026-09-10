@@ -61,6 +61,9 @@ export interface IProfileUser {
     follower: number;
     following: number;
     isFollowing?: boolean;
+    hasActiveStory?: boolean;
+    activeStoryCount?: number;
+    isSeenStory?: boolean;
     createdAt?: Date;
     updatedAt?: Date;
 }
