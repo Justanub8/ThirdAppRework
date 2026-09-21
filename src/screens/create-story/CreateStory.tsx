@@ -8,7 +8,7 @@ import { CrossIcon, MutedIcon, UnmutedIcon, TextAaIcon, StickerIcon, MenuIcon, A
 import { Navigation } from '~/utils';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
-import Video from 'react-native-video';
+import CreateStoryVideo from './components/CreateStoryVideo';
 import { mediaApi } from '~/api';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreateStory'>;
@@ -37,7 +37,7 @@ const CreateStory = () => {
         
         try {
             setIsUploading(true);
-            const uploadRes = await mediaApi.uploadImage(uri);
+            const uploadRes = await mediaApi.uploadImage(uri, undefined, undefined, isVideo);
             const uploadedUrl = uploadRes?.url || uri;
             const mediaId = uploadRes?.media?.id;
             const finalType = isVideo ? 'video' : 'image';
@@ -98,13 +98,10 @@ const CreateStory = () => {
               </BaseText>
             </View>
           ) : (
-            <Video
-              source={{ uri }}
-              resizeMode="contain"
+            <CreateStoryVideo
+              uri={uri}
               style={styles.mainImage}
-              repeat={true}
-              paused={false}
-              muted={isMuted}
+              isMuted={isMuted}
               onError={() => setHasVideoError(true)}
             />
           )

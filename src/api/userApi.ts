@@ -24,4 +24,7 @@ export const userApi = {
 
     updateProfile: (payload: Partial<IProfileUser>) =>
         axiosInstance.put<{ message: string; user: IProfileUser }>('/user/profile', payload),
+
+    getFollowedUser: (page: number = 1, limit: number = 20) =>
+        axiosInstance.get<GetAllUsersResponse>(`/user/followed-users?page=${page}&limit=${limit}`),
 };

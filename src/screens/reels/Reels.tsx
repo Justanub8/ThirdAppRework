@@ -47,9 +47,14 @@ const Reels = () => {
   }, []);
 
   const renderItem = useCallback(({ item, index }: { item: IReel, index: number }) => {
+    const mediaUrl = item.media?.url || (item as any).videoUrl || (item as any).mediaUrl || '';
+    const isVideo =
+      item.media?.type === 'video' ||
+      /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(mediaUrl);
+
     return (
       <View style={{ height: availableHeight, width: '100%' }}>
-        {item.media?.type === 'video' ? (
+        {isVideo ? (
           <VideoReel reel={item} isActive={index === activeIndex && isFocused} />
         ) : (
           <ImageReel reel={item} />

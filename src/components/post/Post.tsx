@@ -14,39 +14,10 @@ import { SheetManager } from 'react-native-actions-sheet';
 import LikeButton from '../buttons/LikeButton';
 import BookmarkButton from '../buttons/BookmarkButton';
 import { IMedia } from '~/interfaces';
-import Video from 'react-native-video';
 import { Navigation } from '~/utils';
 import { useFollowMutation, useAuthStore } from '~/hooks';
 import { RepostButton } from '../buttons';
-
-const PostVideoItem = ({ url, isPaused }: { url?: string; isPaused: boolean }) => {
-    const [hasError, setHasError] = useState(false);
-
-    useEffect(() => {
-        setHasError(false);
-    }, [url]);
-
-    if (hasError) {
-        return (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }]}>
-                <BaseText color="#FFFFFF" typography={Typography.bodyMedium.medium}>
-                    Không thể phát nội dung
-                </BaseText>
-            </View>
-        );
-    }
-
-    return (
-        <Video
-            source={{ uri: url }}
-            style={StyleSheet.absoluteFill}
-            resizeMode="contain"
-            repeat={true}
-            paused={isPaused}
-            onError={() => setHasError(true)}
-        />
-    );
-};
+import PostVideoItem from './components/PostVideoItem';
 
 const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) => {
     const [expanded, setExpanded] = React.useState(false);

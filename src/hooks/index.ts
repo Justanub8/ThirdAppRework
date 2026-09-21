@@ -11,4 +11,5 @@ export * from './useConversationMutation';
 export * from './useMessageMutation';
 export * from './useAuthMutation';
 export * from './useStoryMutation';
+export * from './useReelMutation';
 export * from '~/context/ThemeContext';

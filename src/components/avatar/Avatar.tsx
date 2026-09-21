@@ -23,6 +23,7 @@ export interface AvatarProps {
   disabled?: boolean;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  storyUserIds?: string[];
 }
 
 const STORY_GRADIENT_COLORS = [
@@ -48,6 +49,7 @@ const Avatar: React.FC<AvatarProps> = ({
   disabled = false,
   onPress,
   style,
+  storyUserIds,
 }) => {
   const { theme } = useTheme();
   const currentUserId = useAuthStore((state) => state.user?.id);
@@ -70,7 +72,7 @@ const Avatar: React.FC<AvatarProps> = ({
       if (currentUserId && id === currentUserId) {
         Navigation.goToMyActiveStory();
       } else {
-        Navigation.goToStory(id);
+        Navigation.goToStory(id, storyUserIds);
       }
       return;
     }

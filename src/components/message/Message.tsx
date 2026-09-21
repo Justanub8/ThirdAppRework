@@ -5,6 +5,7 @@ import { BaseText } from '../rn-components';
 import { useAuthStore } from '~/hooks';
 import dayjs from 'dayjs';
 import { Typography } from '~/constants';
+import { MessageVideoItem, MessageImageItem } from './components';
 
 const TIME_THRESHOLD_MINUTES = 15;
 
@@ -13,9 +14,18 @@ interface MessageProps {
     previous?: IMessage;
     isRefreshing?: boolean;
     currentUserId?: string;
+    activePlayingVideoId?: string | null;
+    onTogglePlayVideo?: (videoId: string) => void;
 }
 
-const Message = ({ item, previous, isRefreshing, currentUserId }: MessageProps) => {
+const Message = ({
+    item,
+    previous,
+    isRefreshing,
+    currentUserId,
+    activePlayingVideoId,
+    onTogglePlayVideo,
+}: MessageProps) => {
     const storeUserId = useAuthStore(state => state.user?.id);
     const userId = currentUserId || storeUserId;
     const senderObj = item.sender || (typeof item.senderId === 'object' ? item.senderId : null);
@@ -38,6 +48,9 @@ const Message = ({ item, previous, isRefreshing, currentUserId }: MessageProps) 
             setShowName(false);
         }
     }, [isRefreshing]);
+
+    const hasMedia = Boolean(item.media && item.media.length > 0);
+    const hasContent = Boolean(item.content && item.content.trim().length > 0);
 
   return (
     <View style={styles.messageWrapper}>
@@ -63,17 +76,49 @@ const Message = ({ item, previous, isRefreshing, currentUserId }: MessageProps) 
         <TouchableOpacity 
             style={[
                 styles.bubble,
-                isMyMessage ? styles.myBubble : styles.otherBubble,
+                hasMedia && !hasContent ? styles.bubbleWithOnlyMedia : (isMyMessage ? styles.myBubble : styles.otherBubble),
                 isMyMessage ? styles.selfAlignEnd : styles.selfAlignStart,
             ]}
             onPress={() => {
                 setShowTime(!showTime);
                 setShowName(!showName);
             }}
+            activeOpacity={0.85}
         >
-            <BaseText color={isMyMessage ? '#FFFFFF' : '#000000'} typography={Typography.bodyRegular.medium}>
-                {item.content}
-            </BaseText>
+            {hasMedia ? (
+                <View style={styles.mediaContainer}>
+                    {item.media!.map((m, idx) => {
+                        const isVideo =
+                            m.type === 'video' ||
+                            /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(m.url || '');
+                        const videoId = m.id || `${item.id || 'msg'}_${m.url || idx}`;
+                        const isPlaying = activePlayingVideoId === videoId;
+                        return (
+                            <View key={m.id || idx} style={styles.mediaItemWrapper}>
+                                {isVideo ? (
+                                    <MessageVideoItem
+                                        url={m.url}
+                                        videoId={videoId}
+                                        isPaused={!isPlaying}
+                                        onTogglePlay={onTogglePlayVideo}
+                                    />
+                                ) : (
+                                    <MessageImageItem url={m.url} />
+                                )}
+                            </View>
+                        );
+                    })}
+                </View>
+            ) : null}
+            {hasContent ? (
+                <BaseText 
+                    color={isMyMessage ? '#FFFFFF' : '#000000'} 
+                    typography={Typography.bodyRegular.medium}
+                    style={hasMedia ? styles.textContentInMedia : undefined}
+                >
+                    {item.content}
+                </BaseText>
+            ) : null}
         </TouchableOpacity>
     </View>
   );
@@ -104,6 +149,11 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         maxWidth: '75%',
     },
+    bubbleWithOnlyMedia: {
+        paddingHorizontal: 0,
+        paddingVertical: 0,
+        backgroundColor: 'transparent',
+    },
     myBubble: {
         backgroundColor: '#3797EF',
         borderRadius: 18,
@@ -116,6 +166,46 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 18,
         borderBottomLeftRadius: 4,
     },
+    mediaContainer: {
+        borderRadius: 14,
+        overflow: 'hidden',
+        gap: 4,
+    },
+    mediaItemWrapper: {
+        position: 'relative',
+        borderRadius: 14,
+        overflow: 'hidden',
+    },
+    textContentInMedia: {
+        marginTop: 6,
+        paddingHorizontal: 4,
+    },
 });
 
-export default React.memo(Message);
+export default React.memo(Message, (prevProps, nextProps) => {
+    if (prevProps.item !== nextProps.item) return false;
+    if (prevProps.previous !== nextProps.previous) return false;
+    if (prevProps.isRefreshing !== nextProps.isRefreshing) return false;
+    if (prevProps.currentUserId !== nextProps.currentUserId) return false;
+    if (prevProps.onTogglePlayVideo !== nextProps.onTogglePlayVideo) return false;
+
+    if (prevProps.activePlayingVideoId !== nextProps.activePlayingVideoId) {
+        const checkHasVideo = (msg: IMessage, targetId?: string | null) => {
+            if (!targetId || !msg.media || msg.media.length === 0) return false;
+            return msg.media.some((m, idx) => {
+                const vid = m.id || `${msg.id || 'msg'}_${m.url || idx}`;
+                return vid === targetId;
+            });
+        };
+
+        const wasPlayingInThisMsg = checkHasVideo(prevProps.item, prevProps.activePlayingVideoId);
+        const isNowPlayingInThisMsg = checkHasVideo(nextProps.item, nextProps.activePlayingVideoId);
+
+        if (wasPlayingInThisMsg || isNowPlayingInThisMsg) {
+            return false;
+        }
+        return true;
+    }
+
+    return true;
+});

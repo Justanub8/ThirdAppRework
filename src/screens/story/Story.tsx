@@ -11,8 +11,9 @@ import { storyApi, viewApi } from '~/api';
 import { AuthenticatedStackParamList } from '~/navigation/types';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { MultiProgressBar } from './components/MultipleProgressBar';
-import { Video, VideoRef } from 'react-native-video';
+import { VideoRef } from 'react-native-video';
 import { Typography } from '~/constants';
+import StoryVideoItem from './components/StoryVideoItem';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Story'>;
 
@@ -23,7 +24,21 @@ const Story = () => {
   const styles = React.useMemo(() => getStyles(theme), [theme]);
   const route = useRoute<RouteProps>();
   const { top, bottom } = useSafeAreaInsets();
-  const { userId } = route.params;
+  const { userId, userIds: initialUserIds } = route.params;
+
+  const userIds = React.useMemo(() => {
+    if (initialUserIds && initialUserIds.length > 0) {
+      return initialUserIds;
+    }
+    return userId ? [userId] : [];
+  }, [initialUserIds, userId]);
+
+  const [currentUserIndex, setCurrentUserIndex] = useState(() => {
+    const idx = userIds.indexOf(userId);
+    return idx !== -1 ? idx : 0;
+  });
+
+  const activeUserId = userIds[currentUserIndex] || userId;
   const { createLike, deleteLike } = useLikeMutation();
   const queryClient = useQueryClient();
 
@@ -36,20 +51,47 @@ const Story = () => {
 
   useEffect(() => {
     setHasVideoError(false);
-  }, [activeIndex]);
+  }, [activeIndex, activeUserId]);
 
   const videoRef = useRef<VideoRef>(null);
   const imageTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: stories = [], isLoading } = useQuery({
-    queryKey: ['story', userId],
+    queryKey: ['story', activeUserId],
     queryFn: async () => {
-      const response = await storyApi.getAllStories(1, 20, userId);
+      const response = await storyApi.getAllStories(1, 20, activeUserId);
       return response.data?.data || [];
     },
-    enabled: !!userId,
+    enabled: !!activeUserId,
     staleTime: 5 * 60 * 1000,
   });
+
+  // Prefetch adjacent users' stories
+  const nextUserId = userIds[currentUserIndex + 1];
+  const prevUserId = userIds[currentUserIndex - 1];
+
+  useEffect(() => {
+    if (nextUserId) {
+      queryClient.prefetchQuery({
+        queryKey: ['story', nextUserId],
+        queryFn: async () => {
+          const response = await storyApi.getAllStories(1, 20, nextUserId);
+          return response.data?.data || [];
+        },
+        staleTime: 5 * 60 * 1000,
+      });
+    }
+    if (prevUserId) {
+      queryClient.prefetchQuery({
+        queryKey: ['story', prevUserId],
+        queryFn: async () => {
+          const response = await storyApi.getAllStories(1, 20, prevUserId);
+          return response.data?.data || [];
+        },
+        staleTime: 5 * 60 * 1000,
+      });
+    }
+  }, [nextUserId, prevUserId, queryClient]);
 
   const totalStories = stories.length;
   const currentStory = stories[activeIndex];
@@ -62,7 +104,7 @@ const Story = () => {
 
     if (!currentStory.isViewed) {
       // 1. Optimistically update view state in story cache
-      queryClient.setQueryData(['story', userId], (old: any) => {
+      queryClient.setQueryData(['story', activeUserId], (old: any) => {
         if (!Array.isArray(old)) return old;
         const updated = old.map((item: any) =>
           item.id === currentStory.id
@@ -72,9 +114,15 @@ const Story = () => {
         // If all stories are viewed, optimistically mark profile as seen
         const allViewed = updated.length > 0 && updated.every((s: any) => s.isViewed);
         if (allViewed) {
-          queryClient.setQueryData(['userProfile', userId], (oldProfile: any) => {
+          queryClient.setQueryData(['userProfile', activeUserId], (oldProfile: any) => {
             if (!oldProfile) return oldProfile;
             return { ...oldProfile, isSeenStory: true };
+          });
+          queryClient.setQueryData(['followedStories'], (oldStories: any) => {
+            if (!Array.isArray(oldStories)) return oldStories;
+            return oldStories.map((u: any) =>
+              u.id === activeUserId ? { ...u, isSeenStory: true } : u
+            );
           });
         }
         return updated;
@@ -83,15 +131,18 @@ const Story = () => {
       // 2. Call view API in background
       viewApi.createView({ targetId: currentStory.id, targetType: 'Story' }).catch(() => {});
     }
-  }, [currentStory?.id, currentStory?.isViewed, userId, queryClient]);
+  }, [currentStory?.id, currentStory?.isViewed, activeUserId, queryClient]);
 
   // When leaving the screen, invalidate queries to ensure consistency
   useEffect(() => {
     return () => {
-      queryClient.invalidateQueries({ queryKey: ['userProfile', userId] });
+      userIds.forEach((uId) => {
+        queryClient.invalidateQueries({ queryKey: ['userProfile', uId] });
+      });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['followedStories'] });
     };
-  }, [userId, queryClient]);
+  }, [userIds, queryClient]);
 
   const handleToggleLike = useCallback(() => {
     if (!currentStory?.id) return;
@@ -107,18 +158,33 @@ const Story = () => {
       setActiveIndex((prev) => prev + 1);
       setProgress(0);
       setDuration(1);
+    } else if (currentUserIndex < userIds.length - 1) {
+      setCurrentUserIndex((prev) => prev + 1);
+      setActiveIndex(0);
+      setProgress(0);
+      setDuration(1);
     } else {
       Navigation.goBack();
     }
-  }, [activeIndex, totalStories]);
+  }, [activeIndex, totalStories, currentUserIndex, userIds.length]);
 
   const handlePrevious = useCallback(() => {
     if (activeIndex > 0) {
       setActiveIndex((prev) => prev - 1);
       setProgress(0);
       setDuration(1);
+    } else if (currentUserIndex > 0) {
+      const targetPrevUserIndex = currentUserIndex - 1;
+      const targetPrevUserId = userIds[targetPrevUserIndex];
+      const cached = queryClient.getQueryData<any[]>(['story', targetPrevUserId]);
+      const lastStoryIdx = Array.isArray(cached) && cached.length > 0 ? cached.length - 1 : 0;
+
+      setCurrentUserIndex(targetPrevUserIndex);
+      setActiveIndex(lastStoryIdx);
+      setProgress(0);
+      setDuration(1);
     }
-  }, [activeIndex]);
+  }, [activeIndex, currentUserIndex, userIds, queryClient]);
 
   useEffect(() => {
     if (!currentStory || isVideo || isPaused) {
@@ -160,6 +226,13 @@ const Story = () => {
   }
 
   if (totalStories === 0) {
+    if (currentUserIndex < userIds.length - 1) {
+      setCurrentUserIndex((prev) => prev + 1);
+      setActiveIndex(0);
+      setProgress(0);
+      setDuration(1);
+      return null;
+    }
     return (
       <View style={[styles.centerContainer, { backgroundColor: theme.background }]}>
         <BaseText typography={Typography.bodyMedium.large}>Không có tin nào</BaseText>
@@ -185,12 +258,11 @@ const Story = () => {
               </BaseText>
             </View>
           ) : (
-            <Video
+            <StoryVideoItem
               ref={videoRef}
-              source={{ uri: mediaUrl }}
+              url={mediaUrl}
               style={styles.media}
-              resizeMode="contain"
-              paused={isPaused}
+              isPaused={isPaused}
               onLoad={(data) => setDuration(data.duration || 1)}
               onProgress={(data) => {
                 if (duration > 0) {

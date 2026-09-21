@@ -1,4 +1,4 @@
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import * as React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore, useTheme, Theme } from '~/hooks';
@@ -10,16 +10,19 @@ import { Avatar } from '~/components/avatar';
 import Post from '~/components/post/Post';
 import { SizedBox } from '~/components/separate-components';
 import SlideUpModal from '~/components/slide-up/SlideUpModal';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { postApi } from '~/api/postApi';
+import { userApi } from '~/api/userApi';
 import { FlashList } from '@shopify/flash-list';
 import { Navigation } from '~/utils';
+import { useFocusEffect } from '@react-navigation/native';
 
 const HomeScreen = () => {
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
   const menuModalRef = React.useRef<BottomSheetModal>(null);
   const [activePostId, setActivePostId] = React.useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const onViewableItemsChanged = React.useCallback(({ viewableItems }: { viewableItems: any[] }) => {
     if (viewableItems && viewableItems.length > 0) {
@@ -27,12 +30,11 @@ const HomeScreen = () => {
     }
   }, []);
 
-
   const viewabilityConfig = React.useRef({
     itemVisiblePercentThreshold: 50,
   }).current;
 
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch: refetchPosts } = useInfiniteQuery({
     queryKey: ['Post'],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await postApi.getAllPosts(pageParam, 10);
@@ -46,30 +48,102 @@ const HomeScreen = () => {
       return undefined;
     }
   });
-  
+
+  const { data: myProfile, refetch: refetchMyProfile } = useQuery({
+    queryKey: ['my-profile'],
+    queryFn: async () => {
+      const res = await userApi.getMyProfile();
+      return res.data?.user;
+    },
+    staleTime: 30 * 1000,
+  });
+
+  const { data: followedStories = [], refetch: refetchFollowedStories } = useQuery({
+    queryKey: ['followedStories'],
+    queryFn: async () => {
+      const res = await userApi.getFollowedUser(1, 20);
+      return res.data?.users || [];
+    },
+    staleTime: 60 * 1000,
+  });
+
   const { user: currentUser, logoutLocal } = useAuthStore();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refetchMyProfile();
+      refetchFollowedStories();
+    }, [refetchMyProfile, refetchFollowedStories])
+  );
+
+  React.useEffect(() => {
+    if (myProfile && currentUser && currentUser.hasActiveStory !== myProfile.hasActiveStory) {
+      useAuthStore.getState().updateUser({
+        ...currentUser,
+        hasActiveStory: myProfile.hasActiveStory,
+      });
+    }
+  }, [myProfile, currentUser]);
+
+  const handleRefresh = React.useCallback(async () => {
+    setIsRefreshing(true);
+    await Promise.all([
+      refetchPosts(),
+      refetchMyProfile(),
+      refetchFollowedStories(),
+    ]);
+    setIsRefreshing(false);
+  }, [refetchPosts, refetchMyProfile, refetchFollowedStories]);
   
   const posts = React.useMemo(() => data?.pages.flatMap(page => page.data) || [], [data?.pages]);
+
+  const effectiveUser = myProfile || currentUser;
+  const hasActiveStory = Boolean(myProfile?.hasActiveStory ?? currentUser?.hasActiveStory);
+  const isSeenStory = Boolean(myProfile?.isSeenStory);
 
   const renderHeader = React.useCallback(() => (
     <View>
       <View style={styles.topHeader}>
-          <CreateIcon width={36} height={36} onPress={() => { Navigation.goToSelectPostMedia(); }}/>
+          <CreateIcon width={36} height={36} onPress={() => { Navigation.goToCameraScreen();}}/>
           <FastImage source={images.logo_transparent} resizeMode='contain' style={styles.logo}/>
           <NotificationIcon width={32} height={32} onPress={() => { logoutLocal(); }}/>
       </View>
-      <View style={{ paddingHorizontal: 12, paddingTop: 8 }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 8, gap: 14 }}
+      >
         <Avatar 
-          url={currentUser?.avatarUrl || currentUser?.imageUrl}
-          username={currentUser?.username || 'Tin của bạn'} 
+          url={effectiveUser?.avatarUrl || effectiveUser?.imageUrl}
+          username={'Tin của bạn'} 
           size={76} 
-          hasActiveStory={true} 
-          id={currentUser?.id || ''}
+          hasActiveStory={hasActiveStory} 
+          isSeenStory={isSeenStory}
+          id={effectiveUser?.id || currentUser?.id || ''}
+          onPress={() => {
+            if (hasActiveStory) {
+              Navigation.goToMyActiveStory();
+            } else {
+              Navigation.goToCameraScreen();
+            }
+          }}
         />
-      </View>
+        {followedStories.map((u: any) => (
+          <Avatar
+            key={u.id}
+            url={u.avatarUrl || u.imageUrl}
+            username={u.username}
+            size={76}
+            hasActiveStory={true}
+            isSeenStory={u.isSeenStory}
+            id={u.id}
+            storyUserIds={followedStories.map((item: any) => item.id)}
+          />
+        ))}
+      </ScrollView>
       <SizedBox height={16}/>
     </View>
-  ), [currentUser, logoutLocal]);
+  ), [effectiveUser, currentUser, hasActiveStory, isSeenStory, logoutLocal, followedStories, styles]);
 
   const keyExtractor = React.useCallback((item: any) => item.id, []);
 
@@ -79,7 +153,6 @@ const HomeScreen = () => {
     ),
     [activePostId]
   );
-
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.container}>
@@ -95,6 +168,9 @@ const HomeScreen = () => {
         ListFooterComponent={isFetchingNextPage ? <ActivityIndicator size="small" /> : null}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
+        extraData={[hasActiveStory, isSeenStory, followedStories]}
       />
       <SlideUpModal
         ref={menuModalRef}

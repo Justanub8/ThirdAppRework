@@ -21,8 +21,11 @@ export type AuthenticatedStackParamList = {
     CreatePost: { uri: string; mediaType?: 'image' | 'video' };
     SelectStoryMedia: undefined;
     CreateStory: { uri: string; mediaType?: 'image' | 'video'};
-    Story: { userId: string};
+    SelectReelMedia: undefined;
+    CreateReel: { uri: string; mediaType?: 'image' | 'video'};
+    Story: { userId: string; userIds?: string[] };
     MyActiveStory: undefined;
+    CameraScreen: undefined;
 };
 
 export type MainTabParamList = {

@@ -2,12 +2,12 @@ import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, Native
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { conversationApi, messageApi } from '~/api';
-import { ArrowToLeft, CallIcon, CameraLightIcon } from '~/assets/svgs';
-import { BaseText, BaseTextInput } from '~/components/rn-components';
+import { ArrowToLeft, CallIcon, CameraLightIcon, CrossIcon, PlayIcon } from '~/assets/svgs';
+import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components';
 import { Avatar } from '~/components/avatar';
 import { AuthenticatedStackParamList } from '~/navigation/types';
 import { Navigation } from '~/utils';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { IMessage } from '~/interfaces';
 import Message from '~/components/message/Message';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +16,9 @@ import { COLORS, Typography } from '~/constants';
 import { useMessageMutation, useAuthStore, useTheme, Theme } from '~/hooks';
 import { useSocket } from '~/context';
 import { useQuery } from '@tanstack/react-query';
+import { SheetManager } from 'react-native-actions-sheet';
+import { mediaApi } from '~/api/mediaApi';
+import { SelectedChatMedia } from '~/components/sheets/MediaSheet';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Conversation'>;
 const SHOW_SCROLL_BUTTON_OFFSET = 300;
@@ -45,6 +48,7 @@ const Conversation = () => {
 
     const displayName = initialName || otherUser?.username || otherUser?.name || 'Unknown';
     const displayAvatar = initialImageUrl || otherUser?.avatarUrl || otherUser?.imageUrl;
+    const navigation = useNavigation();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isFetchingNextPage, setIsFetchingNextPage] = useState<boolean>(false);
     const [isTexting, setIsTexting] = useState(false);
@@ -53,11 +57,33 @@ const Conversation = () => {
     const [isFull, setIsFull] = useState<boolean>(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showScrollButton, setShowScrollButton] = useState(false);
+    const [activePlayingVideoId, setActivePlayingVideoId] = useState<string | null>(null);
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const listRef = useRef<any>(null);
     const requestIdRef = useRef(0);
     const isFetchingRef = useRef(false);
     const [messageContent, setMessageContent] = useState('');
+    const [selectedMedia, setSelectedMedia] = useState<SelectedChatMedia | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleTogglePlayVideo = useCallback((videoId: string) => {
+        setActivePlayingVideoId(currentPlayingId => {
+            // Đảm bảo chỉ 1 video duy nhất chạy tại 1 thời điểm:
+            // Nếu bấm vào video đang phát -> dừng lại (null)
+            // Nếu bấm vào video khác -> chuyển sang phát duy nhất video đó
+            if (currentPlayingId === videoId) {
+                return null;
+            }
+            return videoId;
+        });
+    }, []);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            setActivePlayingVideoId(null);
+        });
+        return unsubscribe;
+    }, [navigation]);
 
     useEffect(() => {
         if (!socket || !id) return;
@@ -161,6 +187,7 @@ const Conversation = () => {
 
     const handleRefresh = useCallback(() => {
         if (isFetchingRef.current) return;
+        setActivePlayingVideoId(null);
         setIsRefreshing(true);
         fetchData(1, false, true);
     }, [fetchData]);
@@ -194,10 +221,12 @@ const Conversation = () => {
                     previous={previous}
                     isRefreshing={isRefreshing}
                     currentUserId={user?.id}
+                    activePlayingVideoId={activePlayingVideoId}
+                    onTogglePlayVideo={handleTogglePlayVideo}
                 />
             );
         },
-        [messages, isRefreshing, user]
+        [messages, isRefreshing, user, activePlayingVideoId, handleTogglePlayVideo]
     );
 
     const keyExtractor = useCallback((item: IMessage) => item.id || Math.random().toString(), []);
@@ -213,25 +242,57 @@ const Conversation = () => {
 
     
 
-    const handleSend = () => {
+    const handleSend = async () => {
         const content = messageContent.trim();
-        if (!content) return;
+        if (!content && !selectedMedia) return;
+        if (isUploading) return;
+        setActivePlayingVideoId(null);
+
+        let uploadedMediaId: string | undefined = undefined;
+        let uploadedMediaObj: any = undefined;
+
+        if (selectedMedia) {
+            try {
+                setIsUploading(true);
+                const uploadRes = await mediaApi.uploadImage(
+                    selectedMedia.uri,
+                    undefined,
+                    undefined,
+                    selectedMedia.type === 'video',
+                    selectedMedia.filename || undefined,
+                );
+                uploadedMediaId = uploadRes.media?.id;
+                uploadedMediaObj = uploadRes.media || { url: uploadRes.url, type: selectedMedia.type };
+            } catch (error) {
+                console.error('Lỗi upload media trong chat:', error);
+                setIsUploading(false);
+                return;
+            }
+        }
+
+        const mediaIds = uploadedMediaId ? [uploadedMediaId] : undefined;
+        const mediaList = uploadedMediaObj ? [uploadedMediaObj] : undefined;
 
         if (socket && socket.connected) {
             socket.emit('message', {
                 conversationId: id,
-                content: content,
+                content: content || '',
                 senderId: user?.id,
+                mediaId: mediaIds,
+                media: mediaList,
             });
             console.log("tin nhắn đã được gửi đi qua socket", {
                 conversationId: id,
                 content: content,
                 senderId: user?.id,
+                mediaId: mediaIds,
             });
             setMessageContent('');
+            setSelectedMedia(null);
+            setIsUploading(false);
         } else {
             createMessage.mutate(
-                { conversationId: id, content: content },
+                { conversationId: id, content: content || '', mediaId: mediaIds },
                 {
                     onSuccess: (data: any) => {
                         const newMsg: IMessage = data.data || data;
@@ -243,11 +304,15 @@ const Conversation = () => {
                             return [newMsg, ...prev];
                         });
                         setMessageContent('');
+                        setSelectedMedia(null);
+                        setIsUploading(false);
+                    },
+                    onError: () => {
+                        setIsUploading(false);
                     }
                 }
             );
         }
-
     };
 
     return (
@@ -286,7 +351,7 @@ const Conversation = () => {
                         ref={listRef}
                         inverted={true}
                         data={messages}
-                        extraData={messages}
+                        extraData={activePlayingVideoId}
                         keyExtractor={keyExtractor}
                         renderItem={renderItem}
                         contentContainerStyle={styles.listContent}
@@ -300,21 +365,73 @@ const Conversation = () => {
                         onRefresh={handleRefresh}
                     />
                     <View style={styles.inputContainer}> 
+                        {selectedMedia ? (
+                            <View style={styles.mediaPreviewContainer}>
+                                <View style={styles.mediaPreviewWrapper}>
+                                    <FastImage source={{ uri: selectedMedia.uri }} style={styles.mediaPreviewThumb} resizeMode="cover" />
+                                    {selectedMedia.type === 'video' ? (
+                                        <View style={styles.videoBadgeSmall}>
+                                            <PlayIcon width={10} height={10} color="#FFFFFF" />
+                                        </View>
+                                    ) : null}
+                                    <TouchableOpacity 
+                                        style={styles.removeMediaButton} 
+                                        onPress={() => setSelectedMedia(null)}
+                                        disabled={isUploading}
+                                    >
+                                        <CrossIcon width={12} height={12} color="#FFFFFF" />
+                                    </TouchableOpacity>
+                                    {isUploading ? (
+                                        <View style={styles.uploadingOverlay}>
+                                            <ActivityIndicator size="small" color="#FFFFFF" />
+                                        </View>
+                                    ) : null}
+                                </View>
+                            </View>
+                        ) : null}
                         <View style={styles.messageInput}>
                             {!isTexting ? (
-                            <TouchableOpacity style={styles.cameraIcon}>
+                            <TouchableOpacity 
+                                style={styles.cameraIcon}
+                                onPress={() => {
+                                    setActivePlayingVideoId(null);
+                                    SheetManager.show('MediaSheet', {
+                                        payload: {
+                                            onSelectMedia: (media: SelectedChatMedia) => setSelectedMedia(media),
+                                        },
+                                    });
+                                }}
+                                disabled={isUploading}
+                            >
                                 <CameraLightIcon height={24} width={24}/>
                             </TouchableOpacity>
                             ) : null}
-                            <BaseTextInput
-                                placeholder='Nhập tin nhắn...'
-                                value={messageContent}
-                                onChangeText={setMessageContent}
-                                onFocus={() => setIsTexting(true)}
-                                onBlur={() => setIsTexting(false)}
-                                onSubmitEditing={handleSend}
-                                returnKeyType='send'
-                            />
+                            <View style={styles.textInputWrapper}>
+                                <BaseTextInput
+                                    placeholder='Nhập tin nhắn...'
+                                    value={messageContent}
+                                    onChangeText={setMessageContent}
+                                    onFocus={() => setIsTexting(true)}
+                                    onBlur={() => setIsTexting(false)}
+                                    onSubmitEditing={handleSend}
+                                    returnKeyType='send'
+                                />
+                            </View>
+                            {(messageContent.trim().length > 0 || selectedMedia) ? (
+                                <TouchableOpacity 
+                                    onPress={handleSend} 
+                                    disabled={isUploading}
+                                    style={styles.sendButton}
+                                >
+                                    {isUploading ? (
+                                        <ActivityIndicator size="small" color="#3797EF" />
+                                    ) : (
+                                        <BaseText typography={Typography.bodyBold.medium} color="#3797EF">
+                                            Gửi
+                                        </BaseText>
+                                    )}
+                                </TouchableOpacity>
+                            ) : null}
                         </View>
                     </View>
                     <Animated.View style={[styles.fabContainer, { opacity: fadeAnim }]} pointerEvents={showScrollButton ? 'auto' : 'none'}>
@@ -408,6 +525,63 @@ const getStyles = (theme: Theme) => StyleSheet.create({
         gap: 12,
         marginHorizontal: 16,
         paddingHorizontal: 8,
+    },
+    textInputWrapper: {
+        flex: 1,
+    },
+    sendButton: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    mediaPreviewContainer: {
+        paddingHorizontal: 16,
+        paddingBottom: 8,
+        flexDirection: 'row',
+    },
+    mediaPreviewWrapper: {
+        width: 64,
+        height: 64,
+        borderRadius: 10,
+        position: 'relative',
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: theme.border,
+    },
+    mediaPreviewThumb: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 10,
+    },
+    videoBadgeSmall: {
+        position: 'absolute',
+        bottom: 4,
+        left: 4,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        borderRadius: 4,
+        padding: 2,
+    },
+    removeMediaButton: {
+        position: 'absolute',
+        top: 3,
+        right: 3,
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: 'rgba(0, 0, 0, 0.65)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    uploadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     loadingOverlay: {
         justifyContent: 'center',

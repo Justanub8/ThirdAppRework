@@ -10,6 +10,7 @@ export interface IStory {
     media?: IMedia;
     likeCount: number;
     viewCount: number;
+    expiredAt?: Date | string;
     createdAt: Date;
     updatedAt?: Date;
     isLiked?: boolean;

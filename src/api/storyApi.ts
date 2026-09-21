@@ -7,6 +7,7 @@ export interface CreateStoryPayload {
     mediaId?: string;
     mediaUrl?: string;
     type?: string;
+    expiredAt?: string;
 }
 
 export const storyApi = {

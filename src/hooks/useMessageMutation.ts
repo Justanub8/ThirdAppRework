@@ -5,8 +5,9 @@ import { messageApi } from "~/api";
 export const useMessageMutation = () => {
     const queryClient = useQueryClient();
     const createMessage = useMutation({
-        mutationFn: (params: { conversationId: string; content: string }) => {
-            if (!params.conversationId || !params.content) {
+        mutationFn: (params: { conversationId: string; content?: string; mediaId?: string[] }) => {
+            const hasMedia = params.mediaId && params.mediaId.length > 0;
+            if (!params.conversationId || (!params.content && !hasMedia)) {
                 throw new Error("Missing create message params");
             }
             return messageApi.sendMessage(params);

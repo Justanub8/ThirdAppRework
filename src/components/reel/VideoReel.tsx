@@ -1,10 +1,10 @@
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
-import { VideoRef, Video } from 'react-native-video';
+import { VideoRef } from 'react-native-video';
 import ReelOverlay from './ReelOverlay';
 import { IReel } from '~/interfaces/reel';
 import { MutedIcon, PlayIcon, UnmutedIcon } from '~/assets/svgs';
-import { BaseText } from '~/components/rn-components';
+import { BaseText, BaseVideo } from '~/components/rn-components';
 import { Typography } from '~/constants';
 
 type VideoReelProps = {
@@ -87,9 +87,9 @@ const VideoReel = ({ reel, isActive }: VideoReelProps) => {
           </BaseText>
         </View>
       ) : (
-        <Video
+        <BaseVideo
           ref={videoRef}
-          source={{ uri: reel.media?.url }} 
+          uri={reel.media?.url} 
           style={StyleSheet.absoluteFill}
           resizeMode='contain'
           paused={!isActive || isPaused} 

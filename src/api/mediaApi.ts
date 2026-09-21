@@ -16,13 +16,23 @@ export interface ConfirmUploadPayload {
 
 export const mediaApi = {
   // Luồng upload multipart (trực tiếp qua NestJS Server)
-  uploadImage: async (rawUri: string, postId?: string, messageId?: string): Promise<{ url: string; media?: IMedia }> => {
-    const fileUri = await resolveLocalMediaUri(rawUri);
+  uploadImage: async (
+    rawUri: string,
+    postId?: string,
+    messageId?: string,
+    isVideoParam?: boolean,
+    customFilename?: string,
+  ): Promise<{ url: string; media?: IMedia }> => {
+    const isExplicitVideo =
+      Boolean(isVideoParam) ||
+      /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(rawUri) ||
+      /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(customFilename || '');
+
+    const fileUri = await resolveLocalMediaUri(rawUri, customFilename, isExplicitVideo);
 
     const formData = new FormData();
     const cleanUri = fileUri.split('?')[0];
-    const rawName = cleanUri.split('/').pop() || `file_${Date.now()}`;
-    const isExplicitVideo = /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(cleanUri) || /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(rawUri);
+    const rawName = customFilename || cleanUri.split('/').pop() || `file_${Date.now()}`;
     const match = /\.(\w+)$/.exec(rawName);
     const ext = match ? match[1].toLowerCase() : (isExplicitVideo ? 'mp4' : 'jpg');
     const isVideo = isExplicitVideo || ['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp', 'm4v'].includes(ext);

@@ -45,7 +45,7 @@ const Chat = ({ conversation, currentUserId }: ChatProps) => {
                 </BaseText>
                 <View style={styles.messageRow}>
                     <BaseText typography={Typography.bodyRegular.medium} numberOfLines={1} style={styles.messagePreview}>
-                    {conversation.lastMessage?.content || ''}
+                    {conversation.lastMessage?.content || 'Đã gửi 1 nội dung'}
                     </BaseText>
                     <BaseText typography={Typography.bodyRegular.medium}>
                         {timeDisplay}

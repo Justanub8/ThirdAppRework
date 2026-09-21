@@ -9,8 +9,9 @@ import { BaseText, FastImage } from '~/components/rn-components';
 import { Typography } from '~/constants';
 import { CrossIcon, MenuIcon, MessageLightIcon, PersonWithShadowIcon } from '~/assets/svgs';
 import { Navigation } from '~/utils';
-import Video, { VideoRef } from 'react-native-video';
+import { VideoRef } from 'react-native-video';
 import { MultiProgressBar } from './components/MultipleProgressBar';
+import StoryVideoItem from './components/StoryVideoItem';
 import { Avatar } from '~/components/avatar';
 import { timeAgo } from '~/utils';
 
@@ -114,12 +115,11 @@ const MyActiveStory = () => {
               </BaseText>
             </View>
           ) : (
-            <Video
+            <StoryVideoItem
               ref={videoRef}
-              source={{ uri: mediaUrl }}
+              url={mediaUrl}
               style={styles.media}
-              resizeMode="contain"
-              paused={isPaused}
+              isPaused={isPaused}
               onLoad={(data) => setDuration(data.duration || 1)}
               onProgress={(data) => {
                 if (duration > 0) {

@@ -168,12 +168,31 @@ export const Navigation = {
         }
     },
 
-    goToStory: (userId: string ) => {
+    goToSelectReelMedia: () => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate('App' , {
+                screen: 'SelectReelMedia'
+            })
+        }
+    },
+
+    goToCreateReel: (uri: string, mediaType?: 'image' | 'video') => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate('App' , {
+                screen: 'CreateReel',
+                params: { uri, mediaType }
+            })
+        }
+    },
+
+    goToStory: (userId: string, userIds?: string[]) => {
         SheetManager.hideAll();
         if(navigationRef.isReady()){
             navigationRef.navigate('App',{
                 screen: 'Story',
-                params: { userId }
+                params: { userId, userIds }
             })
         }
     },
@@ -183,6 +202,15 @@ export const Navigation = {
         if(navigationRef.isReady()){
             navigationRef.navigate('App',{
                 screen: 'MyActiveStory'
+            })
+        }
+    },
+    
+    goToCameraScreen: () => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate("App", {
+                screen: 'CameraScreen'
             })
         }
     }

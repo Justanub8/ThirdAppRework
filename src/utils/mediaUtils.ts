@@ -30,14 +30,23 @@ export const formatMediaUrl = (url?: string): string => {
   return url;
 };
 
-export const resolveLocalMediaUri = async (uri: string, fileName?: string): Promise<string> => {
+export const resolveLocalMediaUri = async (
+  uri: string,
+  fileName?: string,
+  isVideoHint?: boolean,
+): Promise<string> => {
   if (uri.startsWith('file://')) {
     return uri;
   }
 
+  const isVideo =
+    isVideoHint ||
+    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(uri) ||
+    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(fileName || '');
+
   const extMatch = /\.(\w+)(\?.*)?$/.exec(uri);
-  const ext = extMatch ? `.${extMatch[1]}` : '';
-  const name = fileName || `media_${Date.now()}${ext}`;
+  const ext = extMatch ? `.${extMatch[1]}` : (isVideo ? '.mp4' : '.jpg');
+  const name = fileName || `${isVideo ? 'video' : 'media'}_${Date.now()}${ext.startsWith('.') ? ext : `.${ext}`}`;
   const destPath = `${RNFS.CachesDirectoryPath}/${name}`;
 
   try {
@@ -47,6 +56,19 @@ export const resolveLocalMediaUri = async (uri: string, fileName?: string): Prom
     }
 
     if (Platform.OS === 'ios' && uri.startsWith('ph://')) {
+      if (isVideo) {
+        try {
+          if (RNFS.copyAssetsVideoIOS) {
+            const copiedPath = await RNFS.copyAssetsVideoIOS(uri, destPath);
+            if (copiedPath) {
+              return copiedPath.startsWith('file://') ? copiedPath : `file://${copiedPath}`;
+            }
+          }
+        } catch (videoErr) {
+          console.log('Error copyAssetsVideoIOS:', videoErr);
+        }
+      }
+
       try {
         const asset = await CameraRoll.iosGetImageDataById(uri, { convertHeicImages: true });
         if (asset?.node?.image?.filepath) {
@@ -61,6 +83,14 @@ export const resolveLocalMediaUri = async (uri: string, fileName?: string): Prom
       Platform.OS === 'ios' &&
       uri.startsWith('assets-library://')
     ) {
+      if (isVideo && RNFS.copyAssetsVideoIOS) {
+        try {
+          const copiedPath = await RNFS.copyAssetsVideoIOS(uri, destPath);
+          return copiedPath.startsWith('file://') ? copiedPath : `file://${copiedPath}`;
+        } catch (videoErr) {
+          console.log('Error copyAssetsVideoIOS from assets-library:', videoErr);
+        }
+      }
       await RNFS.copyAssetsFileIOS(uri, destPath, 0, 0);
       return `file://${destPath}`;
     }

@@ -3,7 +3,7 @@ import { PaginatedResponse } from "./api";
 import axiosInstance from "~/services/axiosClient";
 
 export interface CreateReelPayload {
-    caption: string;
+    caption?: string;
     mediaId?: string;
     videoUrl?: string;
 }

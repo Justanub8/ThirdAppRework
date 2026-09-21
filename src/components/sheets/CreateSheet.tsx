@@ -34,7 +34,7 @@ const CreateSheet = (props: SheetProps<"CreateSheet">) => {
             <TouchableOpacity style={styles.item}>
                 <BaseText typography={Typography.bodyBold.large}>Video trực tiếp</BaseText>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.item}>
+            <TouchableOpacity style={styles.item} onPress={() => Navigation.goToSelectReelMedia()}>
                 <BaseText typography={Typography.bodyBold.large}>Reels</BaseText>
             </TouchableOpacity>
         </View>
