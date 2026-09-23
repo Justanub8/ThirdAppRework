@@ -7,24 +7,47 @@ import { mediaApi } from '~/api';
 export const formatMediaUrl = (url?: string): string => {
   if (!url) return '';
 
-  if (url.includes('localhost:9000') || url.includes('127.0.0.1:9000')) {
-    let host = 'localhost';
+  const minioPattern = /https?:\/\/[^/]+:9000\/[^/]+\/(.+)$/;
+  const minioMatch = url.match(minioPattern);
 
-    if (Config.BASE_API_URL) {
+  if (minioMatch) {
+    const key = minioMatch[1];
+    const baseApi = (Config.BASE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/+$/, '');
+
+    // If using remote domain like ngrok or HTTPS domain without port 9000
+    if (baseApi && (baseApi.includes('ngrok') || baseApi.startsWith('https://') || !baseApi.includes(':5050'))) {
+      return `${baseApi}/media/file/${key}`;
+    }
+
+    let host = 'localhost';
+    if (baseApi) {
       try {
-        const match = Config.BASE_API_URL.match(/https?:\/\/([^:/]+)/);
+        const match = baseApi.match(/https?:\/\/([^:/]+)/);
         if (match && match[1] && match[1] !== 'localhost' && match[1] !== '127.0.0.1') {
           host = match[1];
         }
-      } catch {
-      }
+      } catch {}
     }
 
     if (Platform.OS === 'android' && (host === 'localhost' || host === '127.0.0.1')) {
       host = '10.0.2.2';
     }
 
+    if (host.includes('ngrok')) {
+      return `${baseApi}/media/file/${key}`;
+    }
+
     return url.replace(/localhost:9000|127\.0\.0\.1:9000/, `${host}:9000`);
+  }
+
+  if (url.includes('localhost:9000') || url.includes('127.0.0.1:9000')) {
+    const baseApi = (Config.BASE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/+$/, '');
+    if (baseApi && (baseApi.includes('ngrok') || baseApi.startsWith('https://'))) {
+      const parts = url.split(/social-media\//);
+      if (parts.length > 1) {
+        return `${baseApi}/media/file/${parts[1]}`;
+      }
+    }
   }
 
   return url;

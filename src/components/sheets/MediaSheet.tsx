@@ -10,8 +10,9 @@ import ActionSheet, { SheetProps, SheetManager } from 'react-native-actions-shee
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { Theme, useTheme } from '~/hooks';
 import { BaseText, FastImage } from '../rn-components';
-import { PlayIcon } from '~/assets/svgs';
+import { CrossIcon, PlayIcon, CameraLightIcon } from '~/assets/svgs';
 import { Typography } from '~/constants';
+import { Navigation } from '~/utils';
 import { FlashList } from '@shopify/flash-list';
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
@@ -131,7 +132,26 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
     >
       <View style={styles.contentContainer}>
         <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => SheetManager.hide(props.sheetId)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <CrossIcon width={24} height={24} color={theme.text} />
+          </TouchableOpacity>
+
           <BaseText style={styles.title}>Chọn ảnh hoặc video</BaseText>
+
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => {
+              SheetManager.hide(props.sheetId);
+              Navigation.goToCameraScreen();
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <CameraLightIcon height={24} width={24} color={theme.text} />
+          </TouchableOpacity>
         </View>
 
         {isLoading && photos.length === 0 ? (
@@ -179,15 +199,25 @@ const getStyles = (theme: Theme) =>
       flex: 1,
     },
     header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
       borderBottomColor: theme.divider,
       borderBottomWidth: 1,
-      paddingBottom: 8,
+    },
+    headerButton: {
+      width: 36,
+      height: 36,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     title: {
       fontSize: 16,
       fontWeight: 'bold',
-      marginVertical: 6,
       textAlign: 'center',
+      flex: 1,
     },
     columnWrapper: {
       gap: ITEM_SPACING,

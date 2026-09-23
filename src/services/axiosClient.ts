@@ -7,6 +7,7 @@ const configAxios = {
     headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
     },
     baseURL: Config.BASE_API_URL,
 };
@@ -20,6 +21,7 @@ const refreshAxiosClient = axios.create({
     headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
     },
 });
 

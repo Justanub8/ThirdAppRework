@@ -79,6 +79,7 @@ const Reels = () => {
           }
         }}
         onEndReachedThreshold={0.5}
+        
       />
     </View>
   );
