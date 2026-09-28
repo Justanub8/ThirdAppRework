@@ -1,8 +1,72 @@
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import Config from 'react-native-config';
 import RNFS from 'react-native-fs';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
-import { mediaApi } from '~/api';
+import { createThumbnail } from 'react-native-create-thumbnail';
+
+// Định dạng video và regex hỗ trợ
+export const VIDEO_EXTENSIONS = ['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp', 'm4v'] as const;
+export const VIDEO_REGEX = /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i;
+export const IMAGE_REGEX = /\.(jpe?g|png|webp|gif|heic|heif)(\?.*)?$/i;
+
+export const formatDuration = (seconds?: number): string => {
+  if (!seconds || seconds <= 0) return '';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+};
+
+export const isVideoMedia = (
+  media?: any,
+  fileName?: string,
+  isVideoHint?: boolean,
+): boolean => {
+  if (isVideoHint) return true;
+  if (!media && !fileName) return false;
+
+  if (typeof media === 'string') {
+    if (VIDEO_REGEX.test(media)) return true;
+    if (fileName && VIDEO_REGEX.test(fileName)) return true;
+    return false;
+  }
+  if (typeof media === 'object' && media !== null) {
+    if (media.playableDuration && media.playableDuration > 0) return true;
+    if (typeof media.type === 'string') {
+      const lowerType = media.type.toLowerCase();
+      if (lowerType === 'video' || lowerType.startsWith('video/')) return true;
+    }
+    if (media.uri && VIDEO_REGEX.test(media.uri)) return true;
+    if (media.url && VIDEO_REGEX.test(media.url)) return true;
+    if (media.filename && VIDEO_REGEX.test(media.filename)) return true;
+  }
+
+  if (fileName && VIDEO_REGEX.test(fileName)) return true;
+  return false;
+};
+
+export const getMediaMimeType = (
+  uri: string,
+  customFilename?: string,
+  isExplicitVideo?: boolean,
+): string => {
+  const cleanUri = uri.split('?')[0];
+  const rawName = customFilename || cleanUri.split('/').pop() || '';
+  const match = /\.(\w+)$/.exec(rawName);
+  const ext = match ? match[1].toLowerCase() : (isExplicitVideo ? 'mp4' : 'jpg');
+  const isVideo = isExplicitVideo || (VIDEO_EXTENSIONS as readonly string[]).includes(ext);
+
+  if (isVideo) {
+    if (ext === 'mov') return 'video/quicktime';
+    if (ext === 'mp4') return 'video/mp4';
+    return `video/${ext}`;
+  }
+
+  if (ext === 'png') return 'image/png';
+  if (ext === 'webp') return 'image/webp';
+  if (ext === 'gif') return 'image/gif';
+  if (ext === 'heic' || ext === 'heif') return 'image/heic';
+  return 'image/jpeg';
+};
 
 export const formatMediaUrl = (url?: string): string => {
   if (!url) return '';
@@ -14,8 +78,7 @@ export const formatMediaUrl = (url?: string): string => {
     const key = minioMatch[1];
     const baseApi = (Config.BASE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/+$/, '');
 
-    // If using remote domain like ngrok or HTTPS domain without port 9000
-    if (baseApi && (baseApi.includes('ngrok') || baseApi.startsWith('https://') || !baseApi.includes(':5050'))) {
+    if (baseApi && (baseApi.startsWith('https://') || !baseApi.includes(':5050'))) {
       return `${baseApi}/media/file/${key}`;
     }
 
@@ -33,16 +96,12 @@ export const formatMediaUrl = (url?: string): string => {
       host = '10.0.2.2';
     }
 
-    if (host.includes('ngrok')) {
-      return `${baseApi}/media/file/${key}`;
-    }
-
     return url.replace(/localhost:9000|127\.0\.0\.1:9000/, `${host}:9000`);
   }
 
   if (url.includes('localhost:9000') || url.includes('127.0.0.1:9000')) {
     const baseApi = (Config.BASE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/+$/, '');
-    if (baseApi && (baseApi.includes('ngrok') || baseApi.startsWith('https://'))) {
+    if (baseApi && baseApi.startsWith('https://')) {
       const parts = url.split(/social-media\//);
       if (parts.length > 1) {
         return `${baseApi}/media/file/${parts[1]}`;
@@ -62,11 +121,7 @@ export const resolveLocalMediaUri = async (
     return uri;
   }
 
-  const isVideo =
-    isVideoHint ||
-    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(uri) ||
-    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(fileName || '');
-
+  const isVideo = isVideoMedia(uri, fileName, isVideoHint);
   const extMatch = /\.(\w+)(\?.*)?$/.exec(uri);
   const ext = extMatch ? `.${extMatch[1]}` : (isVideo ? '.mp4' : '.jpg');
   const name = fileName || `${isVideo ? 'video' : 'media'}_${Date.now()}${ext.startsWith('.') ? ext : `.${ext}`}`;
@@ -126,38 +181,89 @@ export const resolveLocalMediaUri = async (
   }
 };
 
+export interface NormalizedMediaAsset {
+  uri: string;
+  filename?: string;
+  extension?: string;
+  type: 'image' | 'video';
+  playableDuration?: number;
+  width?: number;
+  height?: number;
+}
+
+export interface FetchDeviceMediaResult {
+  photos: NormalizedMediaAsset[];
+  hasNextPage: boolean;
+  endCursor?: string;
+}
+
+export const fetchDeviceMedia = async (
+  after?: string,
+  first: number = 16,
+  assetType: 'All' | 'Photos' | 'Videos' = 'All',
+): Promise<FetchDeviceMediaResult> => {
+  try {
+    const res = await CameraRoll.getPhotos({
+      first,
+      after,
+      assetType,
+    });
+
+    const photos: NormalizedMediaAsset[] = res.edges.map((edge) => {
+      const image = edge.node.image;
+      const isVideo = isVideoMedia(image);
+
+      return {
+        ...image,
+        uri: image.uri,
+        filename: image.filename || undefined,
+        extension: image.extension || undefined,
+        type: isVideo ? 'video' : 'image',
+        playableDuration: image.playableDuration || undefined,
+        width: image.width,
+        height: image.height,
+      };
+    });
+
+    return {
+      photos,
+      hasNextPage: res.page_info.has_next_page,
+      endCursor: res.page_info.end_cursor,
+    };
+  } catch (error) {
+    console.log('Error fetchDeviceMedia:', error);
+    return { photos: [], hasNextPage: false };
+  }
+};
+
 export async function uploadMediaFromUri(
   uri: string,
   mediaType: 'photo' | 'video' | 'image',
   getUploadUrlFn?: (fileName: string, contentType: string) => Promise<{ uploadUrl: string; key: string }>,
 ): Promise<{ key: string; uploadUrl: string; contentType: string; fileName: string }> {
+  const isVideo = mediaType === 'video' || mediaType === 'photo' ? mediaType === 'video' : isVideoMedia(uri);
   const ext =
     uri.match(/\.(\w+)(\?.*)?$/)?.[1]?.toLowerCase() ||
-    (mediaType === 'video' ? 'mp4' : 'jpg');
-  const contentType =
-    mediaType === 'video'
-      ? `video/${ext === 'mov' ? 'quicktime' : 'mp4'}`
-      : `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+    (isVideo ? 'mp4' : 'jpg');
+  const contentType = getMediaMimeType(uri, undefined, isVideo);
   const fileName = `${Date.now()}.${ext}`;
 
-  // 1. Resolve ph:// hoặc content:// -> file://
-  const localUri = await resolveLocalMediaUri(uri, fileName);
+  const localUri = await resolveLocalMediaUri(uri, fileName, isVideo);
 
-  // 2. Lấy Presigned Upload URL
-  let uploadUrl: string;
-  let key: string;
+  let uploadUrl = '';
+  let key = '';
 
   if (getUploadUrlFn) {
     const res = await getUploadUrlFn(fileName, contentType);
     uploadUrl = res.uploadUrl;
     key = res.key;
   } else {
+    const { mediaApi } = await import('~/api');
     const res = await mediaApi.getUploadUrl({ filename: fileName, contentType });
     uploadUrl = res.data.uploadUrl;
     key = res.data.key;
   }
 
-  // 3. Đọc blob và upload thẳng lên S3/MinIO
   const response = await fetch(localUri);
   const blob = await response.blob();
 
@@ -171,10 +277,79 @@ export async function uploadMediaFromUri(
     throw new Error(`Upload thất bại: ${res.status}`);
   }
 
-  // 4. Xoá file tạm trong Cache sau khi hoàn tất
   if (localUri.startsWith(`file://${RNFS.CachesDirectoryPath}`)) {
     RNFS.unlink(localUri.replace('file://', '')).catch(() => {});
   }
 
   return { key, uploadUrl, contentType, fileName };
 }
+
+const thumbnailCache = new Map<string, string>();
+
+export const getVideoThumbnail = async (url?: string): Promise<string | null> => {
+  if (!url) return null;
+  const formattedUrl = formatMediaUrl(url);
+  if (thumbnailCache.has(formattedUrl)) {
+    return thumbnailCache.get(formattedUrl)!;
+  }
+  try {
+    const res = await createThumbnail({
+      url: formattedUrl,
+      timeStamp: 100,
+    });
+    if (res?.path) {
+      thumbnailCache.set(formattedUrl, res.path);
+      return res.path;
+    }
+  } catch {
+  }
+  return null;
+};
+
+export const saveMediaToDevice = async (
+  mediaUrl: string,
+  mediaType: 'image' | 'video' = 'image',
+): Promise<boolean> => {
+  try {
+    const fullUrl = formatMediaUrl(mediaUrl);
+    const cleanUrl = mediaUrl.split('?')[0];
+    const match = cleanUrl.match(/\.([a-zA-Z0-9]+)$/);
+    const urlExt = match ? match[1].toLowerCase() : '';
+
+    let ext = mediaType === 'video' ? 'mp4' : 'jpg';
+    if (mediaType === 'video') {
+      if (['mp4', 'mov', 'webm', 'm4v', '3gp', 'avi'].includes(urlExt)) {
+        ext = urlExt;
+      }
+    } else {
+      if (['webp', 'jpg', 'jpeg', 'png', 'gif', 'heic'].includes(urlExt)) {
+        ext = urlExt;
+      }
+    }
+
+    const tempPath = `${RNFS.CachesDirectoryPath}/download_${Date.now()}.${ext}`;
+    const downloadResult = await RNFS.downloadFile({
+      fromUrl: fullUrl,
+      toFile: tempPath,
+    }).promise;
+
+    if (downloadResult.statusCode !== 200 && downloadResult.statusCode !== 206) {
+      throw new Error('Tải file thất bại');
+    }
+    await CameraRoll.saveAsset(`file://${tempPath}`, {
+      type: mediaType === 'video' ? 'video' : 'photo',
+    });
+    await RNFS.unlink(tempPath).catch(() => {});
+    Alert.alert(
+      'Thành công',
+      mediaType === 'video'
+        ? 'Đã lưu video vào bộ sưu tập!'
+        : 'Đã lưu ảnh vào bộ sưu tập!',
+    );
+    return true;
+  } catch (error) {
+    console.log('Lỗi không tải được media:', error);
+    Alert.alert('Lỗi', 'Không thể lưu nội dung về máy. Vui lòng thử lại sau.');
+    return false;
+  }
+};

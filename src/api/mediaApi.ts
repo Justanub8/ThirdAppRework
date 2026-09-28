@@ -1,7 +1,7 @@
 import axiosInstance from '~/services/axiosClient';
 import axios from 'axios';
 import { IMedia } from '~/interfaces';
-import { resolveLocalMediaUri } from '~/utils/mediaUtils';
+import { resolveLocalMediaUri, isVideoMedia, getMediaMimeType } from '~/utils/mediaUtils';
 
 export interface GetUploadUrlPayload {
   filename: string;
@@ -23,11 +23,7 @@ export const mediaApi = {
     isVideoParam?: boolean,
     customFilename?: string,
   ): Promise<{ url: string; media?: IMedia }> => {
-    const isExplicitVideo =
-      Boolean(isVideoParam) ||
-      /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(rawUri) ||
-      /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(customFilename || '');
-
+    const isExplicitVideo = isVideoMedia(rawUri, customFilename, Boolean(isVideoParam));
     const fileUri = await resolveLocalMediaUri(rawUri, customFilename, isExplicitVideo);
 
     const formData = new FormData();
@@ -35,10 +31,8 @@ export const mediaApi = {
     const rawName = customFilename || cleanUri.split('/').pop() || `file_${Date.now()}`;
     const match = /\.(\w+)$/.exec(rawName);
     const ext = match ? match[1].toLowerCase() : (isExplicitVideo ? 'mp4' : 'jpg');
-    const isVideo = isExplicitVideo || ['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp', 'm4v'].includes(ext);
-    const mimeType = isVideo
-      ? (ext === 'mov' ? 'video/quicktime' : (ext === 'mp4' ? 'video/mp4' : `video/${ext}`))
-      : (ext === 'png' ? 'image/png' : (ext === 'webp' ? 'image/webp' : 'image/jpeg'));
+    const isVideo = isExplicitVideo;
+    const mimeType = getMediaMimeType(fileUri, customFilename, isVideo);
 
     const uploadName = rawName.includes('.') ? rawName : `${rawName}.${isVideo ? 'mp4' : 'jpg'}`;
 

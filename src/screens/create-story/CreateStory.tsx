@@ -5,7 +5,7 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 import { Theme, useStoryMutation, useTheme } from '~/hooks';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CrossIcon, MutedIcon, UnmutedIcon, TextAaIcon, StickerIcon, MenuIcon, ArrowToRight, StarIcon, MusicIcon, ScribbleIcon } from '~/assets/svgs';
-import { Navigation } from '~/utils';
+import { Navigation, isVideoMedia } from '~/utils';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
 import CreateStoryVideo from './components/CreateStoryVideo';
@@ -27,10 +27,7 @@ const CreateStory = () => {
         setHasVideoError(false);
       }, [uri]);
     
-      const isVideo = Boolean(
-        mediaType === 'video' ||
-        /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(uri)
-      );
+      const isVideo = isVideoMedia(uri, undefined, mediaType === 'video');
 
     const handleCreateStory = async () => {
         if (!uri || createStory.isPending || isUploading) return;

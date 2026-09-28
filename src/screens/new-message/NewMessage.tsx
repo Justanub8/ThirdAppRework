@@ -1,20 +1,16 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { CustomHeader } from '~/components/headers'
-import { CameraLightIcon, LeftArrow, MoreIcon, RightArrow } from '~/assets/svgs'
-import { PrimaryInput } from '~/components/inputs'
-import { BaseText, BaseTextInput } from '~/components/rn-components'
-import { Avatar } from '~/components/avatar'
-import { Typography } from '~/constants'
-import { Navigation } from '~/utils'
-import { images } from '~/assets/images'
-import { TouchableWithoutFeedback } from '@gorhom/bottom-sheet'
-import { useQuery } from '@tanstack/react-query'
-import { userApi } from '~/api'
-import { IProfileUser } from '~/interfaces'
-import { PrimaryButton } from '~/components/buttons'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useConversationMutation, useMessageMutation, useTheme, Theme } from '~/hooks'
+import { View, StyleSheet, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { CustomHeader } from '~/components/headers';
+import { CameraLightIcon, LeftArrow } from '~/assets/svgs';
+import { BaseText, BaseTextInput } from '~/components/rn-components';
+import { Avatar } from '~/components/avatar';
+import { Typography } from '~/constants';
+import { Navigation } from '~/utils';
+import { useQuery } from '@tanstack/react-query';
+import { userApi } from '~/api';
+import { IProfileUser } from '~/interfaces';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useConversationMutation, useMessageMutation, useTheme, Theme } from '~/hooks';
 
 const NewMessage = () => {
     const { theme } = useTheme();
@@ -24,11 +20,12 @@ const NewMessage = () => {
     const [messageContent, setMessageContent] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [currentContact, setCurrentContact] = useState<IProfileUser>();
-    const [conversationId, setConversationId] = useState("");
+    const [conversationId, setConversationId] = useState('');
+    const [isSending, setIsSending] = useState(false);
     const { createConversation } = useConversationMutation();
     const { createMessage } = useMessageMutation();
 
-    const { data: usersData, isLoading } = useQuery({
+    const { data: usersData } = useQuery({
         queryKey: ['suggestedUsers'],
         queryFn: async () => {
             const res = await userApi.getAllUsers(1, 20);
@@ -36,31 +33,36 @@ const NewMessage = () => {
         }
     });
 
-    const handleChooseContact = async (contact: IProfileUser) => {
-        const contactId = contact?.id;
-        if (!contactId) return;
+    const handleSend = async () => {
+        const content = messageContent.trim();
+        const contactId = currentContact?.id;
+        if (!content || !contactId || isSending) return;
+
+        setIsSending(true);
         try {
-            const res = await createConversation.mutateAsync(contactId);
-            const convId = res.data?.data?.id || (res.data as any)?.id;
-            if (convId) {
-                setConversationId(convId);
+            // Chỉ tạo/lấy cuộc trò chuyện khi người dùng thực sự gửi tin nhắn đầu tiên
+            let activeConvId = conversationId;
+            if (!activeConvId) {
+                const res = await createConversation.mutateAsync(contactId);
+                activeConvId = res.data?.data?.id || (res.data as any)?.id;
+                if (!activeConvId) {
+                    console.log('Lỗi: Không thể tìm/tạo cuộc trò chuyện');
+                    setIsSending(false);
+                    return;
+                }
+                setConversationId(activeConvId);
             }
 
-        } catch (error) {
-            console.log("Lỗi khi tìm/tạo cuộc trò chuyện", error);
-        }
-    };
-
-    const handleSend = async () => {
-        if (!messageContent.trim() || !conversationId) return;
-        try {
-            await createMessage.mutateAsync({ conversationId: conversationId, content: messageContent });
+            // Gửi tin nhắn vào cuộc trò chuyện vừa tạo
+            await createMessage.mutateAsync({ conversationId: activeConvId, content });
             setMessageContent('');
             const contactName = currentContact?.username || currentContact?.name;
             const contactAvatar = currentContact?.avatarUrl || currentContact?.imageUrl;
-            Navigation.goToConversation(conversationId, contactName, contactAvatar);
+            Navigation.goToConversation(activeConvId, contactName, contactAvatar);
         } catch (error) {
-            console.log("Lỗi khi gửi tin nhắn", error);
+            console.log('Lỗi khi gửi tin nhắn', error);
+        } finally {
+            setIsSending(false);
         }
     };
 
@@ -77,7 +79,22 @@ const NewMessage = () => {
         <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
             <CustomHeader
                 title='Tin nhắn mới'
-                LeftComponent={<LeftArrow height={24} width={24} onPress={() => Navigation.pop()} />}
+                LeftComponent={
+                    <LeftArrow 
+                        height={24} 
+                        width={24} 
+                        onPress={() => {
+                            if (isFront) {
+                                setIsFront(false);
+                                setCurrentContact(undefined);
+                                setMessageContent('');
+                                setConversationId('');
+                            } else {
+                                Navigation.pop();
+                            }
+                        }} 
+                    />
+                }
             />
             <KeyboardAvoidingView 
                 style={{ flex: 1 }} 
@@ -107,14 +124,13 @@ const NewMessage = () => {
                                     const itemAvatar = item.avatarUrl || item.imageUrl;
                                     const itemKey = item.id;
                                     return (
-
                                         <TouchableOpacity 
                                             key={itemKey} 
                                             style={styles.contactContainer} 
                                             onPress={() => {
                                                 setIsFront(true);
                                                 setCurrentContact(item);
-                                                handleChooseContact(item);
+                                                setConversationId('');
                                             }}
                                         >
                                             <Avatar 
@@ -143,6 +159,7 @@ const NewMessage = () => {
                                     url={currentContact?.avatarUrl || currentContact?.imageUrl} 
                                     size={80} 
                                     id={currentContact?.id} 
+                                    disabled
                                 />
                                 <BaseText typography={Typography.bodyBold.large}>{currentContact?.username}</BaseText>
                                 <BaseText>
@@ -155,7 +172,6 @@ const NewMessage = () => {
                                         if (contactProfileId) {
                                             Navigation.goToUserProfile(contactProfileId);
                                         }
-
                                     }}
                                     style={{ borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: theme.buttonDisabled }}
                                 >
@@ -165,7 +181,7 @@ const NewMessage = () => {
                                 </TouchableOpacity>
                             </View>
                             <View style={styles.messageInput}>
-                                {!isTexting ? (
+                                {!isTexting && messageContent.trim().length === 0 ? (
                                     <TouchableOpacity style={styles.cameraIcon}>
                                         <CameraLightIcon height={24} width={24} />
                                     </TouchableOpacity>
@@ -177,8 +193,24 @@ const NewMessage = () => {
                                     onFocus={() => { setIsTexting(true); }}
                                     onBlur={() => setIsTexting(false)}
                                     onChangeText={setMessageContent}
-                                    onSubmitEditing={() => { handleSend(); }}
+                                    onSubmitEditing={handleSend}
+                                    returnKeyType='send'
                                 />
+                                {messageContent.trim().length > 0 ? (
+                                    <TouchableOpacity 
+                                        onPress={handleSend} 
+                                        disabled={isSending}
+                                        style={styles.sendButton}
+                                    >
+                                        {isSending ? (
+                                            <ActivityIndicator size="small" color="#3797EF" />
+                                        ) : (
+                                            <BaseText typography={Typography.bodyBold.medium} color="#3797EF">
+                                                Gửi
+                                            </BaseText>
+                                        )}
+                                    </TouchableOpacity>
+                                ) : null}
                             </View>
                         </View>
                     </View>
@@ -233,6 +265,12 @@ const getStyles = (theme: Theme) => StyleSheet.create({
         gap: 12,
         marginHorizontal: 16,
         paddingHorizontal: 8,
+    },
+    sendButton: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     cameraIcon: {
         backgroundColor: theme.bubbleLavender,

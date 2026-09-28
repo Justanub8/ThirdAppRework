@@ -1,25 +1,29 @@
-import React from 'react';
-import ActionSheet, { SheetProps } from 'react-native-actions-sheet';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import ActionSheet, { SheetProps, SheetManager } from 'react-native-actions-sheet';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { SizedBox } from '../separate-components';
-import { PrimaryInput } from '../inputs';
-import { BaseText } from '../rn-components';
+import { BaseText, FastImage, BaseTextInput } from '../rn-components';
 import { Avatar } from '../avatar';
-import { images } from '~/assets/images';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { commentApi } from '~/api/commentApi';
+import { mediaApi } from '~/api/mediaApi';
 import { FlashList } from '@shopify/flash-list';
 import Comment from '../comment/Comment';
 import { useCommentMutation, useTheme, Theme, useAuthStore } from '~/hooks';
 import { Typography } from '~/constants';
+import { CameraLightIcon, CrossIcon } from '~/assets/svgs';
+import { SelectedChatMedia } from './MediaSheet';
 
 const CommentSheet = (props: SheetProps<"CommentSheet">) => {
   const { theme } = useTheme();
-  const styles = React.useMemo(() => getStyles(theme), [theme]);
+  const styles = useMemo(() => getStyles(theme), [theme]);
   const currentUser = useAuthStore(state => state.user);
   const { targetId, targetType } = props.payload || {};
-  const [commentText, setCommentText] = React.useState('');
+  const [commentText, setCommentText] = useState('');
+  const [selectedImage, setSelectedImage] = useState<SelectedChatMedia | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const { createComment } = useCommentMutation();
+
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['comments', targetId],
     queryFn: async ({ pageParam = 1 }) => {
@@ -37,16 +41,37 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
     enabled: !!targetId
   });
 
-  const handleSendComment = () => {
-    if (!commentText.trim() || !targetId || !targetType) return;
-    createComment.mutate(
-      { targetId, targetType, content: commentText },
-      {
-        onSuccess: () => {
-          setCommentText('');
-        }
+  const handleSendComment = async () => {
+    if ((!commentText.trim() && !selectedImage) || !targetId || !targetType || isUploading) return;
+
+    try {
+      let uploadedMedia: { url: string; type: string } | undefined = undefined;
+
+      if (selectedImage) {
+        setIsUploading(true);
+        const uploadRes = await mediaApi.uploadImage(selectedImage.uri, undefined, undefined, false);
+        const uploadedUrl = uploadRes?.url || selectedImage.uri;
+        uploadedMedia = {
+          url: uploadedUrl,
+          type: 'image',
+        };
       }
-    );
+
+      await createComment.mutateAsync({
+        targetId,
+        targetType,
+        content: commentText.trim(),
+        media: uploadedMedia,
+      });
+
+      setCommentText('');
+      setSelectedImage(null);
+    } catch (error: any) {
+      console.log('Error creating comment:', error);
+      Alert.alert('Lỗi', error?.response?.data?.message || error?.message || 'Không thể tạo bình luận');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const comments = data?.pages.flatMap(page => page.data) || [];
@@ -88,21 +113,78 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
           </View>
         )}
         <View style={styles.inputBar}>
-          <SizedBox height={12}/>
+          <SizedBox height={8}/>
+          {selectedImage ? (
+            <View style={styles.mediaPreviewContainer}>
+              <View style={styles.mediaPreviewWrapper}>
+                <FastImage
+                  source={{ uri: selectedImage.uri }}
+                  style={styles.mediaPreviewThumb}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  style={styles.removeMediaButton}
+                  onPress={() => setSelectedImage(null)}
+                  disabled={isUploading}
+                >
+                  <CrossIcon width={12} height={12} color="#FFFFFF" />
+                </TouchableOpacity>
+                {isUploading ? (
+                  <View style={styles.uploadingOverlay}>
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  </View>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
           <View style={styles.inputRow}>
             <Avatar 
               url={currentUser?.avatarUrl || currentUser?.imageUrl} 
-              size={48} 
+              size={40} 
               disabled 
             />
-            <View style={styles.inputWrapper}>
-              <PrimaryInput 
-                placeholder='Tham gia cuộc trò chuyện...'
-                value={commentText}
-                onChangeText={setCommentText}
-                onSubmitEditing={handleSendComment}
-                returnKeyType="send"
-              />
+            <View style={styles.commentInputContainer}>
+              <TouchableOpacity 
+                style={styles.cameraIcon}
+                onPress={() => {
+                  SheetManager.show('MediaSheet', {
+                    payload: {
+                      mediaType: 'image',
+                      onSelectMedia: (media: SelectedChatMedia) => setSelectedImage(media),
+                    },
+                  });
+                }}
+                disabled={isUploading}
+              >
+                <CameraLightIcon height={24} width={24} color={theme.text} />
+              </TouchableOpacity>
+              <View style={styles.textInputWrapper}>
+                <BaseTextInput 
+                  placeholder='Tham gia cuộc trò chuyện...'
+                  placeholderTextColor={theme.placeholder ?? '#9e9e9e'}
+                  value={commentText}
+                  onChangeText={setCommentText}
+                  onSubmitEditing={handleSendComment}
+                  returnKeyType="send"
+                  style={styles.input}
+                  editable={!isUploading}
+                />
+              </View>
+              {(commentText.trim().length > 0 || selectedImage) ? (
+                <TouchableOpacity 
+                  onPress={handleSendComment} 
+                  disabled={isUploading || createComment.isPending}
+                  style={styles.sendButton}
+                >
+                  {isUploading || createComment.isPending ? (
+                    <ActivityIndicator size="small" color="#3797EF" />
+                  ) : (
+                    <BaseText typography={Typography.bodyBold.medium} color="#3797EF">
+                      Gửi
+                    </BaseText>
+                  )}
+                </TouchableOpacity>
+              ) : null}
             </View>
           </View>
           <SizedBox height={12}/>
@@ -148,8 +230,74 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  inputWrapper: {
+  commentInputContainer: {
     flex: 1,
+    borderRadius: 9999,
+    minHeight: 40,
+    backgroundColor: theme.input,
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingHorizontal: 8,
+    gap: 8,
+  },
+  cameraIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textInputWrapper: {
+    flex: 1,
+  },
+  input: {
+    paddingVertical: 8,
+    color: theme.text,
+  },
+  sendButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mediaPreviewContainer: {
+    paddingBottom: 8,
+    flexDirection: 'row',
+  },
+  mediaPreviewWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    position: 'relative',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: theme.divider,
+  },
+  mediaPreviewThumb: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+  },
+  removeMediaButton: {
+    position: 'absolute',
+    top: 3,
+    right: 3,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uploadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

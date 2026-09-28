@@ -15,7 +15,7 @@ import {
   ScribbleIcon,
   ArrowToRight,
 } from '~/assets/svgs';
-import { Navigation } from '~/utils';
+import { Navigation, isVideoMedia } from '~/utils';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
 import CreateReelVideo from './components/CreateReelVideo';
@@ -38,10 +38,7 @@ const CreateReel = () => {
     setHasVideoError(false);
   }, [uri]);
 
-  const isVideo = Boolean(
-    mediaType === 'video' ||
-    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(uri || '')
-  );
+  const isVideo = isVideoMedia(uri, undefined, mediaType === 'video');
 
   const handleCreateReel = async () => {
     if (!uri || createReel.isPending || isUploading) return;

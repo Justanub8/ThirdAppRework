@@ -14,6 +14,8 @@ import MyActiveStory from '~/screens/story/MyActiveStory';
 import CameraScreen from '~/screens/cameraScreen/CameraScreen';
 import SelectReelMedia from '~/screens/create-reel/components/SelectReelMedia';
 import CreateReel from '~/screens/create-reel/CreateReel';
+import DetailMedia from '~/screens/detail-media/DetailMedia';
+import Setting from '~/screens/settings/Setting';
 
 const Stack = createNativeStackNavigator<AuthenticatedStackParamList>();
 
@@ -38,6 +40,8 @@ const AuthenticatedNavigator: React.FC = () => {
             <Stack.Screen name='CreateReel' component={CreateReel}/>
             <Stack.Screen name='MyActiveStory' component={MyActiveStory}/>
             <Stack.Screen name='CameraScreen' component={CameraScreen}/>
+            <Stack.Screen name='DetailMedia' component={DetailMedia} />
+            <Stack.Screen name='Setting' component={Setting}/>
         </Stack.Navigator>
     )
 }

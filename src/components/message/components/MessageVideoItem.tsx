@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import type { OnLoadData } from 'react-native-video';
 import { BaseVideo } from '~/components/rn-components';
 import { PlayIcon } from '~/assets/svgs';
+import { getVideoThumbnail } from '~/utils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DEFAULT_MEDIA_WIDTH = Math.round(SCREEN_WIDTH * 0.58);
@@ -15,6 +16,7 @@ interface MessageVideoItemProps {
   isPaused?: boolean;
   repeat?: boolean;
   onTogglePlay?: (videoId: string) => void;
+  onPress?: (thumbnail?: string) => void;
 }
 
 export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
@@ -25,14 +27,28 @@ export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
   isPaused: controlledPaused,
   repeat = true,
   onTogglePlay,
+  onPress,
 }) => {
   const [internalPaused, setInternalPaused] = useState(true);
   const [dimensions, setDimensions] = useState({
     width: targetWidth,
     height: targetWidth,
   });
+  const [thumbnailUri, setThumbnailUri] = useState<string | undefined>();
 
   const effectivePaused = controlledPaused !== undefined ? controlledPaused : internalPaused;
+
+  useEffect(() => {
+    let isMounted = true;
+    getVideoThumbnail(url).then(thumb => {
+      if (isMounted && thumb) {
+        setThumbnailUri(thumb);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [url]);
 
   useEffect(() => {
     setDimensions({
@@ -42,7 +58,7 @@ export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
     setInternalPaused(true);
   }, [url, targetWidth]);
 
-  const handlePress = () => {
+  const handleTogglePlay = () => {
     if (onTogglePlay) {
       onTogglePlay(videoId || url);
     } else {
@@ -74,34 +90,49 @@ export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={handlePress}
+    <View
       style={[
         styles.container,
         style,
         { width: dimensions.width, height: dimensions.height },
       ]}
     >
-      <BaseVideo
-        uri={url}
+      <TouchableOpacity
+        activeOpacity={onPress ? 0.9 : 1}
+        disabled={!onPress}
+        onPress={() => onPress && onPress(thumbnailUri)}
         style={StyleSheet.absoluteFill}
-        resizeMode="cover"
-        paused={effectivePaused}
-        repeat={repeat}
-        onLoad={handleLoad}
-        onEnd={() => {
-          if (!repeat && onTogglePlay) {
-            onTogglePlay(videoId || url);
-          }
-        }}
-      />
-      {effectivePaused && (
-        <View style={styles.playIconOverlay} pointerEvents="none">
-          <PlayIcon width={32} height={32} color="#FFFFFF" />
-        </View>
-      )}
-    </TouchableOpacity>
+      >
+        <BaseVideo
+          uri={url}
+          style={StyleSheet.absoluteFill}
+          resizeMode="cover"
+          paused={effectivePaused}
+          repeat={repeat}
+          onLoad={handleLoad}
+          onEnd={() => {
+            if (!repeat && onTogglePlay) {
+              onTogglePlay(videoId || url);
+            } else if (!repeat) {
+              setInternalPaused(true);
+            }
+          }}
+        />
+      </TouchableOpacity>
+
+      { effectivePaused ? 
+      <View style={styles.controlsOverlay} pointerEvents="box-none">
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={handleTogglePlay}
+          style={styles.playPauseButton}
+        >
+          <PlayIcon width={24} height={24} color="#FFFFFF" style={styles.playIcon} />
+        </TouchableOpacity>
+      </View> :
+        null
+      }
+    </View>
   );
 };
 
@@ -112,11 +143,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E1E1E',
     borderRadius: 14,
   },
-  playIconOverlay: {
+  controlsOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  playPauseButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playIcon: {
+    marginLeft: 3,
+  },
+  pauseIconWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  pauseBar: {
+    width: 3.5,
+    height: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 2,
   },
 });
 

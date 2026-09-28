@@ -12,7 +12,7 @@ import { Theme, useTheme } from '~/hooks';
 import { BaseText, FastImage } from '../rn-components';
 import { CrossIcon, PlayIcon, CameraLightIcon } from '~/assets/svgs';
 import { Typography } from '~/constants';
-import { Navigation } from '~/utils';
+import { Navigation, formatDuration, isVideoMedia } from '~/utils';
 import { FlashList } from '@shopify/flash-list';
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
@@ -26,13 +26,6 @@ export interface SelectedChatMedia {
   extension?: string | null;
 }
 
-const formatDuration = (seconds?: number) => {
-  if (!seconds || seconds <= 0) return '';
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-};
-
 const MediaSheet = (props: SheetProps<"MediaSheet">) => {
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
@@ -41,13 +34,16 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
 
+  const mediaType = props.payload?.mediaType || 'all';
+
   const fetchPhotos = useCallback(async (after?: string) => {
     try {
       if (!after) setIsLoading(true);
+      const assetType = mediaType === 'image' ? 'Photos' : mediaType === 'video' ? 'Videos' : 'All';
       const res = await CameraRoll.getPhotos({
         first: 30,
         after,
-        assetType: 'All',
+        assetType,
         include: ['filename', 'fileExtension', 'playableDuration'],
       });
 
@@ -67,7 +63,7 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [mediaType]);
 
   useEffect(() => {
     fetchPhotos();
@@ -84,13 +80,14 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
     SheetManager.hide(props.sheetId, { payload: selected });
   };
 
+  const sheetTitle = useMemo(() => {
+    if (mediaType === 'image') return 'Chọn ảnh';
+    if (mediaType === 'video') return 'Chọn video';
+    return 'Chọn ảnh hoặc video';
+  }, [mediaType]);
+
   const renderItem = ({ item }: { item: any }) => {
-    const isVideo =
-      Boolean(item.playableDuration) ||
-      item.type?.startsWith('video') ||
-      item.type === 'video' ||
-      /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(item.uri || '') ||
-      /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(item.filename || '');
+    const isVideo = isVideoMedia(item);
 
     return (
       <TouchableOpacity
@@ -99,14 +96,14 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
         onPress={() => {
           handleSelectMedia({
             uri: item.uri,
-            type: isVideo ? 'video' : 'image',
+            type: mediaType === 'image' ? 'image' : (isVideo ? 'video' : 'image'),
             filename: item.filename,
             extension: item.extension,
           });
         }}
       >
         <FastImage source={{ uri: item.uri }} style={styles.thumbnail} resizeMode="cover" />
-        {isVideo ? (
+        {isVideo && mediaType !== 'image' ? (
           <View style={styles.videoBadge}>
             <PlayIcon width={12} height={12} color="#FFFFFF" />
             {item.playableDuration ? (
@@ -140,7 +137,7 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
             <CrossIcon width={24} height={24} color={theme.text} />
           </TouchableOpacity>
 
-          <BaseText style={styles.title}>Chọn ảnh hoặc video</BaseText>
+          <BaseText style={styles.title}>{sheetTitle}</BaseText>
 
           <TouchableOpacity
             style={styles.headerButton}

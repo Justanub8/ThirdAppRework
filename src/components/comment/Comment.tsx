@@ -1,14 +1,14 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { SizedBox } from '../separate-components';
 import { Typography } from '~/constants';
-import { BaseText } from '../rn-components';
+import { BaseText, FastImage } from '../rn-components';
 import { Avatar } from '../avatar';
 import * as React from 'react';
 import { images } from '~/assets/images';
 import { TextButton } from '../buttons';
 import { IComment } from '~/interfaces/comment';
 import LikeButton from '../buttons/LikeButton';
-import { Navigation } from '~/utils';
+import { Navigation, formatMediaUrl } from '~/utils';
 
 const Comment = ({ item }: { item: IComment }) => {
   const [likeCount, setLikeCount] = React.useState(item.likeCount);
@@ -34,9 +34,20 @@ const Comment = ({ item }: { item: IComment }) => {
                         <BaseText typography={Typography.bodyBold.medium} onPress={() => { if (commentUserId) Navigation.goToUserProfile(commentUserId); }}>
                             {item.user?.username || 'Unknown'}
                         </BaseText>
-                        <BaseText typography={Typography.bodyRegular.medium}>
-                            {item.content}
-                        </BaseText>
+                        {item.content ? (
+                            <BaseText typography={Typography.bodyRegular.medium}>
+                                {item.content}
+                            </BaseText>
+                        ) : null}
+                        {item.media?.url ? (
+                            <View style={styles.commentImageContainer}>
+                                <FastImage 
+                                    source={{ uri: formatMediaUrl(item.media.url) }}
+                                    style={styles.commentImage}
+                                    resizeMode="cover"
+                                />
+                            </View>
+                        ) : null}
                     </View>
                     <View>
                         <SizedBox height={8}/>
@@ -94,6 +105,18 @@ const styles = StyleSheet.create({
   },
   likeColumn: {
     alignItems: 'center',
+  },
+  commentImageContainer: {
+    marginTop: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: 180,
+    height: 180,
+  },
+  commentImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
   },
 });
 

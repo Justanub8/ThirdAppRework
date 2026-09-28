@@ -14,7 +14,10 @@ import { userApi } from '~/api/userApi';
 import { useAuthStore, useTheme, Theme } from '~/hooks';
 import { SheetManager } from 'react-native-actions-sheet';
 import { Navigation } from '~/utils';
-
+import { bookmarkApi, postApi, reelApi } from '~/api';
+import { FlashList } from '@shopify/flash-list';
+import GridContent from '~/components/item/GridContent';
+import Tabs from './components/Tabs';
 const Profile = () => {
   const { theme, mode, setMode } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
@@ -26,24 +29,59 @@ const Profile = () => {
     }
   });
 
+  const currentUser = useAuthStore(state => state.user);
+  const currentUserId = currentUser?.id || data?.id;
+
+  const { data: posts, refetch: refetchPosts } = useQuery({
+    queryKey: ['my-post', currentUserId],
+    queryFn: async () => {
+      const res = await postApi.getAllPosts(1, 30, currentUserId);
+      return res?.data?.data || [];
+    },
+    enabled: !!currentUserId,
+  });
+
+  const { data: reels, refetch: refetchReels } = useQuery({
+    queryKey: ['my-reels', currentUserId],
+    queryFn: async () => {
+      const res = await reelApi.getAllReels(1, 30, currentUserId);
+      return res?.data?.data || [];
+    },
+    enabled: !!currentUserId,
+  });
+
+  const { data: bookmarks, refetch: refetchBookmarks } = useQuery({
+    queryKey: ['my-bookmarks'],
+    queryFn: async () => {
+      const res = await bookmarkApi.getUserBookmarks();
+      return res?.data?.data || [];
+    },
+  });
+
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [refetch])
+      if (currentUserId) {
+        refetchPosts();
+        refetchReels();
+      }
+      refetchBookmarks();
+    }, [refetch, refetchPosts, refetchReels, refetchBookmarks, currentUserId])
   );
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.paddingHorizontal}>
           <View style={styles.headerRow}>
-            <CreateIcon 
-              height={36} width={36}
-              onPress={() => SheetManager.show('CreateSheet')}
-            />
+            <TouchableOpacity onPress={() => SheetManager.show('CreateSheet')}>
+              <CreateIcon height={36} width={36} />
+            </TouchableOpacity>
             <BaseText typography={Typography.bodyBold.xxxLarge}>
               {data?.username}
             </BaseText>
-            <MenuIcon height={36} width={36} onPress={() => setMode(mode === 'dark' ? 'light' : 'dark')}/>
+            <TouchableOpacity onPress={() => Navigation.goToSetting()}>
+              <MenuIcon height={36} width={36} />
+            </TouchableOpacity>
           </View>
           <View style={styles.profileInfoRow}>
             <Avatar 
@@ -106,7 +144,7 @@ const Profile = () => {
         <SizedBox height={24}/>
 
         <View style={styles.tabContainer}>
-          {/* <AccountTopTab/> */}
+          <Tabs id={currentUserId} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -145,9 +183,8 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     flex: 1,
   },
   tabContainer: {
-    height: 500,
-    borderWidth: 1,
-    borderColor: theme.border,
+    flex: 1,
+    backgroundColor: theme.background,
   },
   modalOption: {
     flexDirection: 'row',

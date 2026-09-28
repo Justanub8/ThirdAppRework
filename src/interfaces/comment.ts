@@ -1,5 +1,5 @@
 import { IProfileUser } from "./auth";
-
+import { IMedia } from "./media";
 export interface IComment {
     id?: string;
     userId?: string;
@@ -13,4 +13,5 @@ export interface IComment {
     createdAt: Date;
     updatedAt?: Date;
     isLiked?: boolean;
+    media?: IMedia;
 }

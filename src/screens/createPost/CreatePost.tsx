@@ -6,7 +6,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ArrowToRight, CrossIcon, MenuIcon, MutedIcon, StickerIcon, TextAaIcon, UnmutedIcon } from '~/assets/svgs';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
-import { Navigation } from '~/utils';
+import { Navigation, isVideoMedia } from '~/utils';
 import { usePostMutation, useTheme, Theme } from '~/hooks';
 import { mediaApi } from '~/api';
 import CreatePostVideo from './components/CreatePostVideo';
@@ -30,10 +30,7 @@ const CreatePost = () => {
     setHasVideoError(false);
   }, [uri]);
 
-  const isVideo = Boolean(
-    mediaType === 'video' ||
-    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(uri)
-  );
+  const isVideo = isVideoMedia(uri, undefined, mediaType === 'video');
 
   const handleCreatePost = async () => {
     if (!uri || createPost.isPending || isUploading) return;

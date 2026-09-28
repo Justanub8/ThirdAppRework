@@ -1,10 +1,11 @@
-export const timeAgo = (createdAt: Date) =>  {
+export const timeAgo = (createdAt: Date, justNow: string) =>  {
   const now = Date.now(); 
   const created = new Date(createdAt).getTime();
   const diffMs = now - created 
   const diffSec = Math.floor(diffMs / 1000);
+  console.log(createdAt);
 
-  if (diffSec < 60) return "vừa xong";
+  if (diffSec < 60) return justNow;
   if (diffSec < 3600) return `${Math.floor(diffSec / 60)} phút trước`;
   if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} giờ trước`;
   return `${Math.floor(diffSec / 86400)} ngày trước`;

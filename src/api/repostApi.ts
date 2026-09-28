@@ -16,8 +16,9 @@ export const repostApi = {
     deleteRepost: (payload: RepostPayload) => 
         axiosInstance.delete<{ message: string }>('/repost/delete', { data: payload }),
     
-    getUserReposts: (page: number = 1, limit: number = 20, targetType?: string) => {
+    getUserReposts: (page: number = 1, limit: number = 20, targetType?: string, userId?: string) => {
         const targetParam = targetType ? `&targetType=${targetType}` : '';
-        return axiosInstance.get<PaginatedResponse<any>>(`/repost/all?page=${page}&limit=${limit}${targetParam}`);
+        const userParam = userId ? `&userId=${userId}` : '';
+        return axiosInstance.get<PaginatedResponse<any>>(`/repost/all?page=${page}&limit=${limit}${targetParam}${userParam}`);
     },
 };

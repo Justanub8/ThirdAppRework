@@ -25,7 +25,10 @@ const CustomHeader = ({
                     {LeftComponent}
                 </View>
                 
-                <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', zIndex: 0 }]}>
+                <View 
+                    style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', zIndex: 0 }]} 
+                    pointerEvents="none"
+                >
                     <BaseText typography={Typography.bodyBold.large}>
                         {title}
                     </BaseText>

@@ -6,11 +6,11 @@ export const useCommentMutation = () => {
     const queryClient = useQueryClient();
 
     const createComment = useMutation({
-        mutationFn: (params: { targetId: string; targetType: string; content: string; parentId?: string }) => {
-            if (!params.targetId || !params.content || !params.targetType) {
+        mutationFn: (params: { targetId: string; targetType: string; content?: string; parentId?: string; media?: { url: string; type?: string } | string; mediaUrl?: string }) => {
+            if (!params.targetId || (!params.content?.trim() && !params.media && !params.mediaUrl) || !params.targetType) {
                 throw new Error("Missing params create comment");
             }
-            return commentApi.createComment(params);
+            return commentApi.createComment(params as any);
         },
         onSuccess: (res, variables) => {
             const newComment = res.data?.data || res.data?.comment;

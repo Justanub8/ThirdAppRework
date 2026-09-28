@@ -9,6 +9,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { reelApi } from '~/api';
 import { useTheme } from '~/hooks';
 import { useIsFocused } from '@react-navigation/native';
+import { isVideoMedia } from '~/utils';
 
 const Reels = () => {
   const { theme } = useTheme();
@@ -48,9 +49,7 @@ const Reels = () => {
 
   const renderItem = useCallback(({ item, index }: { item: IReel, index: number }) => {
     const mediaUrl = item.media?.url || (item as any).videoUrl || (item as any).mediaUrl || '';
-    const isVideo =
-      item.media?.type === 'video' ||
-      /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(mediaUrl);
+    const isVideo = isVideoMedia(item.media || mediaUrl);
 
     return (
       <View style={{ height: availableHeight, width: '100%' }}>

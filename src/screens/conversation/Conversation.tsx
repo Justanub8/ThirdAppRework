@@ -6,7 +6,7 @@ import { ArrowToLeft, CallIcon, CameraLightIcon, CrossIcon, PlayIcon } from '~/a
 import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components';
 import { Avatar } from '~/components/avatar';
 import { AuthenticatedStackParamList } from '~/navigation/types';
-import { Navigation } from '~/utils';
+import { Navigation, timeAgo } from '~/utils';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { IMessage } from '~/interfaces';
 import Message from '~/components/message/Message';
@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { images } from '~/assets/images';
 import { COLORS, Typography } from '~/constants';
 import { useMessageMutation, useAuthStore, useTheme, Theme } from '~/hooks';
-import { useSocket } from '~/context';
+import { useSocket, useOnlineStatus } from '~/context';
 import { useQuery } from '@tanstack/react-query';
 import { SheetManager } from 'react-native-actions-sheet';
 import { mediaApi } from '~/api/mediaApi';
@@ -46,6 +46,9 @@ const Conversation = () => {
         (p: any) => p.id !== currentUserId
     ) || conversationData?.participants?.[0];
 
+    const { isOnline: isSocketOnline } = useOnlineStatus(otherUser?.id);
+    const isOtherUserOnline = isSocketOnline || !!otherUser?.isOnline;
+
     const displayName = initialName || otherUser?.username || otherUser?.name || 'Unknown';
     const displayAvatar = initialImageUrl || otherUser?.avatarUrl || otherUser?.imageUrl;
     const navigation = useNavigation();
@@ -68,9 +71,6 @@ const Conversation = () => {
 
     const handleTogglePlayVideo = useCallback((videoId: string) => {
         setActivePlayingVideoId(currentPlayingId => {
-            // Đảm bảo chỉ 1 video duy nhất chạy tại 1 thời điểm:
-            // Nếu bấm vào video đang phát -> dừng lại (null)
-            // Nếu bấm vào video khác -> chuyển sang phát duy nhất video đó
             if (currentPlayingId === videoId) {
                 return null;
             }
@@ -318,7 +318,9 @@ const Conversation = () => {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-              <ArrowToLeft height={24} width={24} onPress={() => Navigation.pop()} style={styles.zIndex1}/>
+              <TouchableOpacity onPress={() => Navigation.pop()} style={styles.zIndex1} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <ArrowToLeft height={24} width={24} />
+              </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.headerUser}
                 onPress={() => {
@@ -335,8 +337,16 @@ const Conversation = () => {
                   url={displayAvatar} 
                   size={36} 
                   disabled 
+                  isOnline={isOtherUserOnline}
                 />
-                <BaseText typography={Typography.bodyBold.medium}>{displayName}</BaseText>
+                <View>
+                  <BaseText typography={Typography.bodyBold.medium}>{displayName}</BaseText>
+                  {otherUser?.showActiveStatus && user?.showActiveStatus ? (
+                    <BaseText typography={Typography.bodyRegular.xSmall} color="#4CAF50">
+                        {timeAgo(otherUser?.lastActive as any, 'Đang hoạt động')}
+                    </BaseText>
+                  ) : null}
+                </View>
               </TouchableOpacity>
               <CallIcon height={24} width={24} style={styles.zIndex1}/>
             </View>
@@ -414,7 +424,7 @@ const Conversation = () => {
                                     onFocus={() => setIsTexting(true)}
                                     onBlur={() => setIsTexting(false)}
                                     onSubmitEditing={handleSend}
-                                    returnKeyType='send'
+                                    multiline={true}
                                 />
                             </View>
                             {(messageContent.trim().length > 0 || selectedMedia) ? (

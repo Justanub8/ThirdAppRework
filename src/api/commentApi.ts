@@ -5,8 +5,10 @@ import { PaginatedResponse } from './api';
 export interface CreateCommentPayload {
     targetId: string;
     targetType: 'Post' | 'Reel' | 'Story' | 'Comment' | string;
-    content: string;
+    content?: string;
     parentId?: string;
+    media?: { url: string; type?: string } | string;
+    mediaUrl?: string;
 }
 
 export const commentApi = {

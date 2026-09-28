@@ -61,6 +61,12 @@ export interface IProfileUser {
     follower: number;
     following: number;
     isFollowing?: boolean;
+    isPending?: boolean;
+    followStatus?: 'PENDING' | 'ACCEPTED' | null;
+    isPrivate?: boolean;
+    lastActive?: string | Date | null;
+    showActiveStatus?: boolean;
+    isOnline?: boolean;
     hasActiveStory?: boolean;
     activeStoryCount?: number;
     isSeenStory?: boolean;
@@ -71,6 +77,14 @@ export interface IChangePasswordPayload {
     current_password: string;
     new_password: string;
     confirm_password: string;
+}
+export interface IUpdateProfilePayload {
+    name?: string;
+    username?: string;
+    avatarUrl?: string;
+    email?: string;
+    isPrivate?: boolean;
+    showActiveStatus?: boolean;
 }
 export interface AuthSessionResult {
     token: string;

@@ -5,6 +5,9 @@ import { PaginatedResponse } from "./api";
 export const followApi = {
     createFollow: (userId: string) => 
         axiosInstance.post<{ message: string; follow: any }>('/follow/create', { followingId: userId }),
+
+    updateFollow: (userId: string) => 
+        axiosInstance.post<{ message: string; follow: any }>('/follow/update', { followingId: userId}),
     
     deleteFollow: (userId: string) => 
         axiosInstance.delete<{ message: string }>('/follow/delete', { data: { followingId: userId } }),

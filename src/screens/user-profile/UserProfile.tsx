@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Typography } from '~/constants';
-import { MenuIcon, AddUserIcon, ReelLightIcon, ArrowToLeft } from '~/assets/svgs';
+import { MenuIcon, AddUserIcon, ReelLightIcon, ArrowToLeft, LockIcon } from '~/assets/svgs';
 import { BaseText } from '~/components/rn-components';
 import { Avatar } from '~/components/avatar';
 import { RouteProp, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -10,12 +10,13 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { SizedBox } from '~/components/separate-components';
 import SlideUpModal from '~/components/slide-up/SlideUpModal';
 import { useQuery } from '@tanstack/react-query';
-import { userApi } from '~/api/userApi';
+import { userApi } from '~/api';
 import { conversationApi } from '~/api/conversationApi';
 import { AuthenticatedStackParamList } from '~/navigation/types';
 import { Navigation } from '~/utils';
 import { useFollowMutation, useAuthStore, useTheme, Theme } from '~/hooks';
 import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import Tabs from '~/screens/profile/components/Tabs';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'UserProfile'>;
  
@@ -27,7 +28,7 @@ const UserProfile = () => {
   const currentUser = useAuthStore(state => state.user);
   const isOwnProfile = currentUser?.id === id;
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data: user, isLoading, refetch } = useQuery({
     queryKey: ['userProfile', id],
     queryFn: async () => {
       if (!id) return null;
@@ -44,37 +45,75 @@ const UserProfile = () => {
   );
 
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
 
   useEffect(() => {
-    if (data) {
-      setIsFollowing(!!data.isFollowing);
-      setFollowerCount(data.follower ?? 0);
+    if (user) {
+      setIsFollowing(!!user.isFollowing);
+      setIsPending(user.followStatus === 'PENDING' || !!user.isPending);
+      setFollowerCount(user.follower ?? 0);
     }
-  }, [data]);
+  }, [user]);
 
   const { createFollow, deleteFollow } = useFollowMutation();
 
   const handleFollowToggle = () => {
     if (!id) return;
-    const nextState = !isFollowing;
-    setIsFollowing(nextState);
-    setFollowerCount(prev => nextState ? prev + 1 : Math.max(0, prev - 1));
 
     if (isFollowing) {
+      setIsFollowing(false);
+      setIsPending(false);
+      setFollowerCount(prev => Math.max(0, prev - 1));
+      deleteFollow.mutate(id);
+    } else if (isPending) {
+      setIsPending(false);
+      setIsFollowing(false);
       deleteFollow.mutate(id);
     } else {
+      if (user?.isPrivate) {
+        setIsPending(true);
+        setIsFollowing(false);
+      } else {
+        setIsFollowing(true);
+        setIsPending(false);
+        setFollowerCount(prev => prev + 1);
+      }
       createFollow.mutate(id);
     }
   };
+
+  const getFollowButtonConfig = () => {
+    if (isFollowing) {
+      return {
+        text: 'Đang theo dõi',
+        style: styles.followingButton,
+        textColor: theme.black,
+      };
+    }
+    if (isPending) {
+      return {
+        text: 'Đã yêu cầu',
+        style: styles.followingButton,
+        textColor: theme.black,
+      };
+    }
+    return {
+      text: 'Theo dõi',
+      style: styles.followButton,
+      textColor: theme.white,
+    };
+  };
+
+  const followButtonConfig = getFollowButtonConfig();
 
   const handleMessage = async () => {
     try {
       const res = await conversationApi.createConversation(id);
       const convId = res.data?.data?.id || (res.data as any)?.id;
       if (convId) {
-        const avatarUri = data?.avatarUrl || data?.imageUrl;
-        Navigation.goToConversation(convId, data?.username, avatarUri);
+        const avatarUri = user?.avatarUrl || user?.imageUrl;
+        Navigation.goToConversation(convId, user?.username, avatarUri);
       }
     } catch (err) {
       console.error('Failed to create conversation', err);
@@ -87,32 +126,33 @@ const UserProfile = () => {
       <ScrollView>
         <View style={styles.paddingHorizontal}>
           <View style={styles.headerRow}>
-            <ArrowToLeft 
-              height={36} width={36}
-              onPress={() => Navigation.goBack()}
-            />
+            <TouchableOpacity onPress={() => Navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <ArrowToLeft height={36} width={36} />
+            </TouchableOpacity>
             <BaseText typography={Typography.bodyBold.xxxLarge}>
-              {data?.username}
+              {user?.username}
             </BaseText>
-            <MenuIcon height={36} width={36} onPress={() => { console.log(id); }}/>
+            <TouchableOpacity onPress={() => { console.log(id); }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <MenuIcon height={36} width={36} />
+            </TouchableOpacity>
           </View>
           <View style={styles.profileInfoRow}>
             <Avatar 
-              url={data?.avatarUrl || data?.imageUrl} 
+              url={user?.avatarUrl || user?.imageUrl} 
               size={86} 
               id={id} 
-              hasActiveStory={data?.hasActiveStory}
-              isSeenStory={data?.isSeenStory}
+              hasActiveStory={user?.hasActiveStory}
+              isSeenStory={user?.isSeenStory}
             />
             <View>
               <BaseText typography={Typography.bodyBold.medium}>
-                {data?.username}
+                {user?.username}
               </BaseText>
               <SizedBox height={8}/>
               <View style={styles.statsRow}>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {data?.postCount ?? 0}
+                  {user?.postCount ?? 0}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
                   bài viết
@@ -128,7 +168,7 @@ const UserProfile = () => {
                 </View>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {data?.following ?? 0}
+                  {user?.following ?? 0}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
                   đang theo dõi
@@ -143,11 +183,11 @@ const UserProfile = () => {
           <View style={styles.actionButtonsRow}>
             {!isOwnProfile && (
               <TouchableOpacity 
-                style={[styles.button, isFollowing ? styles.followingButton : styles.followButton, styles.flex1]}
+                style={[styles.button, followButtonConfig.style, styles.flex1]}
                 onPress={handleFollowToggle}
               >
-                <BaseText color={isFollowing ? theme.black : theme.white} typography={Typography.bodyBold.medium}>
-                  {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+                <BaseText color={followButtonConfig.textColor} typography={Typography.bodyBold.medium}>
+                  {followButtonConfig.text}
                 </BaseText>
               </TouchableOpacity>
             )}
@@ -157,17 +197,35 @@ const UserProfile = () => {
             >
               <BaseText color={theme.white} typography={Typography.bodyBold.medium}>Nhắn tin</BaseText>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <AddUserIcon height={20} width={20} color={theme.white}
-                onPress={() => console.log(data)}
-              />
+            <TouchableOpacity 
+              style={styles.iconButton}
+              onPress={() => console.log(user)}
+            >
+              <AddUserIcon height={20} width={20} color={theme.white} />
             </TouchableOpacity>
           </View>
         </View>
         <SizedBox height={24}/>
 
-        <View style={styles.tabContainer}>
-        </View>
+        {!isOwnProfile && user?.isPrivate && !isFollowing ? (
+          <View style={styles.privateContainer}>
+            <View style={styles.lockCircle}>
+              <LockIcon height={36} width={36} color={theme.white} />
+            </View>
+            <SizedBox height={16} />
+            <BaseText typography={Typography.bodyBold.large} color={theme.white}>
+              Đây là tài khoản riêng tư
+            </BaseText>
+            <SizedBox height={6} />
+            <BaseText typography={Typography.bodyRegular.medium} color={theme.placeholder} style={styles.privateSubtitle}>
+              Hãy theo dõi tài khoản này để xem bài viết và thước phim của họ.
+            </BaseText>
+          </View>
+        ) : (
+          <View style={styles.tabContainer}>
+            <Tabs id={id} />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -229,6 +287,24 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     height: 500,
     borderWidth: 1,
     borderColor: theme.border,
+  },
+  privateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 56,
+    paddingHorizontal: 24,
+  },
+  lockCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: theme.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  privateSubtitle: {
+    textAlign: 'center',
   },
   modalOption: {
     flexDirection: 'row',

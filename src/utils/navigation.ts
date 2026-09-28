@@ -213,5 +213,24 @@ export const Navigation = {
                 screen: 'CameraScreen'
             })
         }
-    }
+    },
+
+    goToDetailMedia: (uri: string, mediaType?: 'image' | 'video', thumbnail?: string) => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate('App' , {
+                screen: 'DetailMedia',
+                params: { uri, mediaType, thumbnail }
+            })
+        }
+    },
+
+    goToSetting: () => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate("App", {
+                screen: 'Setting'
+            })
+        }
+    },
 };

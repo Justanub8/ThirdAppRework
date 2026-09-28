@@ -11,20 +11,13 @@ import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { CameraRoll } from '@react-native-camera-roll/camera-roll'
 import { CustomHeader } from '~/components/headers'
 import { CameraLightIcon, CrossIcon } from '~/assets/svgs'
-import { Navigation } from '~/utils'
+import { Navigation, formatDuration, isVideoMedia } from '~/utils'
 import { BaseText } from '~/components/rn-components'
 import { Typography } from '~/constants'
 import { useTheme, Theme } from '~/hooks'
 
 const { width } = Dimensions.get('window');
 const GRID_SIZE = width / 4;
-
-const formatDuration = (seconds?: number) => {
-  if (!seconds || seconds <= 0) return '';
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-};
 
 const SelectPostMedia = () => {
   const { theme } = useTheme();
@@ -65,11 +58,7 @@ const SelectPostMedia = () => {
     fetchPhotos();
   }, []);
 
-  const isSelectedVideo = Boolean(
-    selectedPhoto?.playableDuration ||
-    selectedPhoto?.type?.startsWith('video') ||
-    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(selectedPhoto?.uri || '')
-  );
+  const isSelectedVideo = isVideoMedia(selectedPhoto);
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
@@ -138,11 +127,7 @@ const SelectPostMedia = () => {
           onEndReachedThreshold={0.5}
           renderItem={({ item }) => {
             const isSelected = selectedPhoto?.uri === item.uri;
-            const isVideo = Boolean(
-              item.playableDuration ||
-              item.type?.startsWith('video') ||
-              /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(item.uri)
-            );
+            const isVideo = isVideoMedia(item);
             return (
               <TouchableOpacity
                 activeOpacity={0.8}

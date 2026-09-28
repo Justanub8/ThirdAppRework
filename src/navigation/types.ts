@@ -26,6 +26,8 @@ export type AuthenticatedStackParamList = {
     Story: { userId: string; userIds?: string[] };
     MyActiveStory: undefined;
     CameraScreen: undefined;
+    DetailMedia: { uri: string; mediaType?: 'image' | 'video'; thumbnail?: string };
+    Setting: undefined;
 };
 
 export type MainTabParamList = {

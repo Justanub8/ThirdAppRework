@@ -6,6 +6,7 @@ import { useAuthStore } from '~/hooks';
 import dayjs from 'dayjs';
 import { Typography } from '~/constants';
 import { MessageVideoItem, MessageImageItem } from './components';
+import { isVideoMedia, Navigation, isEmojiOnlyText } from '~/utils';
 
 const TIME_THRESHOLD_MINUTES = 15;
 
@@ -34,7 +35,6 @@ const Message = ({
     const senderDisplayName = senderObj?.username || senderObj?.name || 'Unknown';
     const [showTime, setShowTime] = React.useState(false);
     const [showName, setShowName] = React.useState(false);
-
     const hasLargeTimeDiff = React.useMemo(() => {
         if (!previous) return true;
         const currentMessageTime = dayjs(item.createdAt);
@@ -51,6 +51,10 @@ const Message = ({
 
     const hasMedia = Boolean(item.media && item.media.length > 0);
     const hasContent = Boolean(item.content && item.content.trim().length > 0);
+    const isOnlyEmoji = React.useMemo(() => {
+        if (hasMedia || !hasContent) return false;
+        return isEmojiOnlyText(item.content!);
+    }, [hasMedia, hasContent, item.content]);
 
   return (
     <View style={styles.messageWrapper}>
@@ -76,7 +80,9 @@ const Message = ({
         <TouchableOpacity 
             style={[
                 styles.bubble,
-                hasMedia && !hasContent ? styles.bubbleWithOnlyMedia : (isMyMessage ? styles.myBubble : styles.otherBubble),
+                (hasMedia && !hasContent) || isOnlyEmoji 
+                    ? styles.bubbleWithOnlyMedia 
+                    : (isMyMessage ? styles.myBubble : styles.otherBubble),
                 isMyMessage ? styles.selfAlignEnd : styles.selfAlignStart,
             ]}
             onPress={() => {
@@ -88,9 +94,7 @@ const Message = ({
             {hasMedia ? (
                 <View style={styles.mediaContainer}>
                     {item.media!.map((m, idx) => {
-                        const isVideo =
-                            m.type === 'video' ||
-                            /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(m.url || '');
+                        const isVideo = isVideoMedia(m);
                         const videoId = m.id || `${item.id || 'msg'}_${m.url || idx}`;
                         const isPlaying = activePlayingVideoId === videoId;
                         return (
@@ -101,9 +105,10 @@ const Message = ({
                                         videoId={videoId}
                                         isPaused={!isPlaying}
                                         onTogglePlay={onTogglePlayVideo}
+                                        onPress={(thumb?: string) => Navigation.goToDetailMedia(m.url, 'video', thumb)}
                                     />
                                 ) : (
-                                    <MessageImageItem url={m.url} />
+                                    <MessageImageItem url={m.url} onPress={() => Navigation.goToDetailMedia(m.url, 'image')}/>
                                 )}
                             </View>
                         );
@@ -112,9 +117,12 @@ const Message = ({
             ) : null}
             {hasContent ? (
                 <BaseText 
-                    color={isMyMessage ? '#FFFFFF' : '#000000'} 
-                    typography={Typography.bodyRegular.medium}
-                    style={hasMedia ? styles.textContentInMedia : undefined}
+                    color={isOnlyEmoji ? undefined : (isMyMessage ? '#FFFFFF' : '#000000')} 
+                    typography={isOnlyEmoji ? undefined : Typography.bodyRegular.medium}
+                    style={[
+                        hasMedia ? styles.textContentInMedia : undefined,
+                        isOnlyEmoji ? styles.emojiText : undefined,
+                    ]}
                 >
                     {item.content}
                 </BaseText>
@@ -179,6 +187,10 @@ const styles = StyleSheet.create({
     textContentInMedia: {
         marginTop: 6,
         paddingHorizontal: 4,
+    },
+    emojiText: {
+        fontSize: 48,
+        lineHeight: 56,
     },
 });
 

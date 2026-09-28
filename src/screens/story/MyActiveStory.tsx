@@ -13,7 +13,7 @@ import { VideoRef } from 'react-native-video';
 import { MultiProgressBar } from './components/MultipleProgressBar';
 import StoryVideoItem from './components/StoryVideoItem';
 import { Avatar } from '~/components/avatar';
-import { timeAgo } from '~/utils';
+import { timeAgo, isVideoMedia } from '~/utils';
 
 const IMAGE_STORY_DURATION_MS = 5 * 1000;
 
@@ -46,7 +46,7 @@ const MyActiveStory = () => {
 
     const totalStories = stories.length;
     const currentStory = stories[activeIndex];
-    const isVideo = currentStory?.media?.type === 'video';
+    const isVideo = isVideoMedia(currentStory?.media);
 
     useFocusEffect(
         useCallback(() => {

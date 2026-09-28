@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'rea
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { CrossIcon, SettingIcon, CameraLightIcon } from '~/assets/svgs'
-import { Navigation } from '~/utils'
+import { Navigation, formatDuration, isVideoMedia } from '~/utils'
 import { BaseText } from '~/components/rn-components'
 import { Theme, useTheme } from '~/hooks'
 import { CustomHeader } from '~/components/headers'
@@ -13,13 +13,6 @@ import { CameraRoll } from '@react-native-camera-roll/camera-roll'
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const GRID_WIDTH = SCREEN_WIDTH / 3;
 const GRID_HEIGHT = GRID_WIDTH * (SCREEN_HEIGHT / SCREEN_WIDTH);
-
-const formatDuration = (seconds?: number) => {
-  if (!seconds || seconds <= 0) return '';
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-};
 
 const SelectStoryMedia = () => {
   const { theme } = useTheme();
@@ -54,11 +47,7 @@ const SelectStoryMedia = () => {
     fetchPhotos()
   }, []);
 
-  const isSelectedVideo = Boolean(
-    selectedPhoto?.playableDuration ||
-    selectedPhoto?.type?.startsWith('video') ||
-    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(selectedPhoto?.uri || '')
-  );
+  const isSelectedVideo = isVideoMedia(selectedPhoto);
 
 
   return (
@@ -102,11 +91,7 @@ const SelectStoryMedia = () => {
         onEndReachedThreshold={0.5}
         renderItem={({ item }: { item: any }) => {
           const isSelected = selectedPhoto?.uri === item.uri;
-          const isVideo = Boolean(
-            item.playableDuration ||
-            item.type?.startsWith('video') ||
-            /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(item.uri)
-          );
+          const isVideo = isVideoMedia(item);
           return (
             <TouchableOpacity
               activeOpacity={0.8}

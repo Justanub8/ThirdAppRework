@@ -1,4 +1,4 @@
-import { IProfileUser } from "~/interfaces";
+import { IProfileUser, IUpdateProfilePayload } from "~/interfaces";
 import axiosInstance from "~/services/axiosClient";
 
 export interface GetAllUsersResponse {
@@ -22,7 +22,7 @@ export const userApi = {
     getAllUsers: (page: number = 1, limit: number = 20) =>
         axiosInstance.get<GetAllUsersResponse>(`/user/all?page=${page}&limit=${limit}`),
 
-    updateProfile: (payload: Partial<IProfileUser>) =>
+    updateProfile: (payload: IUpdateProfilePayload) =>
         axiosInstance.put<{ message: string; user: IProfileUser }>('/user/profile', payload),
 
     getFollowedUser: (page: number = 1, limit: number = 20) =>

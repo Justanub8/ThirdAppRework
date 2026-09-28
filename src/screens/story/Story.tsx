@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Avatar from '~/components/avatar';
 import { CrossIcon, HeartIcon, MessageLightIcon, NotificationIcon } from '~/assets/svgs';
-import { Navigation, timeAgo } from '~/utils';
+import { Navigation, timeAgo, isVideoMedia } from '~/utils';
 import { useTheme, Theme, useLikeMutation } from '~/hooks';
 import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -95,15 +95,13 @@ const Story = () => {
 
   const totalStories = stories.length;
   const currentStory = stories[activeIndex];
-  const isVideo = currentStory?.media?.type === 'video';
+  const isVideo = isVideoMedia(currentStory?.media);
   const isCurrentStoryLiked = Boolean(currentStory?.isLiked);
 
-  // Auto record view when current story is viewed
   useEffect(() => {
     if (!currentStory?.id) return;
 
     if (!currentStory.isViewed) {
-      // 1. Optimistically update view state in story cache
       queryClient.setQueryData(['story', activeUserId], (old: any) => {
         if (!Array.isArray(old)) return old;
         const updated = old.map((item: any) =>
@@ -111,7 +109,6 @@ const Story = () => {
             ? { ...item, isViewed: true, viewCount: (item.viewCount || 0) + 1 }
             : item
         );
-        // If all stories are viewed, optimistically mark profile as seen
         const allViewed = updated.length > 0 && updated.every((s: any) => s.isViewed);
         if (allViewed) {
           queryClient.setQueryData(['userProfile', activeUserId], (oldProfile: any) => {
