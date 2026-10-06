@@ -8,11 +8,11 @@ import { useTheme } from '~/hooks';
 const Explore = () => {
   const { theme } = useTheme();
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
-      <PrimaryInput
-        placeholder='Tìm kiếm'
-        LeftComponent={SearchLightIcon}
-      />
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
+      <PrimaryInput placeholder="Tìm kiếm" LeftComponent={SearchLightIcon} />
       {/* <PreviewReel/> */}
     </SafeAreaView>
   );

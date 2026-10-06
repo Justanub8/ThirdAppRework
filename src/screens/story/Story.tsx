@@ -1,8 +1,21 @@
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Avatar from '~/components/avatar';
-import { CrossIcon, HeartIcon, MessageLightIcon, NotificationIcon } from '~/assets/svgs';
+import {
+  CrossIcon,
+  HeartIcon,
+  MessageLightIcon,
+  NotificationIcon,
+} from '~/assets/svgs';
 import { Navigation, timeAgo } from '~/utils';
 import { useTheme, Theme, useLikeMutation } from '~/hooks';
 import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components';
@@ -17,7 +30,7 @@ import StoryVideoItem from './components/StoryVideoItem';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Story'>;
 
-const IMAGE_STORY_DURATION_MS = 5000; 
+const IMAGE_STORY_DURATION_MS = 5000;
 
 const Story = () => {
   const { theme } = useTheme();
@@ -109,19 +122,23 @@ const Story = () => {
         const updated = old.map((item: any) =>
           item.id === currentStory.id
             ? { ...item, isViewed: true, viewCount: (item.viewCount || 0) + 1 }
-            : item
+            : item,
         );
         // If all stories are viewed, optimistically mark profile as seen
-        const allViewed = updated.length > 0 && updated.every((s: any) => s.isViewed);
+        const allViewed =
+          updated.length > 0 && updated.every((s: any) => s.isViewed);
         if (allViewed) {
-          queryClient.setQueryData(['userProfile', activeUserId], (oldProfile: any) => {
-            if (!oldProfile) return oldProfile;
-            return { ...oldProfile, isSeenStory: true };
-          });
+          queryClient.setQueryData(
+            ['userProfile', activeUserId],
+            (oldProfile: any) => {
+              if (!oldProfile) return oldProfile;
+              return { ...oldProfile, isSeenStory: true };
+            },
+          );
           queryClient.setQueryData(['followedStories'], (oldStories: any) => {
             if (!Array.isArray(oldStories)) return oldStories;
             return oldStories.map((u: any) =>
-              u.id === activeUserId ? { ...u, isSeenStory: true } : u
+              u.id === activeUserId ? { ...u, isSeenStory: true } : u,
             );
           });
         }
@@ -129,14 +146,16 @@ const Story = () => {
       });
 
       // 2. Call view API in background
-      viewApi.createView({ targetId: currentStory.id, targetType: 'Story' }).catch(() => {});
+      viewApi
+        .createView({ targetId: currentStory.id, targetType: 'Story' })
+        .catch(() => {});
     }
   }, [currentStory?.id, currentStory?.isViewed, activeUserId, queryClient]);
 
   // When leaving the screen, invalidate queries to ensure consistency
   useEffect(() => {
     return () => {
-      userIds.forEach((uId) => {
+      userIds.forEach(uId => {
         queryClient.invalidateQueries({ queryKey: ['userProfile', uId] });
       });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
@@ -155,11 +174,11 @@ const Story = () => {
 
   const handleNext = useCallback(() => {
     if (activeIndex < totalStories - 1) {
-      setActiveIndex((prev) => prev + 1);
+      setActiveIndex(prev => prev + 1);
       setProgress(0);
       setDuration(1);
     } else if (currentUserIndex < userIds.length - 1) {
-      setCurrentUserIndex((prev) => prev + 1);
+      setCurrentUserIndex(prev => prev + 1);
       setActiveIndex(0);
       setProgress(0);
       setDuration(1);
@@ -170,14 +189,18 @@ const Story = () => {
 
   const handlePrevious = useCallback(() => {
     if (activeIndex > 0) {
-      setActiveIndex((prev) => prev - 1);
+      setActiveIndex(prev => prev - 1);
       setProgress(0);
       setDuration(1);
     } else if (currentUserIndex > 0) {
       const targetPrevUserIndex = currentUserIndex - 1;
       const targetPrevUserId = userIds[targetPrevUserIndex];
-      const cached = queryClient.getQueryData<any[]>(['story', targetPrevUserId]);
-      const lastStoryIdx = Array.isArray(cached) && cached.length > 0 ? cached.length - 1 : 0;
+      const cached = queryClient.getQueryData<any[]>([
+        'story',
+        targetPrevUserId,
+      ]);
+      const lastStoryIdx =
+        Array.isArray(cached) && cached.length > 0 ? cached.length - 1 : 0;
 
       setCurrentUserIndex(targetPrevUserIndex);
       setActiveIndex(lastStoryIdx);
@@ -196,7 +219,7 @@ const Story = () => {
     const step = intervalTime / IMAGE_STORY_DURATION_MS;
 
     imageTimerRef.current = setInterval(() => {
-      setProgress((prev) => {
+      setProgress(prev => {
         const nextProgress = prev + step;
         if (nextProgress >= 1) {
           if (imageTimerRef.current) clearInterval(imageTimerRef.current);
@@ -219,7 +242,9 @@ const Story = () => {
 
   if (isLoading) {
     return (
-      <View style={[styles.centerContainer, { backgroundColor: theme.background }]}>
+      <View
+        style={[styles.centerContainer, { backgroundColor: theme.background }]}
+      >
         <ActivityIndicator size="large" color={theme.text} />
       </View>
     );
@@ -227,16 +252,23 @@ const Story = () => {
 
   if (totalStories === 0) {
     if (currentUserIndex < userIds.length - 1) {
-      setCurrentUserIndex((prev) => prev + 1);
+      setCurrentUserIndex(prev => prev + 1);
       setActiveIndex(0);
       setProgress(0);
       setDuration(1);
       return null;
     }
     return (
-      <View style={[styles.centerContainer, { backgroundColor: theme.background }]}>
-        <BaseText typography={Typography.bodyMedium.large}>Không có tin nào</BaseText>
-        <TouchableOpacity style={styles.backButton} onPress={() => Navigation.goBack()}>
+      <View
+        style={[styles.centerContainer, { backgroundColor: theme.background }]}
+      >
+        <BaseText typography={Typography.bodyMedium.large}>
+          Không có tin nào
+        </BaseText>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => Navigation.goBack()}
+        >
           <BaseText color={theme.blue}>Quay lại</BaseText>
         </TouchableOpacity>
       </View>
@@ -253,7 +285,10 @@ const Story = () => {
         {isVideo && mediaUrl ? (
           hasVideoError ? (
             <View style={[StyleSheet.absoluteFill, styles.errorContainer]}>
-              <BaseText color="#FFFFFF" typography={Typography.bodyMedium.medium}>
+              <BaseText
+                color="#FFFFFF"
+                typography={Typography.bodyMedium.medium}
+              >
                 Không thể phát nội dung
               </BaseText>
             </View>
@@ -263,8 +298,8 @@ const Story = () => {
               url={mediaUrl}
               style={styles.media}
               isPaused={isPaused}
-              onLoad={(data) => setDuration(data.duration || 1)}
-              onProgress={(data) => {
+              onLoad={data => setDuration(data.duration || 1)}
+              onProgress={data => {
                 if (duration > 0) {
                   setProgress(data.currentTime / duration);
                 }
@@ -282,10 +317,24 @@ const Story = () => {
             resizeMode="contain"
           />
         ) : (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#181818', justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
-              <BaseText color="#888888" typography={Typography.bodyMedium.medium} style={{ textAlign: 'center' }}>
-                Không có nội dung hiển thị
-              </BaseText>
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                backgroundColor: '#181818',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 24,
+              },
+            ]}
+          >
+            <BaseText
+              color="#888888"
+              typography={Typography.bodyMedium.medium}
+              style={{ textAlign: 'center' }}
+            >
+              Không có nội dung hiển thị
+            </BaseText>
           </View>
         )}
       </View>
@@ -309,30 +358,33 @@ const Story = () => {
         </View>
       </View>
 
-      <SafeAreaView style={{flex: 1}} pointerEvents="box-none">
-        <View style={{justifyContent: 'center', alignItems: 'center'}}>
-            <MultiProgressBar
-                total={totalStories}
-                activeIndex={activeIndex}
-                progress={progress}
-            />
+      <SafeAreaView style={{ flex: 1 }} pointerEvents="box-none">
+        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          <MultiProgressBar
+            total={totalStories}
+            activeIndex={activeIndex}
+            progress={progress}
+          />
         </View>
         <View style={styles.headerBar}>
-            <View style={styles.authorInfo}>
-                <Avatar
-                url={author?.avatarUrl || author?.imageUrl}
-                size={36}
-                id={author?.id}
-                disabled
-                />
-                <BaseText color="#FFFFFF" typography={Typography.bodyBold.medium}>
-                {author?.username || 'user'}
-                </BaseText>
-                <BaseText color="#FFFFFF" typography={Typography.bodyRegular.small}>
-                {timeAgo(createdAt)}
-                </BaseText>
-            </View>
-          <TouchableOpacity onPress={() => Navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <View style={styles.authorInfo}>
+            <Avatar
+              url={author?.avatarUrl || author?.imageUrl}
+              size={36}
+              id={author?.id}
+              disabled
+            />
+            <BaseText color="#FFFFFF" typography={Typography.bodyBold.medium}>
+              {author?.username || 'user'}
+            </BaseText>
+            <BaseText color="#FFFFFF" typography={Typography.bodyRegular.small}>
+              {timeAgo(createdAt)}
+            </BaseText>
+          </View>
+          <TouchableOpacity
+            onPress={() => Navigation.goBack()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
             <CrossIcon width={28} height={28} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -356,7 +408,8 @@ const Story = () => {
         <TouchableOpacity
           onPress={handleToggleLike}
           activeOpacity={0.7}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           {isCurrentStoryLiked ? (
             <HeartIcon width={28} height={28} color="#FF3040" />
           ) : (
@@ -384,7 +437,7 @@ const getStyles = (_theme: Theme) =>
     media: {
       width: '100%',
       height: '100%',
-      zIndex: -1
+      zIndex: -1,
     },
     centerContainer: {
       flex: 1,

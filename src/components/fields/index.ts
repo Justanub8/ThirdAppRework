@@ -1,2 +1,2 @@
-import PrimaryField from "./PrimaryField";
-export { PrimaryField};
+import PrimaryField from './PrimaryField';
+export { PrimaryField };

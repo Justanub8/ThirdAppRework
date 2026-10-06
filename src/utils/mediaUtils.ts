@@ -13,14 +13,21 @@ export const formatMediaUrl = (url?: string): string => {
     if (Config.BASE_API_URL) {
       try {
         const match = Config.BASE_API_URL.match(/https?:\/\/([^:/]+)/);
-        if (match && match[1] && match[1] !== 'localhost' && match[1] !== '127.0.0.1') {
+        if (
+          match &&
+          match[1] &&
+          match[1] !== 'localhost' &&
+          match[1] !== '127.0.0.1'
+        ) {
           host = match[1];
         }
-      } catch {
-      }
+      } catch {}
     }
 
-    if (Platform.OS === 'android' && (host === 'localhost' || host === '127.0.0.1')) {
+    if (
+      Platform.OS === 'android' &&
+      (host === 'localhost' || host === '127.0.0.1')
+    ) {
       host = '10.0.2.2';
     }
 
@@ -45,8 +52,12 @@ export const resolveLocalMediaUri = async (
     /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(fileName || '');
 
   const extMatch = /\.(\w+)(\?.*)?$/.exec(uri);
-  const ext = extMatch ? `.${extMatch[1]}` : (isVideo ? '.mp4' : '.jpg');
-  const name = fileName || `${isVideo ? 'video' : 'media'}_${Date.now()}${ext.startsWith('.') ? ext : `.${ext}`}`;
+  const ext = extMatch ? `.${extMatch[1]}` : isVideo ? '.mp4' : '.jpg';
+  const name =
+    fileName ||
+    `${isVideo ? 'video' : 'media'}_${Date.now()}${
+      ext.startsWith('.') ? ext : `.${ext}`
+    }`;
   const destPath = `${RNFS.CachesDirectoryPath}/${name}`;
 
   try {
@@ -61,7 +72,9 @@ export const resolveLocalMediaUri = async (
           if (RNFS.copyAssetsVideoIOS) {
             const copiedPath = await RNFS.copyAssetsVideoIOS(uri, destPath);
             if (copiedPath) {
-              return copiedPath.startsWith('file://') ? copiedPath : `file://${copiedPath}`;
+              return copiedPath.startsWith('file://')
+                ? copiedPath
+                : `file://${copiedPath}`;
             }
           }
         } catch (videoErr) {
@@ -70,7 +83,9 @@ export const resolveLocalMediaUri = async (
       }
 
       try {
-        const asset = await CameraRoll.iosGetImageDataById(uri, { convertHeicImages: true });
+        const asset = await CameraRoll.iosGetImageDataById(uri, {
+          convertHeicImages: true,
+        });
         if (asset?.node?.image?.filepath) {
           return asset.node.image.filepath;
         }
@@ -79,16 +94,18 @@ export const resolveLocalMediaUri = async (
       }
     }
 
-    if (
-      Platform.OS === 'ios' &&
-      uri.startsWith('assets-library://')
-    ) {
+    if (Platform.OS === 'ios' && uri.startsWith('assets-library://')) {
       if (isVideo && RNFS.copyAssetsVideoIOS) {
         try {
           const copiedPath = await RNFS.copyAssetsVideoIOS(uri, destPath);
-          return copiedPath.startsWith('file://') ? copiedPath : `file://${copiedPath}`;
+          return copiedPath.startsWith('file://')
+            ? copiedPath
+            : `file://${copiedPath}`;
         } catch (videoErr) {
-          console.log('Error copyAssetsVideoIOS from assets-library:', videoErr);
+          console.log(
+            'Error copyAssetsVideoIOS from assets-library:',
+            videoErr,
+          );
         }
       }
       await RNFS.copyAssetsFileIOS(uri, destPath, 0, 0);
@@ -106,8 +123,16 @@ export const resolveLocalMediaUri = async (
 export async function uploadMediaFromUri(
   uri: string,
   mediaType: 'photo' | 'video' | 'image',
-  getUploadUrlFn?: (fileName: string, contentType: string) => Promise<{ uploadUrl: string; key: string }>,
-): Promise<{ key: string; uploadUrl: string; contentType: string; fileName: string }> {
+  getUploadUrlFn?: (
+    fileName: string,
+    contentType: string,
+  ) => Promise<{ uploadUrl: string; key: string }>,
+): Promise<{
+  key: string;
+  uploadUrl: string;
+  contentType: string;
+  fileName: string;
+}> {
   const ext =
     uri.match(/\.(\w+)(\?.*)?$/)?.[1]?.toLowerCase() ||
     (mediaType === 'video' ? 'mp4' : 'jpg');
@@ -129,7 +154,10 @@ export async function uploadMediaFromUri(
     uploadUrl = res.uploadUrl;
     key = res.key;
   } else {
-    const res = await mediaApi.getUploadUrl({ filename: fileName, contentType });
+    const res = await mediaApi.getUploadUrl({
+      filename: fileName,
+      contentType,
+    });
     uploadUrl = res.data.uploadUrl;
     key = res.data.key;
   }

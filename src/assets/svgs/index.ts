@@ -65,13 +65,20 @@ import RawStarIcon from './star-icon.svg';
 import RawMusicIcon from './music-icon.svg';
 import RawScribbleIcon from './scribble-icon.svg';
 
-export function withThemeIcon(SvgComponent: React.FC<SvgProps>, defaultColor?: string): React.FC<SvgProps> {
-  const ThemedIcon: React.FC<SvgProps> = (props) => {
+export function withThemeIcon(
+  SvgComponent: React.FC<SvgProps>,
+  defaultColor?: string,
+): React.FC<SvgProps> {
+  const ThemedIcon: React.FC<SvgProps> = props => {
     const { theme } = useTheme();
     const resolvedColor = props.color ?? defaultColor ?? theme.icon;
-    return React.createElement(SvgComponent, { ...props, color: resolvedColor });
+    return React.createElement(SvgComponent, {
+      ...props,
+      color: resolvedColor,
+    });
   };
-  ThemedIcon.displayName = SvgComponent.displayName || SvgComponent.name || 'ThemedIcon';
+  ThemedIcon.displayName =
+    SvgComponent.displayName || SvgComponent.name || 'ThemedIcon';
   return ThemedIcon;
 }
 

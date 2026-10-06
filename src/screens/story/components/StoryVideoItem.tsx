@@ -13,23 +13,25 @@ export interface StoryVideoItemProps {
   onError?: (error: any) => void;
 }
 
-export const StoryVideoItem = forwardRef<VideoRef, StoryVideoItemProps>((props, ref) => {
-  const { url, style, isPaused, onLoad, onProgress, onEnd, onError } = props;
+export const StoryVideoItem = forwardRef<VideoRef, StoryVideoItemProps>(
+  (props, ref) => {
+    const { url, style, isPaused, onLoad, onProgress, onEnd, onError } = props;
 
-  return (
-    <BaseVideo
-      ref={ref}
-      uri={url}
-      style={style}
-      resizeMode="contain"
-      paused={isPaused}
-      onLoad={onLoad}
-      onProgress={onProgress}
-      onEnd={onEnd}
-      onError={onError}
-    />
-  );
-});
+    return (
+      <BaseVideo
+        ref={ref}
+        uri={url}
+        style={style}
+        resizeMode="contain"
+        paused={isPaused}
+        onLoad={onLoad}
+        onProgress={onProgress}
+        onEnd={onEnd}
+        onError={onError}
+      />
+    );
+  },
+);
 
 StoryVideoItem.displayName = 'StoryVideoItem';
 

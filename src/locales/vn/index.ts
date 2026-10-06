@@ -1,5 +1,3 @@
-const vn = {
-
-}
+const vn = {};
 
 export default vn;

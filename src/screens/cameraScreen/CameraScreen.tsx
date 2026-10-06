@@ -1,4 +1,9 @@
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import React, { useEffect } from 'react';
 import {
   Camera,
@@ -38,7 +43,7 @@ const CameraScreen = () => {
           onPreviewImageAvailable: () => {
             console.log('Received image');
           },
-        }
+        },
       );
     } catch (error) {
       console.error('Lỗi chụp ảnh:', error);
@@ -51,7 +56,10 @@ const CameraScreen = () => {
         <BaseText typography={Typography.bodyMedium.large}>
           Ứng dụng cần quyền truy cập Camera
         </BaseText>
-        <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+        <TouchableOpacity
+          style={styles.permissionButton}
+          onPress={requestPermission}
+        >
           <BaseText color="#FFFFFF">Cấp quyền Camera</BaseText>
         </TouchableOpacity>
       </SafeAreaView>
@@ -62,7 +70,9 @@ const CameraScreen = () => {
     return (
       <SafeAreaView style={styles.centerContainer}>
         <ActivityIndicator size="large" color={theme.black} />
-        <BaseText style={{ marginTop: 12 }}>Đang tìm thiết bị Camera...</BaseText>
+        <BaseText style={{ marginTop: 12 }}>
+          Đang tìm thiết bị Camera...
+        </BaseText>
       </SafeAreaView>
     );
   }
@@ -76,12 +86,19 @@ const CameraScreen = () => {
         outputs={[photoOutput]}
       />
       <SafeAreaView edges={['top']} style={styles.topOverlay}>
-        <TouchableOpacity style={styles.closeButton} onPress={() => Navigation.pop()}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => Navigation.pop()}
+        >
           <CrossIcon width={28} height={28} color="#FFFFFF" />
         </TouchableOpacity>
       </SafeAreaView>
       <SafeAreaView edges={['bottom']} style={styles.bottomOverlay}>
-        <TouchableOpacity style={styles.captureButton} onPress={handleTakePhoto} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.captureButton}
+          onPress={handleTakePhoto}
+          activeOpacity={0.7}
+        >
           <View style={styles.captureButtonInner} />
         </TouchableOpacity>
       </SafeAreaView>

@@ -8,7 +8,10 @@ interface PostVideoItemProps {
   isPaused: boolean;
 }
 
-export const PostVideoItem: React.FC<PostVideoItemProps> = ({ url, isPaused }) => {
+export const PostVideoItem: React.FC<PostVideoItemProps> = ({
+  url,
+  isPaused,
+}) => {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {

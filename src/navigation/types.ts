@@ -1,56 +1,61 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import type {
+  NativeStackNavigationProp,
+  NativeStackScreenProps,
+} from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 export type RootStackParamList = {
-    Auth: NavigatorScreenParams<AuthStackParamList>;
-    App: NavigatorScreenParams<AuthenticatedStackParamList>;
+  Auth: NavigatorScreenParams<AuthStackParamList>;
+  App: NavigatorScreenParams<AuthenticatedStackParamList>;
 };
 
 export type AuthStackParamList = {
-    Login: undefined;
-    SignUp: undefined;
+  Login: undefined;
+  SignUp: undefined;
 };
 
 export type AuthenticatedStackParamList = {
-    Main: NavigatorScreenParams<MainTabParamList>;
-    Conversation: { id: string; name?: string, imageUrl?: string };
-    NewMessage: undefined;
-    UserProfile: { id: string };
-    SelectPostMedia: undefined;
-    CreatePost: { uri: string; mediaType?: 'image' | 'video' };
-    SelectStoryMedia: undefined;
-    CreateStory: { uri: string; mediaType?: 'image' | 'video'};
-    SelectReelMedia: undefined;
-    CreateReel: { uri: string; mediaType?: 'image' | 'video'};
-    Story: { userId: string; userIds?: string[] };
-    MyActiveStory: undefined;
-    CameraScreen: undefined;
+  Main: NavigatorScreenParams<MainTabParamList>;
+  Conversation: { id: string; name?: string; imageUrl?: string };
+  NewMessage: undefined;
+  UserProfile: { id: string };
+  SelectPostMedia: undefined;
+  CreatePost: { uri: string; mediaType?: 'image' | 'video' };
+  SelectStoryMedia: undefined;
+  CreateStory: { uri: string; mediaType?: 'image' | 'video' };
+  SelectReelMedia: undefined;
+  CreateReel: { uri: string; mediaType?: 'image' | 'video' };
+  Story: { userId: string; userIds?: string[] };
+  MyActiveStory: undefined;
+  CameraScreen: undefined;
 };
 
 export type MainTabParamList = {
-    HomeScreen: undefined;
-    Reels: undefined;
-    Message: undefined;
-    Explore: undefined;
-    Profile: undefined;
+  HomeScreen: undefined;
+  Reels: undefined;
+  Message: undefined;
+  Explore: undefined;
+  Profile: undefined;
 };
 
 // Global type declaration for React Navigation
 declare global {
-    namespace ReactNavigation {
-        interface RootParamList extends RootStackParamList {}
-    }
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
 }
 
 // Navigation Props helpers
-export type AuthScreenProps<T extends keyof AuthStackParamList> = 
-    NativeStackScreenProps<AuthStackParamList, T>;
+export type AuthScreenProps<T extends keyof AuthStackParamList> =
+  NativeStackScreenProps<AuthStackParamList, T>;
 
-export type AuthenticatedScreenProps<T extends keyof AuthenticatedStackParamList> = 
-    NativeStackScreenProps<AuthenticatedStackParamList, T>;
+export type AuthenticatedScreenProps<
+  T extends keyof AuthenticatedStackParamList,
+> = NativeStackScreenProps<AuthenticatedStackParamList, T>;
 
-export type MainTabScreenProps<T extends keyof MainTabParamList> = 
-    BottomTabScreenProps<MainTabParamList, T>;
+export type MainTabScreenProps<T extends keyof MainTabParamList> =
+  BottomTabScreenProps<MainTabParamList, T>;
 
-export type AppNavigationProp = NativeStackNavigationProp<AuthenticatedStackParamList>;
+export type AppNavigationProp =
+  NativeStackNavigationProp<AuthenticatedStackParamList>;

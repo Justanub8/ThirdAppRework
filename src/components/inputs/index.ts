@@ -1,4 +1,4 @@
-import PrimaryInput from "./PrimaryInput";
-import MultipleLineInput from './MultipleLineInput'
+import PrimaryInput from './PrimaryInput';
+import MultipleLineInput from './MultipleLineInput';
 
-export {PrimaryInput, MultipleLineInput}
+export { PrimaryInput, MultipleLineInput };

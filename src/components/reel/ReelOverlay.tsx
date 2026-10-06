@@ -59,56 +59,84 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
 
   return (
     <>
-      <View style={[styles.bottomContainer, { bottom: 20 }]} pointerEvents="box-none">
+      <View
+        style={[styles.bottomContainer, { bottom: 20 }]}
+        pointerEvents="box-none"
+      >
         <View style={styles.bottomLeft} pointerEvents="box-none">
-            <View style={styles.reelInformation} pointerEvents="box-none">
-              <Avatar 
-                url={reel.user?.avatarUrl || reel.user?.imageUrl} 
-                size={36}
-                id={reelUserId}
-              />
-              <BaseText color={'#ffffff'} typography={Typography.bodyBold.medium}>
-                {reel.user?.username || 'user'}
-              </BaseText>
-              
-              {!isOwnReel && reelUserId && (
-                <TouchableOpacity 
-                  style={[styles.followButton, isFollowing && styles.followingButton]}
-                  onPress={handleFollowToggle}
-                >
-                  <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>
-                    {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
-                  </BaseText>
-                </TouchableOpacity>
-              )}
-            </View>
-            <SizedBox height={12} />
-            <BaseText color={'#ffffff'} typography={Typography.bodyRegular.medium} numberOfLines={2}>
-              {reel.caption}
+          <View style={styles.reelInformation} pointerEvents="box-none">
+            <Avatar
+              url={reel.user?.avatarUrl || reel.user?.imageUrl}
+              size={36}
+              id={reelUserId}
+            />
+            <BaseText color={'#ffffff'} typography={Typography.bodyBold.medium}>
+              {reel.user?.username || 'user'}
             </BaseText>
+
+            {!isOwnReel && reelUserId && (
+              <TouchableOpacity
+                style={[
+                  styles.followButton,
+                  isFollowing && styles.followingButton,
+                ]}
+                onPress={handleFollowToggle}
+              >
+                <BaseText
+                  color={'#ffffff'}
+                  typography={Typography.bodyBold.small}
+                >
+                  {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+                </BaseText>
+              </TouchableOpacity>
+            )}
+          </View>
+          <SizedBox height={12} />
+          <BaseText
+            color={'#ffffff'}
+            typography={Typography.bodyRegular.medium}
+            numberOfLines={2}
+          >
+            {reel.caption}
+          </BaseText>
         </View>
 
         <View style={styles.bottomRight} pointerEvents="box-none">
           <View style={styles.actionItem}>
-            <LikeButton 
-              size={32} 
-              id={reelId} 
-              type="Reel" 
-              initialLiked={reel.isLiked} 
-              inactiveColor="#ffffff" 
+            <LikeButton
+              size={32}
+              id={reelId}
+              type="Reel"
+              initialLiked={reel.isLiked}
+              inactiveColor="#ffffff"
               activeColor="#F44336"
-              onLikeToggle={(isLiked) => setLikeCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1))}
+              onLikeToggle={isLiked =>
+                setLikeCount(prev =>
+                  isLiked ? prev + 1 : Math.max(0, prev - 1),
+                )
+              }
             />
-            <SizedBox height={4}/>
-            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{likeCount}</BaseText>
+            <SizedBox height={4} />
+            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>
+              {likeCount}
+            </BaseText>
           </View>
 
           <View style={styles.actionItem}>
-            <CommentIcon height={32} width={32} color={'#ffffff'} 
-              onPress={() => SheetManager.show('CommentSheet', {payload: {targetId: reelId, targetType: "Reel"}})}
+            <CommentIcon
+              height={32}
+              width={32}
+              color={'#ffffff'}
+              onPress={() =>
+                SheetManager.show('CommentSheet', {
+                  payload: { targetId: reelId, targetType: 'Reel' },
+                })
+              }
             />
-            <SizedBox height={4}/>
-            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{reel.commentCount || 0}</BaseText>
+            <SizedBox height={4} />
+            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>
+              {reel.commentCount || 0}
+            </BaseText>
           </View>
 
           <View style={styles.actionItem}>
@@ -119,10 +147,16 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
               initialBookmarked={reel.isBookmarked}
               inactiveColor="#ffffff"
               activeColor="#ffffff"
-              onBookmarkToggle={(isBookmarked) => setBookmarkCount(prev => isBookmarked ? prev + 1 : Math.max(0, prev - 1))}
+              onBookmarkToggle={isBookmarked =>
+                setBookmarkCount(prev =>
+                  isBookmarked ? prev + 1 : Math.max(0, prev - 1),
+                )
+              }
             />
-            <SizedBox height={4}/>
-            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{bookmarkCount}</BaseText>
+            <SizedBox height={4} />
+            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>
+              {bookmarkCount}
+            </BaseText>
           </View>
 
           <View style={styles.actionItem}>
@@ -133,16 +167,24 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
               initialReposted={reel.isReposted}
               inactiveColor="#ffffff"
               activeColor="#23d04e"
-              onRepostToggle={(isReposted) => setRepostCount(prev => isReposted ? prev + 1 : Math.max(0, prev - 1))}
+              onRepostToggle={isReposted =>
+                setRepostCount(prev =>
+                  isReposted ? prev + 1 : Math.max(0, prev - 1),
+                )
+              }
             />
-            <SizedBox height={4}/>
-            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{repostCount}</BaseText>
+            <SizedBox height={4} />
+            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>
+              {repostCount}
+            </BaseText>
           </View>
 
           <View style={styles.actionItem}>
             <MessageLightIcon height={32} width={32} color={'#ffffff'} />
-            <SizedBox height={4}/>
-            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>{reel.shareCount || 0}</BaseText>
+            <SizedBox height={4} />
+            <BaseText color={'#ffffff'} typography={Typography.bodyBold.small}>
+              {reel.shareCount || 0}
+            </BaseText>
           </View>
 
           <View style={styles.actionItem}>
@@ -155,7 +197,9 @@ const ReelOverlay = ({ reel, progress = 1 }: ReelOverlayProps) => {
 
       {reel.media?.type === 'video' ? (
         <View style={[styles.progressBarContainer, { bottom: 4 }]}>
-          <View style={[styles.progressBarActive, { width: `${progress * 100}%` }]} />
+          <View
+            style={[styles.progressBarActive, { width: `${progress * 100}%` }]}
+          />
         </View>
       ) : null}
     </>

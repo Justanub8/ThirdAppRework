@@ -32,7 +32,8 @@ export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
     height: targetWidth,
   });
 
-  const effectivePaused = controlledPaused !== undefined ? controlledPaused : internalPaused;
+  const effectivePaused =
+    controlledPaused !== undefined ? controlledPaused : internalPaused;
 
   useEffect(() => {
     setDimensions({
@@ -64,7 +65,10 @@ export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
       const computedHeight = Math.round(targetWidth / ratio);
       const minHeight = Math.round(targetWidth * 0.5);
       const maxHeight = Math.round(targetWidth * 1.85);
-      const clampedHeight = Math.min(Math.max(computedHeight, minHeight), maxHeight);
+      const clampedHeight = Math.min(
+        Math.max(computedHeight, minHeight),
+        maxHeight,
+      );
 
       setDimensions({
         width: targetWidth,

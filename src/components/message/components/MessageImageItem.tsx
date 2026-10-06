@@ -27,20 +27,26 @@ export const MessageImageItem: React.FC<MessageImageItemProps> = ({
 
   const formattedUrl = formatMediaUrl(url);
 
-  const calculateAndSetDimensions = useCallback((w: number, h: number) => {
-    if (w > 0 && h > 0) {
-      const ratio = w / h;
-      const computedHeight = Math.round(targetWidth / ratio);
-      const minHeight = Math.round(targetWidth * 0.5);
-      const maxHeight = Math.round(targetWidth * 1.85);
-      const clampedHeight = Math.min(Math.max(computedHeight, minHeight), maxHeight);
+  const calculateAndSetDimensions = useCallback(
+    (w: number, h: number) => {
+      if (w > 0 && h > 0) {
+        const ratio = w / h;
+        const computedHeight = Math.round(targetWidth / ratio);
+        const minHeight = Math.round(targetWidth * 0.5);
+        const maxHeight = Math.round(targetWidth * 1.85);
+        const clampedHeight = Math.min(
+          Math.max(computedHeight, minHeight),
+          maxHeight,
+        );
 
-      setDimensions({
-        width: targetWidth,
-        height: clampedHeight,
-      });
-    }
-  }, [targetWidth]);
+        setDimensions({
+          width: targetWidth,
+          height: clampedHeight,
+        });
+      }
+    },
+    [targetWidth],
+  );
 
   useEffect(() => {
     setDimensions({
@@ -51,14 +57,17 @@ export const MessageImageItem: React.FC<MessageImageItemProps> = ({
       Image.getSize(
         formattedUrl,
         (w, h) => calculateAndSetDimensions(w, h),
-        () => {}
+        () => {},
       );
     }
   }, [formattedUrl, targetWidth, calculateAndSetDimensions]);
 
   const handleLoad = (event: OnLoadEvent) => {
     if (event?.nativeEvent?.width && event?.nativeEvent?.height) {
-      calculateAndSetDimensions(event.nativeEvent.width, event.nativeEvent.height);
+      calculateAndSetDimensions(
+        event.nativeEvent.width,
+        event.nativeEvent.height,
+      );
     }
   };
 

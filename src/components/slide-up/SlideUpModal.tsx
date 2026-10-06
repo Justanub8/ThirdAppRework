@@ -1,74 +1,88 @@
-import { View, StyleSheet } from 'react-native'
-import * as React from 'react'
-import { BottomSheetFooter, BottomSheetModal, BottomSheetScrollView, BottomSheetFooterProps } from '@gorhom/bottom-sheet';
+import { View, StyleSheet } from 'react-native';
+import * as React from 'react';
+import {
+  BottomSheetFooter,
+  BottomSheetModal,
+  BottomSheetScrollView,
+  BottomSheetFooterProps,
+} from '@gorhom/bottom-sheet';
 import { SizedBox } from '../separate-components';
 import { BaseText } from '../rn-components';
 import { Typography } from '~/constants';
 interface SlideUpModalProps {
-    modalTitle?: string;
-    renderComponent: React.ReactNode;
-    footerComponent?: React.ReactNode;
-    disableScrollView?: boolean;
-    snapPoints?: string[];
+  modalTitle?: string;
+  renderComponent: React.ReactNode;
+  footerComponent?: React.ReactNode;
+  disableScrollView?: boolean;
+  snapPoints?: string[];
 }
 
-const SlideUpModal = React.forwardRef<BottomSheetModal, SlideUpModalProps>((
-    {modalTitle, renderComponent, footerComponent, disableScrollView = false, snapPoints = ['60%', '80%']}, ref
-) => {
-    const handleSheetChanges = React.useCallback((_index: number) => { 
-    },[])
+const SlideUpModal = React.forwardRef<BottomSheetModal, SlideUpModalProps>(
+  (
+    {
+      modalTitle,
+      renderComponent,
+      footerComponent,
+      disableScrollView = false,
+      snapPoints = ['60%', '80%'],
+    },
+    ref,
+  ) => {
+    const handleSheetChanges = React.useCallback((_index: number) => {}, []);
     const renderHeader = () => {
-        return (
-            <View style={styles.headerContainer}>
-                <SizedBox height={12}/>
-                <SizedBox height={3} width={40} backgroundColor={'#616161'} borderRadius={9999}/>
-                <SizedBox height={18}/>
-                <BaseText typography={Typography.bodyBold.large}>
-                    {modalTitle}
-                </BaseText>
-                <SizedBox height={10}/>
-            </View>
-        )
-    }
+      return (
+        <View style={styles.headerContainer}>
+          <SizedBox height={12} />
+          <SizedBox
+            height={3}
+            width={40}
+            backgroundColor={'#616161'}
+            borderRadius={9999}
+          />
+          <SizedBox height={18} />
+          <BaseText typography={Typography.bodyBold.large}>
+            {modalTitle}
+          </BaseText>
+          <SizedBox height={10} />
+        </View>
+      );
+    };
     const renderFooter = React.useCallback(
-    (props: BottomSheetFooterProps) => ( 
+      (props: BottomSheetFooterProps) => (
         <BottomSheetFooter {...props} bottomInset={24}>
-            {footerComponent}
+          {footerComponent}
         </BottomSheetFooter>
-    ),
-    [footerComponent]
+      ),
+      [footerComponent],
     );
-  return (
-    <BottomSheetModal
+    return (
+      <BottomSheetModal
         ref={ref}
         index={0}
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
         enablePanDownToClose={true}
         enableDynamicSizing={false}
-        handleComponent={modalTitle? renderHeader : null}
+        handleComponent={modalTitle ? renderHeader : null}
         footerComponent={renderFooter}
-    >
+      >
         {disableScrollView ? (
-            <>
-                {renderComponent}
-            </>
+          <>{renderComponent}</>
         ) : (
-            <BottomSheetScrollView style={{ flex: 1 }}>
-                <View>
-                    {renderComponent}
-                </View>
-            </BottomSheetScrollView>
+          <BottomSheetScrollView style={{ flex: 1 }}>
+            <View>{renderComponent}</View>
+          </BottomSheetScrollView>
         )}
-    </BottomSheetModal>
-  )
-})
+      </BottomSheetModal>
+    );
+  },
+);
 const styles = StyleSheet.create({
-    headerContainer: {
-        borderBottomColor: '#bdbdbd',
-        borderBottomWidth: 1,
-        alignItems: 'center'
-    }
-})
+  headerContainer: {
+    borderBottomColor: '#bdbdbd',
+    borderBottomWidth: 1,
+    alignItems: 'center',
+  },
+});
 
-export default SlideUpModal
+export default SlideUpModal;

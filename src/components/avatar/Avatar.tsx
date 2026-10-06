@@ -34,7 +34,7 @@ const STORY_GRADIENT_COLORS = [
   '#E1306C',
   '#e300c8',
   '#833AB4',
-  ];
+];
 
 const SEEN_STORY_COLORS = ['#8E8E93', '#C7C7CC'];
 
@@ -51,15 +51,13 @@ const Avatar: React.FC<AvatarProps> = ({
   storyUserIds,
 }) => {
   const { theme } = useTheme();
-  const currentUserId = useAuthStore((state) => state.user?.id);
+  const currentUserId = useAuthStore(state => state.user?.id);
 
   const imageSource = React.useMemo(() => {
     if (!url) return images.avater_random;
     if (typeof url === 'string') return { uri: url };
     return url;
   }, [url]);
-
-
 
   const handlePress = () => {
     if (onPress) {
@@ -87,7 +85,9 @@ const Avatar: React.FC<AvatarProps> = ({
 
   const renderAvatarImage = () => {
     if (hasActiveStory) {
-      const gradientColors = isSeenStory ? SEEN_STORY_COLORS : STORY_GRADIENT_COLORS;
+      const gradientColors = isSeenStory
+        ? SEEN_STORY_COLORS
+        : STORY_GRADIENT_COLORS;
       return (
         <LinearGradient
           style={{

@@ -2,9 +2,9 @@ import React from 'react';
 import { View, StyleSheet, DimensionValue } from 'react-native';
 
 interface MultiProgressBarProps {
-  total: number;       
-  activeIndex: number; 
-  progress: number;    
+  total: number;
+  activeIndex: number;
+  progress: number;
 }
 
 export const MultiProgressBar: React.FC<MultiProgressBarProps> = ({
@@ -39,20 +39,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     paddingHorizontal: 8,
-    gap: 4,              
+    gap: 4,
     position: 'absolute',
     top: 8,
     zIndex: 10,
   },
   track: {
-    flex: 1,             
+    flex: 1,
     height: 2.5,
-    backgroundColor: 'rgba(255, 255, 255, 0.35)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
     borderRadius: 2,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    backgroundColor: '#FFFFFF', 
+    backgroundColor: '#FFFFFF',
   },
 });

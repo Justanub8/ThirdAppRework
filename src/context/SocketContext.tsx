@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '~/hooks';
 import Config from 'react-native-config';
@@ -23,7 +29,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     const socketUrl =
       Config.SOCKET_URL ||
-      (Config.BASE_API_URL ? Config.BASE_API_URL.replace(/\/api\/?$/, '') : 'http://localhost:5050');
+      (Config.BASE_API_URL
+        ? Config.BASE_API_URL.replace(/\/api\/?$/, '')
+        : 'http://localhost:5050');
 
     const socketInstance = io(socketUrl, {
       auth: { token: accessToken },
@@ -37,7 +45,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       console.log('Đã kết nối chat socket:', socketInstance.id);
     });
 
-    socketInstance.on('connect_error', (err) => {
+    socketInstance.on('connect_error', err => {
       console.log('Lỗi kết nối socket:', err.message);
     });
 
@@ -49,9 +57,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, accessToken]);
 
   return (
-    <SocketContext.Provider value={socket}>
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
   );
 }
 

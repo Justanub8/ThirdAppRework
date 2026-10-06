@@ -1,17 +1,16 @@
-import GlobalAlert, {alert} from "./GlobalAlert";
+import GlobalAlert, { alert } from './GlobalAlert';
 import GlobalLoading, {
-    hideGlobalLoading,
-    showGlobalLoading,
-} from "./GlobalLoading";
-import GlobalToast, { showToast } from "./GlobalToast";
+  hideGlobalLoading,
+  showGlobalLoading,
+} from './GlobalLoading';
+import GlobalToast, { showToast } from './GlobalToast';
 
-
-export { 
-    GlobalAlert, 
-    GlobalLoading, 
-    GlobalToast,
-    alert,
-    hideGlobalLoading,
-    showGlobalLoading,
-    showToast
-}
+export {
+  GlobalAlert,
+  GlobalLoading,
+  GlobalToast,
+  alert,
+  hideGlobalLoading,
+  showGlobalLoading,
+  showToast,
+};

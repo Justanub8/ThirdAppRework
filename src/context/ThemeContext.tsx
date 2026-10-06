@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import { useColorScheme } from 'react-native';
 import { createMMKV } from 'react-native-mmkv';
 import { COLORS } from '~/constants';
@@ -36,12 +42,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     storage.set(THEME_MODE_KEY, newMode);
   }, []);
 
-  const resolvedScheme = mode === 'system' ? (systemScheme ?? 'light') : mode;
-  const activeSchemeColors = resolvedScheme === 'dark' ? COLORS.dark : COLORS.light;
-  const theme = useMemo<Theme>(() => ({
-    ...COLORS.common,
-    ...activeSchemeColors,
-  }), [activeSchemeColors]);
+  const resolvedScheme = mode === 'system' ? systemScheme ?? 'light' : mode;
+  const activeSchemeColors =
+    resolvedScheme === 'dark' ? COLORS.dark : COLORS.light;
+  const theme = useMemo<Theme>(
+    () => ({
+      ...COLORS.common,
+      ...activeSchemeColors,
+    }),
+    [activeSchemeColors],
+  );
 
   return (
     <ThemeContext.Provider value={{ theme, mode, setMode }}>

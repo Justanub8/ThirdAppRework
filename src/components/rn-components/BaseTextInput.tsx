@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {StyleProp, TextInput, TextInputProps, TextStyle} from 'react-native';
+import { StyleProp, TextInput, TextInputProps, TextStyle } from 'react-native';
 import { FONT_FAMILY } from '~/constants';
 import { useTheme } from '~/hooks';
 export interface BaseTextProps extends TextInputProps {
@@ -74,7 +74,7 @@ const BaseTextInput = (
       {...textProps}
       allowFontScaling={false}
       style={[
-        {fontFamily: FONT_FAMILY.medium},
+        { fontFamily: FONT_FAMILY.medium },
         typography,
         {
           color: color ?? theme.text,

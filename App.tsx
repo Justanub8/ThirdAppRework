@@ -20,39 +20,39 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 30, // Cache tươi trong 30s, tránh fetch trùng lặp khi đổi tab
       gcTime: 1000 * 60 * 5, // Giữ cache 5 phút trong RAM
     },
-  }
-})
+  },
+});
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <SafeAreaProvider>
-            <GestureHandlerRootView style={{flex: 1}}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
               <BottomSheetModalProvider>
-                  <SheetProvider>
-                    <SocketProvider>
-                      <View style= {{flex: 1}}>
-                          <NavigationContainer 
-                            ref={navigationRef}
-                            onStateChange={() => {
-                              SheetManager.hideAll();
-                            }}
-                          >
-                              <RootNavigator/>
-                          </NavigationContainer>
-                          <GlobalToast />
-                          <GlobalLoading />
-                          <GlobalAlert />
-                      </View>
-                    </SocketProvider>
-                  </SheetProvider>
+                <SheetProvider>
+                  <SocketProvider>
+                    <View style={{ flex: 1 }}>
+                      <NavigationContainer
+                        ref={navigationRef}
+                        onStateChange={() => {
+                          SheetManager.hideAll();
+                        }}
+                      >
+                        <RootNavigator />
+                      </NavigationContainer>
+                      <GlobalToast />
+                      <GlobalLoading />
+                      <GlobalAlert />
+                    </View>
+                  </SocketProvider>
+                </SheetProvider>
               </BottomSheetModalProvider>
             </GestureHandlerRootView>
           </SafeAreaProvider>
         </View>
       </ThemeProvider>
     </QueryClientProvider>
-  )
-}
-export default App
+  );
+};
+export default App;

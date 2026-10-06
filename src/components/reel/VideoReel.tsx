@@ -1,4 +1,9 @@
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
 import { VideoRef } from 'react-native-video';
 import ReelOverlay from './ReelOverlay';
@@ -14,7 +19,7 @@ type VideoReelProps = {
 
 const VideoReel = ({ reel, isActive }: VideoReelProps) => {
   const videoRef = useRef<VideoRef>(null);
-  
+
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [duration, setDuration] = useState(1);
@@ -70,7 +75,7 @@ const VideoReel = ({ reel, isActive }: VideoReelProps) => {
             activeOpacity={1}
             onPress={togglePlayPause}
           />
-          
+
           <TouchableOpacity
             style={styles.touchSide}
             activeOpacity={1}
@@ -89,15 +94,15 @@ const VideoReel = ({ reel, isActive }: VideoReelProps) => {
       ) : (
         <BaseVideo
           ref={videoRef}
-          uri={reel.media?.url} 
+          uri={reel.media?.url}
           style={StyleSheet.absoluteFill}
-          resizeMode='contain'
-          paused={!isActive || isPaused} 
-          muted={isMuted}     
+          resizeMode="contain"
+          paused={!isActive || isPaused}
+          muted={isMuted}
           repeat={true}
           onLoadStart={() => setIsLoading(true)}
           onReadyForDisplay={() => setIsLoading(false)}
-          onLoad={(meta) => {
+          onLoad={meta => {
             setIsLoading(false);
             setDuration(meta.duration);
           }}
@@ -111,9 +116,12 @@ const VideoReel = ({ reel, isActive }: VideoReelProps) => {
           }}
         />
       )}
-      
+
       {!hasError && (
-        <View style={[StyleSheet.absoluteFill, styles.darkOverlay]} pointerEvents="none" />
+        <View
+          style={[StyleSheet.absoluteFill, styles.darkOverlay]}
+          pointerEvents="none"
+        />
       )}
 
       {isLoading && !hasError && isActive && !isPaused && (
@@ -124,18 +132,23 @@ const VideoReel = ({ reel, isActive }: VideoReelProps) => {
 
       {!hasError && isActive && isPaused && (
         <View style={styles.centerControls} pointerEvents="box-none">
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.muteButton}
-            onPress={() => setIsMuted(prev => !prev)}    
+            onPress={() => setIsMuted(prev => !prev)}
           >
             {isMuted ? (
-              <MutedIcon height={40} width={40} color={'#FFFFFF'}/>
+              <MutedIcon height={40} width={40} color={'#FFFFFF'} />
             ) : (
-              <UnmutedIcon height={40} width={40} color={'#FFFFFF'}/>
+              <UnmutedIcon height={40} width={40} color={'#FFFFFF'} />
             )}
           </TouchableOpacity>
           <View style={{ height: 24 }} />
-          <PlayIcon style={styles.playButton} height={40} width={40} onPress={togglePlayPause}/>
+          <PlayIcon
+            style={styles.playButton}
+            height={40}
+            width={40}
+            onPress={togglePlayPause}
+          />
         </View>
       )}
 

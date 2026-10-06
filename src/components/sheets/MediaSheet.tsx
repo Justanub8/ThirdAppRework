@@ -6,7 +6,10 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import ActionSheet, { SheetProps, SheetManager } from 'react-native-actions-sheet';
+import ActionSheet, {
+  SheetProps,
+  SheetManager,
+} from 'react-native-actions-sheet';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { Theme, useTheme } from '~/hooks';
 import { BaseText, FastImage } from '../rn-components';
@@ -32,7 +35,7 @@ const formatDuration = (seconds?: number) => {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-const MediaSheet = (props: SheetProps<"MediaSheet">) => {
+const MediaSheet = (props: SheetProps<'MediaSheet'>) => {
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
   const [photos, setPhotos] = useState<any[]>([]);
@@ -104,12 +107,20 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
           });
         }}
       >
-        <FastImage source={{ uri: item.uri }} style={styles.thumbnail} resizeMode="cover" />
+        <FastImage
+          source={{ uri: item.uri }}
+          style={styles.thumbnail}
+          resizeMode="cover"
+        />
         {isVideo ? (
           <View style={styles.videoBadge}>
             <PlayIcon width={12} height={12} color="#FFFFFF" />
             {item.playableDuration ? (
-              <BaseText typography={Typography.bodyRegular.small} color="#FFFFFF" style={styles.durationText}>
+              <BaseText
+                typography={Typography.bodyRegular.small}
+                color="#FFFFFF"
+                style={styles.durationText}
+              >
                 {formatDuration(item.playableDuration)}
               </BaseText>
             ) : null}

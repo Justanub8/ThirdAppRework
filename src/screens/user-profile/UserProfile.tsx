@@ -15,7 +15,7 @@ import { useFollowMutation, useAuthStore, useTheme, Theme } from '~/hooks';
 import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'UserProfile'>;
- 
+
 const UserProfile = () => {
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
@@ -37,7 +37,7 @@ const UserProfile = () => {
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [refetch])
+    }, [refetch]),
   );
 
   const [isFollowing, setIsFollowing] = useState(false);
@@ -56,7 +56,7 @@ const UserProfile = () => {
     if (!id) return;
     const nextState = !isFollowing;
     setIsFollowing(nextState);
-    setFollowerCount(prev => nextState ? prev + 1 : Math.max(0, prev - 1));
+    setFollowerCount(prev => (nextState ? prev + 1 : Math.max(0, prev - 1)));
 
     if (isFollowing) {
       deleteFollow.mutate(id);
@@ -83,20 +83,27 @@ const UserProfile = () => {
       <ScrollView>
         <View style={styles.paddingHorizontal}>
           <View style={styles.headerRow}>
-            <ArrowToLeft 
-              height={36} width={36}
+            <ArrowToLeft
+              height={36}
+              width={36}
               onPress={() => Navigation.goBack()}
             />
             <BaseText typography={Typography.bodyBold.xxxLarge}>
               {data?.username}
             </BaseText>
-            <MenuIcon height={36} width={36} onPress={() => { console.log(id); }}/>
+            <MenuIcon
+              height={36}
+              width={36}
+              onPress={() => {
+                console.log(id);
+              }}
+            />
           </View>
           <View style={styles.profileInfoRow}>
-            <Avatar 
-              url={data?.avatarUrl || data?.imageUrl} 
-              size={86} 
-              id={id} 
+            <Avatar
+              url={data?.avatarUrl || data?.imageUrl}
+              size={86}
+              id={id}
               hasActiveStory={data?.hasActiveStory}
               isSeenStory={data?.isSeenStory}
             />
@@ -104,134 +111,149 @@ const UserProfile = () => {
               <BaseText typography={Typography.bodyBold.medium}>
                 {data?.username}
               </BaseText>
-              <SizedBox height={8}/>
+              <SizedBox height={8} />
               <View style={styles.statsRow}>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {data?.postCount ?? 0}
+                    {data?.postCount ?? 0}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
-                  bài viết
+                    bài viết
                   </BaseText>
                 </View>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {followerCount}
+                    {followerCount}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
-                  người theo dõi
+                    người theo dõi
                   </BaseText>
                 </View>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {data?.following ?? 0}
+                    {data?.following ?? 0}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
-                  đang theo dõi
+                    đang theo dõi
                   </BaseText>
                 </View>
               </View>
             </View>
           </View>
 
-          <SizedBox height={16}/>
+          <SizedBox height={16} />
 
           <View style={styles.actionButtonsRow}>
             {!isOwnProfile && (
-              <TouchableOpacity 
-                style={[styles.button, isFollowing ? styles.followingButton : styles.followButton, styles.flex1]}
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  isFollowing ? styles.followingButton : styles.followButton,
+                  styles.flex1,
+                ]}
                 onPress={handleFollowToggle}
               >
-                <BaseText color={isFollowing ? theme.black : theme.white} typography={Typography.bodyBold.medium}>
+                <BaseText
+                  color={isFollowing ? theme.black : theme.white}
+                  typography={Typography.bodyBold.medium}
+                >
                   {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
                 </BaseText>
               </TouchableOpacity>
             )}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.button, styles.flex1]}
               onPress={handleMessage}
             >
-              <BaseText color={theme.white} typography={Typography.bodyBold.medium}>Nhắn tin</BaseText>
+              <BaseText
+                color={theme.white}
+                typography={Typography.bodyBold.medium}
+              >
+                Nhắn tin
+              </BaseText>
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
-              <AddUserIcon height={20} width={20} color={theme.white}
+              <AddUserIcon
+                height={20}
+                width={20}
+                color={theme.white}
                 onPress={() => console.log(data)}
               />
             </TouchableOpacity>
           </View>
         </View>
-        <SizedBox height={24}/>
+        <SizedBox height={24} />
 
-        <View style={styles.tabContainer}>
-        </View>
+        <View style={styles.tabContainer}></View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const getStyles = (theme: Theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-  },
-  paddingHorizontal: {
-    paddingHorizontal: 8,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  profileInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 24,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  actionButtonsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 4,
-  },
-  flex1: {
-    flex: 1,
-  },
-  button: {
-    borderRadius: 10,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.grey,
-  },
-  followButton: {
-    backgroundColor: theme.blue,
-  },
-  followingButton: {
-    backgroundColor: theme.buttonLightGrey,
-  },
-  iconButton: {
-    borderRadius: 10,
-    height: 36,
-    width: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.grey,
-  },
-  tabContainer: {
-    height: 500,
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  modalOption: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: theme.border,
-    gap: 16,
-  },
-});
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    paddingHorizontal: {
+      paddingHorizontal: 8,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    profileInfoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 24,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      gap: 16,
+    },
+    actionButtonsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 4,
+    },
+    flex1: {
+      flex: 1,
+    },
+    button: {
+      borderRadius: 10,
+      height: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.grey,
+    },
+    followButton: {
+      backgroundColor: theme.blue,
+    },
+    followingButton: {
+      backgroundColor: theme.buttonLightGrey,
+    },
+    iconButton: {
+      borderRadius: 10,
+      height: 36,
+      width: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.grey,
+    },
+    tabContainer: {
+      height: 500,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    modalOption: {
+      flexDirection: 'row',
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: 16,
+    },
+  });
 
 export default UserProfile;

@@ -8,11 +8,11 @@ import { BaseText } from '../rn-components';
 import { CrossIcon, HeartIcon } from '~/assets/svgs';
 
 type GlobalToastType = {
-  visible: boolean,
-  text: string,
+  visible: boolean;
+  text: string;
   timeoutId?: NodeJS.Timeout;
   type?: 'error' | 'success';
-  showToast: (toast: { text?: string, type?: 'error' | 'success' }) => void;
+  showToast: (toast: { text?: string; type?: 'error' | 'success' }) => void;
   hide: () => void;
 };
 
@@ -21,7 +21,13 @@ export const useGlobalToast = create<GlobalToastType>((set, get) => ({
   text: '',
   type: 'success',
   timeoutId: undefined,
-  showToast: ({ text, type }: { text?: string, type?: 'error' | 'success' }) => {
+  showToast: ({
+    text,
+    type,
+  }: {
+    text?: string;
+    type?: 'error' | 'success';
+  }) => {
     set({ visible: true, text, type });
     if (typeof get().timeoutId === 'number') {
       clearTimeout(get().timeoutId);
@@ -31,7 +37,7 @@ export const useGlobalToast = create<GlobalToastType>((set, get) => ({
     }, 2000);
     set({ timeoutId: id });
   },
-  hide: () => set({ visible: false, text: '' })
+  hide: () => set({ visible: false, text: '' }),
 }));
 
 const GlobalToast = () => {
@@ -46,41 +52,27 @@ const GlobalToast = () => {
         styles.containerMobile,
         {
           top,
-        }
+        },
       ]}
     >
       <View
         style={[
           styles.content,
           {
-            backgroundColor: 
+            backgroundColor:
               type === 'error'
-              ? 'rgba(247, 85, 85, 0.2)'
-              : 'rgba(27, 172, 75, 0.2)'
+                ? 'rgba(247, 85, 85, 0.2)'
+                : 'rgba(27, 172, 75, 0.2)',
           },
         ]}
       >
         {type === 'error' ? (
-          <CrossIcon
-            width={18}
-            height={18}
-            color={'#F75555'}
-          />
+          <CrossIcon width={18} height={18} color={'#F75555'} />
         ) : (
-          <HeartIcon
-            width={18}
-            height={18}
-            color={'#1BAC4B'}
-          />
+          <HeartIcon width={18} height={18} color={'#1BAC4B'} />
         )}
-        <SizedBox width={6}/>
-        <BaseText 
-          color={
-            type === 'error' 
-            ? '#F75555'
-            : '#1BAC4B'
-          }
-        >
+        <SizedBox width={6} />
+        <BaseText color={type === 'error' ? '#F75555' : '#1BAC4B'}>
           {text}
         </BaseText>
       </View>

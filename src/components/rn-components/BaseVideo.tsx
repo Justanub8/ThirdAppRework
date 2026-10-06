@@ -1,5 +1,9 @@
 import React, { forwardRef, useMemo } from 'react';
-import Video, { VideoRef, ReactVideoProps, ReactVideoSource } from 'react-native-video';
+import Video, {
+  VideoRef,
+  ReactVideoProps,
+  ReactVideoSource,
+} from 'react-native-video';
 import { formatMediaUrl } from '~/utils';
 
 export interface BaseVideoProps extends Omit<ReactVideoProps, 'source'> {
@@ -14,7 +18,12 @@ const BaseVideo = forwardRef<VideoRef, BaseVideoProps>((props, ref) => {
     if (uri) {
       return { uri: formatMediaUrl(uri) };
     }
-    if (source && typeof source === 'object' && 'uri' in source && typeof source.uri === 'string') {
+    if (
+      source &&
+      typeof source === 'object' &&
+      'uri' in source &&
+      typeof source.uri === 'string'
+    ) {
       return {
         ...source,
         uri: formatMediaUrl(source.uri),
@@ -23,13 +32,7 @@ const BaseVideo = forwardRef<VideoRef, BaseVideoProps>((props, ref) => {
     return source || { uri: '' };
   }, [uri, source]);
 
-  return (
-    <Video
-      ref={ref}
-      source={formattedSource}
-      {...rest}
-    />
-  );
+  return <Video ref={ref} source={formattedSource} {...rest} />;
 });
 
 BaseVideo.displayName = 'BaseVideo';
