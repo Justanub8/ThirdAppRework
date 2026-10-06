@@ -1,14 +1,12 @@
 import axiosInstance from "~/services/axiosClient";
 import { PaginatedResponse } from "./api";
+import { IShare, SharePayload } from "~/interfaces";
 
-export interface SharePayload {
-    targetId: string;
-    targetType: 'Post' | 'Reel' | 'Story' | string;
-}
+export type { SharePayload };
 
 export const shareApi = {
     createShare: (payload: SharePayload) =>
-        axiosInstance.post<{ message: string; share?: any }>('/share/create', payload),
+        axiosInstance.post<{ message: string; share?: IShare }>('/share/create', payload),
 
     deleteShare: (payload: SharePayload) =>
         axiosInstance.delete<{ message: string }>('/share/delete', { data: payload }),
@@ -16,11 +14,11 @@ export const shareApi = {
     getUserShares: (page: number = 1, limit: number = 20, targetType?: string, userId?: string) => {
         const targetParam = targetType ? `&targetType=${targetType}` : '';
         const userParam = userId ? `&userId=${userId}` : '';
-        return axiosInstance.get<PaginatedResponse<any>>(`/share/all?page=${page}&limit=${limit}${targetParam}${userParam}`);
+        return axiosInstance.get<PaginatedResponse<IShare>>(`/share/all?page=${page}&limit=${limit}${targetParam}${userParam}`);
     },
 
     getUserSharesByUserId: (userId: string, page: number = 1, limit: number = 20, targetType?: string) => {
         const targetParam = targetType ? `&targetType=${targetType}` : '';
-        return axiosInstance.get<PaginatedResponse<any>>(`/share/user/${userId}?page=${page}&limit=${limit}${targetParam}`);
+        return axiosInstance.get<PaginatedResponse<IShare>>(`/share/user/${userId}?page=${page}&limit=${limit}${targetParam}`);
     },
 };

@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity, Dimensions, FlatList } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Dimensions, FlatList, ViewToken } from 'react-native';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Typography } from '~/constants';
 import { BaseText } from '../rn-components';
@@ -77,8 +77,8 @@ const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) =>
         );
     });
 
-    const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: any[] }) => {
-        if (viewableItems.length > 0) {
+    const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+        if (viewableItems.length > 0 && typeof viewableItems[0].index === 'number') {
           setActiveIndex(viewableItems[0].index);
         }
     }, []);

@@ -13,6 +13,7 @@ import { useCommentMutation, useTheme, Theme, useAuthStore } from '~/hooks';
 import { Typography } from '~/constants';
 import { CameraLightIcon, CrossIcon } from '~/assets/svgs';
 import { SelectedChatMedia } from './MediaSheet';
+import { IComment } from '~/interfaces';
 
 const CommentSheet = (props: SheetProps<"CommentSheet">) => {
   const { theme } = useTheme();
@@ -32,7 +33,7 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
       return res.data;
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage: any) => {
+    getNextPageParam: (lastPage: { pagination?: { page: number; totalPages: number } }) => {
       if (lastPage?.pagination && lastPage.pagination.page < lastPage.pagination.totalPages) {
         return lastPage.pagination.page + 1;
       }
@@ -96,7 +97,7 @@ const CommentSheet = (props: SheetProps<"CommentSheet">) => {
             <FlashList
               data={comments}
               renderItem={({ item }) => <Comment item={item} />}
-              keyExtractor={(item: any) => item.id || ''}
+              keyExtractor={(item: IComment) => item.id || ''}
               ListEmptyComponent={
                 <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 40 }}>
                   <BaseText style={{ color: theme.placeholder }}>Chưa có bình luận nào</BaseText>

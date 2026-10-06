@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, Dimensions, Image, TouchableOpacity, StyleProp, ImageStyle } from 'react-native';
 import type { OnLoadEvent } from '@d11/react-native-fast-image';
 import { FastImage } from '~/components/rn-components';
 import { formatMediaUrl } from '~/utils';
@@ -7,11 +7,14 @@ import { formatMediaUrl } from '~/utils';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DEFAULT_MEDIA_WIDTH = Math.round(SCREEN_WIDTH * 0.58);
 
+const imageDimensionCache = new Map<string, { width: number; height: number }>();
+
 interface MessageImageItemProps {
   url: string;
   targetWidth?: number;
-  style?: any;
+  style?: StyleProp<ImageStyle>;
   onPress?: () => void;
+  onLongPress?: () => void;
 }
 
 export const MessageImageItem: React.FC<MessageImageItemProps> = ({
@@ -19,34 +22,43 @@ export const MessageImageItem: React.FC<MessageImageItemProps> = ({
   targetWidth = DEFAULT_MEDIA_WIDTH,
   style,
   onPress,
+  onLongPress,
 }) => {
-  const [dimensions, setDimensions] = useState({
-    width: targetWidth,
-    height: targetWidth,
-  });
+  const cachedDims = url ? imageDimensionCache.get(url) : undefined;
+  const [dimensions, setDimensions] = useState(() => ({
+    width: cachedDims?.width || targetWidth,
+    height: cachedDims?.height || targetWidth,
+  }));
 
   const formattedUrl = formatMediaUrl(url);
 
-  const calculateAndSetDimensions = (w: number, h: number) => {
-    if (w > 0 && h > 0) {
-      const ratio = w / h;
-      const computedHeight = Math.round(targetWidth / ratio);
-      const minHeight = Math.round(targetWidth * 0.5);
-      const maxHeight = Math.round(targetWidth * 1.85);
-      const clampedHeight = Math.min(Math.max(computedHeight, minHeight), maxHeight);
+  const calculateAndSetDimensions = useCallback(
+    (w: number, h: number) => {
+      if (w > 0 && h > 0) {
+        const ratio = w / h;
+        const computedHeight = Math.round(targetWidth / ratio);
+        const minHeight = Math.round(targetWidth * 0.5);
+        const maxHeight = Math.round(targetWidth * 1.85);
+        const clampedHeight = Math.min(Math.max(computedHeight, minHeight), maxHeight);
 
-      setDimensions({
-        width: targetWidth,
-        height: clampedHeight,
-      });
-    }
-  };
+        const newDims = {
+          width: targetWidth,
+          height: clampedHeight,
+        };
+        if (url) {
+          imageDimensionCache.set(url, newDims);
+        }
+        setDimensions(newDims);
+      }
+    },
+    [targetWidth, url],
+  );
 
   useEffect(() => {
-    setDimensions({
-      width: targetWidth,
-      height: targetWidth,
-    });
+    if (url && imageDimensionCache.has(url)) {
+      setDimensions(imageDimensionCache.get(url)!);
+      return;
+    }
     if (formattedUrl) {
       Image.getSize(
         formattedUrl,
@@ -54,7 +66,7 @@ export const MessageImageItem: React.FC<MessageImageItemProps> = ({
         () => {}
       );
     }
-  }, [formattedUrl, targetWidth]);
+  }, [calculateAndSetDimensions, formattedUrl, url]);
 
   const handleLoad = (event: OnLoadEvent) => {
     if (event?.nativeEvent?.width && event?.nativeEvent?.height) {
@@ -65,8 +77,10 @@ export const MessageImageItem: React.FC<MessageImageItemProps> = ({
   return (
     <TouchableOpacity
       activeOpacity={onPress ? 0.9 : 1}
-      disabled={!onPress}
+      disabled={!onPress && !onLongPress}
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={250}
       style={[
         styles.container,
         style,

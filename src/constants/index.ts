@@ -12,8 +12,31 @@ type ColorScheme = {
   readonly sheet: string;
   readonly input: string;
 };
+type CommonColors = {
+  readonly grey: string;
+  readonly subtext: string;
+  readonly muted: string;
+  readonly darkGrey: string;
+  readonly charcoal: string;
+  readonly darkSurface: string;
+  readonly darkBackground: string;
+  readonly border: string;
+  readonly divider: string;
+  readonly placeholder: string;
+  readonly inputBackgroundAlt: string;
+  readonly buttonLightGrey: string;
+  readonly buttonDisabled: string;
+  readonly bubbleLavender: string;
+  readonly transparent: string;
+  readonly facebookBlue: string;
+  readonly brandBlue: string;
+  readonly overlayDark: string;
+  readonly overlayMedium: string;
+  readonly overlaySubtle: string;
+  readonly overlayLight: string;
+};
 
-export const COLORS: {light: ColorScheme, dark: ColorScheme, common: any} = {
+export const COLORS: { light: ColorScheme; dark: ColorScheme; common: CommonColors } = {
     light: {
         background: '#ffffff',
         text: '#000000',

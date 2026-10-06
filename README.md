@@ -15,8 +15,10 @@ Tính năng hiện tại:
 
 Cần làm thêm: 
 -Thêm otp về mail/sdt khi tạo tài khoản
--Nhắn tin nhóm, 
--Chế độ online 
+-Phân quyền nhóm chat, Trạng thái is Typing, Chỉnh trạng thái online, Tag người trong nhóm chat
+-Viết frontend cho phần sửa xoá tin nhắn
+-Viết frontend cho phần thông tin đoạn chat(đặt biệt danh ,chỉnh role, thêm account vào đoạn chat)
+-Custom Pop up animation dùng chung 
 
 
 

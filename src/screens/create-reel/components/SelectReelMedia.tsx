@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'rea
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { CrossIcon, SettingIcon, CameraLightIcon } from '~/assets/svgs'
-import { Navigation, formatDuration, isVideoMedia } from '~/utils'
+import { Navigation, formatDuration, isVideoMedia, NormalizedMediaAsset } from '~/utils'
 import { BaseText } from '~/components/rn-components'
 import { Theme, useTheme } from '~/hooks'
 import { CustomHeader } from '~/components/headers'
@@ -17,8 +17,8 @@ const GRID_HEIGHT = GRID_WIDTH * (SCREEN_HEIGHT / SCREEN_WIDTH);
 const SelectReelMedia = () => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
-  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
-  const [photos, setPhotos] = useState<any[]>([]);
+  const [selectedPhoto, setSelectedPhoto] = useState<NormalizedMediaAsset | null>(null);
+  const [photos, setPhotos] = useState<NormalizedMediaAsset[]>([]);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   
@@ -30,12 +30,12 @@ const SelectReelMedia = () => {
         assetType: 'All',
       });
 
-      const newPhotos = res.edges.map(edge => ({
+      const newPhotos: NormalizedMediaAsset[] = res.edges.map(edge => ({
         ...edge.node.image,
-        type: edge.node.type,
-        playableDuration: edge.node.image.playableDuration,
+        type: (edge.node.type === 'video' ? 'video' : 'image') as 'image' | 'video',
+        playableDuration: edge.node.image.playableDuration ?? undefined,
       }));
-      setPhotos((prev: any[]) => after ? [...prev, ...newPhotos] : newPhotos);
+      setPhotos((prev) => after ? [...prev, ...newPhotos] : newPhotos);
       setHasNextPage(res.page_info.has_next_page);
       setEndCursor(res.page_info.end_cursor);
     }catch(error){
@@ -71,12 +71,12 @@ const SelectReelMedia = () => {
       <FlashList
         data={photos}
         numColumns={3}
-        keyExtractor={(item: any, index) => item.uri + index}
+        keyExtractor={(item: NormalizedMediaAsset, index) => item.uri + index}
         onEndReached={() => {
           if (hasNextPage && endCursor) fetchPhotos(endCursor);
         }}
         onEndReachedThreshold={0.5}
-        renderItem={({ item }: { item: any }) => {
+        renderItem={({ item }: { item: NormalizedMediaAsset }) => {
           const isSelected = selectedPhoto?.uri === item.uri;
           const isVideo = isVideoMedia(item);
           return (

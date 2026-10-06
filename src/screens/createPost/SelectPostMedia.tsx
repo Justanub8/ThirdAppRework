@@ -11,7 +11,7 @@ import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { CameraRoll } from '@react-native-camera-roll/camera-roll'
 import { CustomHeader } from '~/components/headers'
 import { CameraLightIcon, CrossIcon } from '~/assets/svgs'
-import { Navigation, formatDuration, isVideoMedia } from '~/utils'
+import { Navigation, formatDuration, isVideoMedia, NormalizedMediaAsset } from '~/utils'
 import { BaseText } from '~/components/rn-components'
 import { Typography } from '~/constants'
 import { useTheme, Theme } from '~/hooks'
@@ -22,8 +22,8 @@ const GRID_SIZE = width / 4;
 const SelectPostMedia = () => {
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
-  const [photos, setPhotos] = useState<any[]>([]);
-  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+  const [photos, setPhotos] = useState<NormalizedMediaAsset[]>([]);
+  const [selectedPhoto, setSelectedPhoto] = useState<NormalizedMediaAsset | null>(null);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
 
@@ -37,10 +37,10 @@ const SelectPostMedia = () => {
         assetType: 'All',
       });
 
-      const newPhotos = res.edges.map(edge => ({
+      const newPhotos: NormalizedMediaAsset[] = res.edges.map(edge => ({
         ...edge.node.image,
-        type: edge.node.type,
-        playableDuration: edge.node.image.playableDuration,
+        type: (edge.node.type === 'video' ? 'video' : 'image') as 'image' | 'video',
+        playableDuration: edge.node.image.playableDuration ?? undefined,
       }));
       setPhotos(prev => after ? [...prev, ...newPhotos] : newPhotos);
       setHasNextPage(res.page_info.has_next_page);

@@ -107,6 +107,16 @@ export const Navigation = {
         }
     },
 
+    goToConversationDetail: (id: string) => {
+        SheetManager.hideAll();
+        if (navigationRef.isReady()){
+            navigationRef.navigate("App", {
+                screen: 'ConversationDetail',
+                params: {id}
+            });
+        }
+    },
+
     goToNewMessage: () => {
         SheetManager.hideAll();
         if(navigationRef.isReady()){
@@ -116,11 +126,21 @@ export const Navigation = {
         }
     },
 
+    goToNewGroupMessage: () => {
+        SheetManager.hideAll();
+        if(navigationRef.isReady()){
+            navigationRef.navigate('App', {
+                screen: 'NewGroupMessage'
+            })
+        }
+    },
+
     goToUserProfile: (id: string) => {
         SheetManager.hideAll();
         if(navigationRef.isReady()){
             const currentRoute = navigationRef.getCurrentRoute();
-            if (currentRoute?.name === 'UserProfile' && (currentRoute?.params as any)?.id === id) {
+            const currentParams = currentRoute?.params as { id?: string } | undefined;
+            if (currentRoute?.name === 'UserProfile' && currentParams?.id === id) {
                 return;
             }
             navigationRef.navigate('App',{

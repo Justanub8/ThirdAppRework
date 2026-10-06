@@ -110,7 +110,7 @@ const UserProfile = () => {
   const handleMessage = async () => {
     try {
       const res = await conversationApi.createConversation(id);
-      const convId = res.data?.data?.id || (res.data as any)?.id;
+      const convId = res.data?.data?.id;
       if (convId) {
         const avatarUri = user?.avatarUrl || user?.imageUrl;
         Navigation.goToConversation(convId, user?.username, avatarUri);

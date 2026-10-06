@@ -7,7 +7,7 @@ import { Avatar } from '../avatar';
 import { images } from '~/assets/images';
 import { CrossIcon } from '~/assets/svgs';
 import { Navigation } from '~/utils';
-import { IConversation } from '~/interfaces';
+import { IConversation, IProfileUser } from '~/interfaces';
 import { Theme, useTheme } from '~/hooks';
 
 interface ChatProps {
@@ -16,9 +16,34 @@ interface ChatProps {
 }
 
 const Chat = ({ conversation, currentUserId }: ChatProps) => {
-  const otherUser = conversation.participants.find((p: any) => p.id !== currentUserId) || conversation.participants[0];
-  const displayName = otherUser?.username || otherUser?.name || 'Unknown';
-  const avatarUri = otherUser?.avatarUrl || otherUser?.imageUrl;
+  const otherMember =
+    conversation.members?.find((m) => m.userId !== currentUserId) ||
+    conversation.members?.[0];
+  const otherUser = otherMember?.user;
+
+  let displayName = 'Unknown';
+  if (conversation.isGroup) {
+    if (conversation.name) {
+      displayName = conversation.name;
+    } else {
+      displayName =
+        conversation.members
+          ?.filter((m) => m.userId !== currentUserId)
+          .map((m) => m.nickname || m.user?.name || m.user?.username)
+          .filter(Boolean)
+          .join(', ') || 'Nhóm trò chuyện';
+    }
+  } else {
+    displayName =
+      otherMember?.nickname ||
+      otherUser?.name ||
+      otherUser?.username ||
+      'Tài khoản không tồn tại';
+  }
+
+  const avatarUri = conversation.isGroup
+    ? conversation.avatarUrl || otherUser?.avatarUrl || otherUser?.imageUrl
+    : otherUser?.avatarUrl || otherUser?.imageUrl;
   const conversationId = conversation.id || '';
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
@@ -40,7 +65,7 @@ const Chat = ({ conversation, currentUserId }: ChatProps) => {
                 disabled 
             />
             <View style={styles.infoColumn}>
-                <BaseText typography={Typography.bodyBold.medium}>
+                <BaseText typography={Typography.bodyBold.medium} numberOfLines={1} style={{maxWidth: '75%'}}>
                     {displayName}
                 </BaseText>
                 <View style={styles.messageRow}>

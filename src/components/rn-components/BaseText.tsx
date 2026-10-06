@@ -10,6 +10,7 @@ export interface BaseTextProps extends TextProps {
     size?: TextStyle['fontSize'];
     fontFace?: TextStyle['fontFamily'];
     fontWeight?: TextStyle['fontWeight'];
+    fontStyle?: TextStyle['fontStyle'];
     borderWidth?: TextStyle['borderWidth'];
     borderColor?: TextStyle['borderColor'];
     borderBottomWidth?: TextStyle['borderBottomWidth'];

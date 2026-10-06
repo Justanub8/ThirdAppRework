@@ -17,6 +17,7 @@ export const messageApi = {
     sendMessage: ({ conversationId, content, mediaId }: SendMessagePayload) => 
         axiosInstance.post<{ message: string; data: IMessage }>(`/message/send/${conversationId}`, { content, mediaId, conversationId }),
         
-    editMessage: ({ messageId, content }: { messageId: string; content: string }) => 
-        axiosInstance.put<{ message: string; data: IMessage }>(`/message/${messageId}`, { content }),
+    editMessage: ({ messageId, content, status }: { messageId: string; content?: string | null; status: string }) => 
+        axiosInstance.put<{ message: string; data: IMessage }>(`/message/${messageId}`, { content, status }),
 };
+

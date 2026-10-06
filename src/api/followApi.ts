@@ -1,13 +1,13 @@
 import axiosInstance from "~/services/axiosClient";
-import { IProfileUser } from "~/interfaces";
+import { IProfileUser, IFollow } from "~/interfaces";
 import { PaginatedResponse } from "./api";
 
 export const followApi = {
     createFollow: (userId: string) => 
-        axiosInstance.post<{ message: string; follow: any }>('/follow/create', { followingId: userId }),
+        axiosInstance.post<{ message: string; follow: IFollow }>('/follow/create', { followingId: userId }),
 
     updateFollow: (userId: string) => 
-        axiosInstance.post<{ message: string; follow: any }>('/follow/update', { followingId: userId}),
+        axiosInstance.post<{ message: string; follow: IFollow }>('/follow/update', { followingId: userId}),
     
     deleteFollow: (userId: string) => 
         axiosInstance.delete<{ message: string }>('/follow/delete', { data: { followingId: userId } }),

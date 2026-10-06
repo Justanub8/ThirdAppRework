@@ -4,6 +4,9 @@ export interface IReel {
     id?: string;
     user: IProfileUser;
     media: IMedia;
+    mediaId?: string;
+    videoUrl?: string;
+    mediaUrl?: string;
     likeCount: number;
     viewCount?: number;
     shareCount: number;

@@ -9,7 +9,7 @@ export const VIDEO_EXTENSIONS = ['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp', 'm4v
 export const VIDEO_REGEX = /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i;
 export const IMAGE_REGEX = /\.(jpe?g|png|webp|gif|heic|heif)(\?.*)?$/i;
 
-export const formatDuration = (seconds?: number): string => {
+export const formatDuration = (seconds?: number | null): string => {
   if (!seconds || seconds <= 0) return '';
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -17,7 +17,7 @@ export const formatDuration = (seconds?: number): string => {
 };
 
 export const isVideoMedia = (
-  media?: any,
+  media?: unknown,
   fileName?: string,
   isVideoHint?: boolean,
 ): boolean => {
@@ -30,14 +30,21 @@ export const isVideoMedia = (
     return false;
   }
   if (typeof media === 'object' && media !== null) {
-    if (media.playableDuration && media.playableDuration > 0) return true;
-    if (typeof media.type === 'string') {
-      const lowerType = media.type.toLowerCase();
+    const m = media as {
+      playableDuration?: number;
+      type?: string;
+      uri?: string;
+      url?: string;
+      filename?: string;
+    };
+    if (m.playableDuration && m.playableDuration > 0) return true;
+    if (typeof m.type === 'string') {
+      const lowerType = m.type.toLowerCase();
       if (lowerType === 'video' || lowerType.startsWith('video/')) return true;
     }
-    if (media.uri && VIDEO_REGEX.test(media.uri)) return true;
-    if (media.url && VIDEO_REGEX.test(media.url)) return true;
-    if (media.filename && VIDEO_REGEX.test(media.filename)) return true;
+    if (m.uri && VIDEO_REGEX.test(m.uri)) return true;
+    if (m.url && VIDEO_REGEX.test(m.url)) return true;
+    if (m.filename && VIDEO_REGEX.test(m.filename)) return true;
   }
 
   if (fileName && VIDEO_REGEX.test(fileName)) return true;
@@ -183,10 +190,10 @@ export const resolveLocalMediaUri = async (
 
 export interface NormalizedMediaAsset {
   uri: string;
-  filename?: string;
-  extension?: string;
+  filename?: string | null;
+  extension?: string | null;
   type: 'image' | 'video';
-  playableDuration?: number;
+  playableDuration?: number | null;
   width?: number;
   height?: number;
 }

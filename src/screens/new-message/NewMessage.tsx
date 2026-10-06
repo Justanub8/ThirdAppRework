@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { CustomHeader } from '~/components/headers';
-import { CameraLightIcon, LeftArrow } from '~/assets/svgs';
+import { CameraLightIcon, LeftArrow, PersonWithShadowIcon } from '~/assets/svgs';
 import { BaseText, BaseTextInput } from '~/components/rn-components';
 import { Avatar } from '~/components/avatar';
 import { Typography } from '~/constants';
@@ -11,6 +11,7 @@ import { userApi } from '~/api';
 import { IProfileUser } from '~/interfaces';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useConversationMutation, useMessageMutation, useTheme, Theme } from '~/hooks';
+import { SizedBox } from '~/components/separate-components';
 
 const NewMessage = () => {
     const { theme } = useTheme();
@@ -40,11 +41,10 @@ const NewMessage = () => {
 
         setIsSending(true);
         try {
-            // Chỉ tạo/lấy cuộc trò chuyện khi người dùng thực sự gửi tin nhắn đầu tiên
             let activeConvId = conversationId;
             if (!activeConvId) {
                 const res = await createConversation.mutateAsync(contactId);
-                activeConvId = res.data?.data?.id || (res.data as any)?.id;
+                activeConvId = res.data?.data?.id || '';
                 if (!activeConvId) {
                     console.log('Lỗi: Không thể tìm/tạo cuộc trò chuyện');
                     setIsSending(false);
@@ -116,6 +116,13 @@ const NewMessage = () => {
                     <View style={[styles.card, { zIndex: 2 }]}>
                         <ScrollView contentContainerStyle={{ paddingBottom: 16 }} keyboardShouldPersistTaps="handled">
                             <View style={{ padding: 16 }}>
+                                <BaseText 
+                                    typography={Typography.bodyBold.large}
+                                    onPress={() => {Navigation.goToNewGroupMessage()}}
+                                >
+                                    Nhóm Chat
+                                </BaseText>
+                                <SizedBox height={24}/>
                                 <BaseText typography={Typography.bodyBold.large}>Gợi ý</BaseText>
                             </View>
                             

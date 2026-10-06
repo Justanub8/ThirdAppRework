@@ -32,7 +32,7 @@ const CameraScreen = () => {
 
   const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
   const device = useCameraDevice(cameraPosition);
-  const camera = useRef<any>(null);
+  const camera = useRef<React.ElementRef<typeof Camera>>(null);
 
   const [mode, setMode] = useState<'image' | 'video'>('image');
   const [isRecording, setIsRecording] = useState(false);
@@ -50,7 +50,8 @@ const CameraScreen = () => {
     enableAudio: hasMicPermission,
   });
 
-  const recorderRef = useRef<any>(null);
+  type VideoRecorder = Awaited<ReturnType<typeof videoOutput.createRecorder>>;
+  const recorderRef = useRef<VideoRecorder | null>(null);
 
   useEffect(() => {
     if (!hasCameraPermission) {
@@ -59,7 +60,7 @@ const CameraScreen = () => {
   }, [hasCameraPermission, requestCameraPermission]);
 
   useEffect(() => {
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (isRecording) {
       interval = setInterval(() => {
         setRecordingSeconds((prev) => prev + 1);

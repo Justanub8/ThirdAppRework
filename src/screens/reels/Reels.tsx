@@ -1,4 +1,4 @@
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, ViewToken } from 'react-native';
 import React, { useState, useCallback, useRef } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -24,7 +24,7 @@ const Reels = () => {
       const response = await reelApi.getAllReels(pageParam, 10);
       return response.data;
     },
-    getNextPageParam: (lastPage: any) => {
+    getNextPageParam: (lastPage: { pagination?: { page: number; totalPages: number }; hasNextPage?: boolean; currentPage?: number }) => {
       if (lastPage?.pagination) {
         return lastPage.pagination.page < lastPage.pagination.totalPages
           ? lastPage.pagination.page + 1
@@ -35,20 +35,20 @@ const Reels = () => {
     initialPageParam: 1,
   });
 
-  const reels = data?.pages.flatMap((page: any) => page.data || page.reels || []) || [];
+  const reels = data?.pages.flatMap((page) => page.data || (page as { reels?: IReel[] }).reels || []) || [];
 
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 50,
   }).current;
 
-  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: any[] }) => {
-    if (viewableItems.length > 0) {
+  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems.length > 0 && typeof viewableItems[0].index === 'number') {
       setActiveIndex(viewableItems[0].index);
     }
   }, []);
 
   const renderItem = useCallback(({ item, index }: { item: IReel, index: number }) => {
-    const mediaUrl = item.media?.url || (item as any).videoUrl || (item as any).mediaUrl || '';
+    const mediaUrl = item.media?.url || item.videoUrl || item.mediaUrl || '';
     const isVideo = isVideoMedia(item.media || mediaUrl);
 
     return (

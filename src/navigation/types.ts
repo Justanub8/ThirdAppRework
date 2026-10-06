@@ -16,6 +16,7 @@ export type AuthenticatedStackParamList = {
     Main: NavigatorScreenParams<MainTabParamList>;
     Conversation: { id: string; name?: string, imageUrl?: string };
     NewMessage: undefined;
+    NewGroupMessage: undefined;
     UserProfile: { id: string };
     SelectPostMedia: undefined;
     CreatePost: { uri: string; mediaType?: 'image' | 'video' };
@@ -28,6 +29,7 @@ export type AuthenticatedStackParamList = {
     CameraScreen: undefined;
     DetailMedia: { uri: string; mediaType?: 'image' | 'video'; thumbnail?: string };
     Setting: undefined;
+    ConversationDetail: { id: string };
 };
 
 export type MainTabParamList = {

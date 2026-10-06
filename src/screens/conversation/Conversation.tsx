@@ -1,36 +1,83 @@
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, NativeSyntheticEvent, NativeScrollEvent, KeyboardAvoidingView, Platform } from 'react-native';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { memo, useCallback, useMemo } from 'react';
 import { FlashList } from '@shopify/flash-list';
-import { conversationApi, messageApi } from '~/api';
+import { conversationApi } from '~/api';
 import { ArrowToLeft, CallIcon, CameraLightIcon, CrossIcon, PlayIcon } from '~/assets/svgs';
 import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components';
 import { Avatar } from '~/components/avatar';
 import { AuthenticatedStackParamList } from '~/navigation/types';
 import { Navigation, timeAgo } from '~/utils';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { IMessage } from '~/interfaces';
 import Message from '~/components/message/Message';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { images } from '~/assets/images';
-import { COLORS, Typography } from '~/constants';
-import { useMessageMutation, useAuthStore, useTheme, Theme } from '~/hooks';
-import { useSocket, useOnlineStatus } from '~/context';
+import { Typography } from '~/constants';
+import { useTheme, Theme } from '~/hooks';
+import { useOnlineStatus } from '~/context';
 import { useQuery } from '@tanstack/react-query';
 import { SheetManager } from 'react-native-actions-sheet';
-import { mediaApi } from '~/api/mediaApi';
 import { SelectedChatMedia } from '~/components/sheets/MediaSheet';
+import { useConversationLogic } from './components';
+import ClipBoard from '@react-native-clipboard/clipboard';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Conversation'>;
-const SHOW_SCROLL_BUTTON_OFFSET = 300;
+
+const MIN_INPUT_HEIGHT = 32;
+const MAX_INPUT_HEIGHT = 100;
 
 const Conversation = () => {
     const { theme } = useTheme();
-    const styles = React.useMemo(() => getStyles(theme), [theme]);
+    const styles = useMemo(() => getStyles(theme), [theme]);
     const route = useRoute<RouteProps>();
     const { id = '', name: initialName, imageUrl: initialImageUrl } = route.params || {};
-    const { user } = useAuthStore();
-    const socket = useSocket();
-    const { createMessage } = useMessageMutation();
+
+    const {
+        messages,
+        isLoading,
+        isRefreshing,
+        isFetchingNextPage,
+        isTexting,
+        setIsTexting,
+        messageContent,
+        setMessageContent,
+        inputHeight,
+        setInputHeight,
+        selectedMedia,
+        setSelectedMedia,
+        isUploading,
+        showScrollButton,
+        fadeAnim,
+        activePlayingVideoId,
+        listRef,
+        inputRef,
+        user,
+        editingMessage,
+        handleStartEdit,
+        handleCancelEdit,
+        handleDeleteMessage,
+        handlePinMessage,
+        handleReact,
+        handleRefresh,
+        handleLoadMore,
+        handleScroll,
+        handleTogglePlayVideo,
+        handleSend,
+        scrollToBottom,
+        keyExtractor,
+    } = useConversationLogic({ id });
+
+    const computedInputHeight = messageContent.length > 0
+        ? Math.min(MAX_INPUT_HEIGHT, Math.max(MIN_INPUT_HEIGHT, inputHeight))
+        : MIN_INPUT_HEIGHT;
+
+    const renderFooter = useCallback(() => {
+        if (!isFetchingNextPage) return null;
+        return (
+            <View style={styles.footerLoading}>
+                <ActivityIndicator size="small" color={theme.subtext} />
+            </View>
+        );
+    }, [isFetchingNextPage, styles.footerLoading, theme.subtext]);
 
     const { data: conversationData } = useQuery({
         queryKey: ['conversation', id],
@@ -42,175 +89,33 @@ const Conversation = () => {
     });
 
     const currentUserId = user?.id;
-    const otherUser = conversationData?.participants?.find(
-        (p: any) => p.id !== currentUserId
-    ) || conversationData?.participants?.[0];
+    const otherMember =
+        conversationData?.members?.find((m) => m.userId !== currentUserId) ||
+        conversationData?.members?.[0];
+    const otherUser = otherMember?.user;
 
     const { isOnline: isSocketOnline } = useOnlineStatus(otherUser?.id);
     const isOtherUserOnline = isSocketOnline || !!otherUser?.isOnline;
 
-    const displayName = initialName || otherUser?.username || otherUser?.name || 'Unknown';
-    const displayAvatar = initialImageUrl || otherUser?.avatarUrl || otherUser?.imageUrl;
-    const navigation = useNavigation();
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [isFetchingNextPage, setIsFetchingNextPage] = useState<boolean>(false);
-    const [isTexting, setIsTexting] = useState(false);
-    const [messages, setMessages] = useState<IMessage[]>([]);
-    const [pageIndex, setPageIndex] = useState<number>(1);
-    const [isFull, setIsFull] = useState<boolean>(false);
-    const [isRefreshing, setIsRefreshing] = useState(false);
-    const [showScrollButton, setShowScrollButton] = useState(false);
-    const [activePlayingVideoId, setActivePlayingVideoId] = useState<string | null>(null);
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const listRef = useRef<any>(null);
-    const requestIdRef = useRef(0);
-    const isFetchingRef = useRef(false);
-    const [messageContent, setMessageContent] = useState('');
-    const [selectedMedia, setSelectedMedia] = useState<SelectedChatMedia | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
+    const groupMembers =
+        conversationData?.members?.filter((m) => m.userId !== currentUserId) || [];
+    const fallbackGroupName = groupMembers
+        .map((m) => m.nickname || m.user?.name || m.user?.username)
+        .filter(Boolean)
+        .join(', ');
 
-    const handleTogglePlayVideo = useCallback((videoId: string) => {
-        setActivePlayingVideoId(currentPlayingId => {
-            if (currentPlayingId === videoId) {
-                return null;
-            }
-            return videoId;
-        });
-    }, []);
-
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
-            setActivePlayingVideoId(null);
-        });
-        return unsubscribe;
-    }, [navigation]);
-
-    useEffect(() => {
-        if (!socket || !id) return;
-
-        socket.emit('join_conversation', id);
-
-        const handleIncomingMessage = (msg: IMessage) => {
-            if (!msg) return;
-            const msgConvId = msg.conversationId;
-            if (!msgConvId || msgConvId === id) {
-                setMessages(prev => {
-                    const msgId = msg.id;
-                    if (msgId && prev.some(m => m.id === msgId)) {
-                        return prev;
-                    }
-                    return [msg, ...prev];
-                });
-
-            }
-        };
-
-        socket.on('message', handleIncomingMessage);
-
-        return () => {
-            socket.off('message', handleIncomingMessage);
-        };
-    }, [socket, id]);
-
-    useEffect(() => {
-        Animated.timing(fadeAnim, {
-            toValue: showScrollButton ? 1 : 0,
-            duration: 200,
-            useNativeDriver: true,
-        }).start();
-    }, [showScrollButton, fadeAnim]);
-
-    const messagesRef = useRef<IMessage[]>(messages);
-
-    useEffect(() => {
-        messagesRef.current = messages;
-    }, [messages]);
-
-    const fetchData = useCallback(
-        async (page: number, isLoadMore: boolean, isRefreshing: boolean = false) => {
-            const requestId = requestIdRef.current + 1;
-            requestIdRef.current = requestId;
-
-            try {
-                if (isLoadMore) {
-                    setIsFetchingNextPage(true);
-                } else if (isRefreshing) {
-                    setIsLoading(false);
-                } else {
-                    setIsLoading(true);
-                }
-
-                const res = await messageApi.getMessages(id, page, 20);
-                const resultData = res.data as any;
-                const rawMessages: IMessage[] = Array.isArray(resultData)
-                    ? resultData
-                    : (resultData?.items || resultData?.data || []);
-
-                if (requestId !== requestIdRef.current) {
-                    return;
-                }
-
-                if (isLoadMore) {
-                    setMessages(prev => [...prev, ...rawMessages]);
-                } else {
-                    setMessages(rawMessages);
-                }
-                setPageIndex(page);
-
-                const currentTotal = (isLoadMore ? messagesRef.current.length : 0) + rawMessages.length;
-                const totalRecord = Array.isArray(resultData)
-                    ? resultData.length
-                    : (resultData?.pagination?.total || resultData?.total_record || resultData?.total || 0);
-
-                if (rawMessages.length < 20 || currentTotal >= totalRecord) {
-                    setIsFull(true);
-                } else {
-                    setIsFull(false);
-                }
-            } catch (error) {
-                console.error(error);
-            } finally {
-                isFetchingRef.current = false;
-                if (requestId === requestIdRef.current) {
-                    setIsLoading(false);
-                    setIsFetchingNextPage(false);
-                    setIsRefreshing(false);
-                }
-            }
-        },
-        [id]
-    );
-
-    useEffect(() => {
-        fetchData(1, false);
-    }, [fetchData]);
-
-    const handleRefresh = useCallback(() => {
-        if (isFetchingRef.current) return;
-        setActivePlayingVideoId(null);
-        setIsRefreshing(true);
-        fetchData(1, false, true);
-    }, [fetchData]);
-
-    const handleLoadMore = useCallback(() => {
-        if (isFetchingRef.current || isFull || isFetchingNextPage || isLoading) {
-            return;
-        }
-        isFetchingRef.current = true;
-        fetchData(pageIndex + 1, true);
-    }, [isFull, isFetchingNextPage, isLoading, pageIndex, fetchData]);
-
-    const handleScroll = useCallback(
-        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            const { contentOffset } = event.nativeEvent;
-            if (contentOffset.y > SHOW_SCROLL_BUTTON_OFFSET) {
-                setShowScrollButton(true);
-            } else {
-                setShowScrollButton(false);
-            }
-        },
-        []
-    );
+    const displayName =
+        conversationData?.name ||
+        initialName ||
+        (conversationData?.isGroup
+            ? fallbackGroupName
+            : otherMember?.nickname || otherUser?.name || otherUser?.username) ||
+        'Unknown';
+    const displayAvatar =
+        conversationData?.avatarUrl ||
+        initialImageUrl ||
+        otherUser?.avatarUrl ||
+        otherUser?.imageUrl;
 
     const renderItem = useCallback(
         ({ item, index }: { item: IMessage; index: number }) => {
@@ -223,97 +128,20 @@ const Conversation = () => {
                     currentUserId={user?.id}
                     activePlayingVideoId={activePlayingVideoId}
                     onTogglePlayVideo={handleTogglePlayVideo}
+                    onCopy={() => {
+                        if(item.content){ClipBoard.setString(item.content)}
+                    }}
+                    onDelete={handleDeleteMessage}
+                    onForward={() => {}}
+                    onPin={handlePinMessage}
+                    onReply={() => {}}
+                    onSelectEmoji={handleReact}
+                    onEdit={handleStartEdit}
                 />
             );
         },
-        [messages, isRefreshing, user, activePlayingVideoId, handleTogglePlayVideo]
+        [messages, isRefreshing, user?.id, activePlayingVideoId, handleTogglePlayVideo, handleStartEdit, handleDeleteMessage, handlePinMessage, handleReact]
     );
-
-    const keyExtractor = useCallback((item: IMessage) => item.id || Math.random().toString(), []);
-
-    const renderFooter = useCallback(() => {
-        if (!isFetchingNextPage) return null;
-        return (
-            <View style={{ paddingVertical: 12, alignItems: 'center' }}>
-                <ActivityIndicator size="small" color={theme.subtext} />
-            </View>
-        );
-    }, [isFetchingNextPage, theme.subtext]);
-
-    
-
-    const handleSend = async () => {
-        const content = messageContent.trim();
-        if (!content && !selectedMedia) return;
-        if (isUploading) return;
-        setActivePlayingVideoId(null);
-
-        let uploadedMediaId: string | undefined = undefined;
-        let uploadedMediaObj: any = undefined;
-
-        if (selectedMedia) {
-            try {
-                setIsUploading(true);
-                const uploadRes = await mediaApi.uploadImage(
-                    selectedMedia.uri,
-                    undefined,
-                    undefined,
-                    selectedMedia.type === 'video',
-                    selectedMedia.filename || undefined,
-                );
-                uploadedMediaId = uploadRes.media?.id;
-                uploadedMediaObj = uploadRes.media || { url: uploadRes.url, type: selectedMedia.type };
-            } catch (error) {
-                console.error('Lỗi upload media trong chat:', error);
-                setIsUploading(false);
-                return;
-            }
-        }
-
-        const mediaIds = uploadedMediaId ? [uploadedMediaId] : undefined;
-        const mediaList = uploadedMediaObj ? [uploadedMediaObj] : undefined;
-
-        if (socket && socket.connected) {
-            socket.emit('message', {
-                conversationId: id,
-                content: content || '',
-                senderId: user?.id,
-                mediaId: mediaIds,
-                media: mediaList,
-            });
-            console.log("tin nhắn đã được gửi đi qua socket", {
-                conversationId: id,
-                content: content,
-                senderId: user?.id,
-                mediaId: mediaIds,
-            });
-            setMessageContent('');
-            setSelectedMedia(null);
-            setIsUploading(false);
-        } else {
-            createMessage.mutate(
-                { conversationId: id, content: content || '', mediaId: mediaIds },
-                {
-                    onSuccess: (data: any) => {
-                        const newMsg: IMessage = data.data || data;
-                        setMessages(prev => {
-                            const msgId = newMsg.id;
-                            if (msgId && prev.some(m => m.id === msgId)) {
-                                return prev;
-                            }
-                            return [newMsg, ...prev];
-                        });
-                        setMessageContent('');
-                        setSelectedMedia(null);
-                        setIsUploading(false);
-                    },
-                    onError: () => {
-                        setIsUploading(false);
-                    }
-                }
-            );
-        }
-    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -324,13 +152,9 @@ const Conversation = () => {
               <TouchableOpacity 
                 style={styles.headerUser}
                 onPress={() => {
-                  const targetUserId = otherUser?.id;
-                  if (targetUserId) {
-                    Navigation.goToUserProfile(targetUserId);
-                  }
+                    Navigation.goToConversationDetail(id);
                 }}
                 disabled={!otherUser?.id}
-
                 activeOpacity={0.8}
               >
                 <Avatar 
@@ -340,10 +164,10 @@ const Conversation = () => {
                   isOnline={isOtherUserOnline}
                 />
                 <View>
-                  <BaseText typography={Typography.bodyBold.medium}>{displayName}</BaseText>
+                  <BaseText typography={Typography.bodyBold.medium} numberOfLines={1}>{displayName}</BaseText>
                   {otherUser?.showActiveStatus && user?.showActiveStatus ? (
                     <BaseText typography={Typography.bodyRegular.xSmall} color="#4CAF50">
-                        {timeAgo(otherUser?.lastActive as any, 'Đang hoạt động')}
+                        {timeAgo(otherUser?.lastActive, 'Đang hoạt động')}
                     </BaseText>
                   ) : null}
                 </View>
@@ -375,83 +199,119 @@ const Conversation = () => {
                         onRefresh={handleRefresh}
                     />
                     <View style={styles.inputContainer}> 
-                        {selectedMedia ? (
-                            <View style={styles.mediaPreviewContainer}>
-                                <View style={styles.mediaPreviewWrapper}>
-                                    <FastImage source={{ uri: selectedMedia.uri }} style={styles.mediaPreviewThumb} resizeMode="cover" />
-                                    {selectedMedia.type === 'video' ? (
-                                        <View style={styles.videoBadgeSmall}>
-                                            <PlayIcon width={10} height={10} color="#FFFFFF" />
-                                        </View>
-                                    ) : null}
-                                    <TouchableOpacity 
-                                        style={styles.removeMediaButton} 
-                                        onPress={() => setSelectedMedia(null)}
-                                        disabled={isUploading}
-                                    >
-                                        <CrossIcon width={12} height={12} color="#FFFFFF" />
-                                    </TouchableOpacity>
-                                    {isUploading ? (
-                                        <View style={styles.uploadingOverlay}>
-                                            <ActivityIndicator size="small" color="#FFFFFF" />
-                                        </View>
-                                    ) : null}
-                                </View>
-                            </View>
-                        ) : null}
-                        <View style={styles.messageInput}>
-                            {!isTexting ? (
-                            <TouchableOpacity 
-                                style={styles.cameraIcon}
-                                onPress={() => {
-                                    setActivePlayingVideoId(null);
-                                    SheetManager.show('MediaSheet', {
-                                        payload: {
-                                            onSelectMedia: (media: SelectedChatMedia) => setSelectedMedia(media),
-                                        },
-                                    });
-                                }}
-                                disabled={isUploading}
-                            >
-                                <CameraLightIcon height={24} width={24}/>
-                            </TouchableOpacity>
-                            ) : null}
-                            <View style={styles.textInputWrapper}>
-                                <BaseTextInput
-                                    placeholder='Nhập tin nhắn...'
-                                    value={messageContent}
-                                    onChangeText={setMessageContent}
-                                    onFocus={() => setIsTexting(true)}
-                                    onBlur={() => setIsTexting(false)}
-                                    onSubmitEditing={handleSend}
-                                    multiline={true}
-                                />
-                            </View>
-                            {(messageContent.trim().length > 0 || selectedMedia) ? (
-                                <TouchableOpacity 
-                                    onPress={handleSend} 
-                                    disabled={isUploading}
-                                    style={styles.sendButton}
-                                >
-                                    {isUploading ? (
-                                        <ActivityIndicator size="small" color="#3797EF" />
-                                    ) : (
-                                        <BaseText typography={Typography.bodyBold.medium} color="#3797EF">
-                                            Gửi
+                        <View style={styles.unifiedInputWrapper}>
+                            {editingMessage ? (
+                                <View style={styles.editBarContainer}>
+                                    <View style={styles.editBarAccentLine} />
+                                    <View style={styles.editBarContent}>
+                                        <BaseText typography={Typography.bodyBold.small} color="#3797EF">
+                                            Chỉnh sửa tin nhắn
                                         </BaseText>
-                                    )}
-                                </TouchableOpacity>
+                                        <BaseText 
+                                            typography={Typography.bodyRegular.small} 
+                                            color={theme.subtext} 
+                                            numberOfLines={1}
+                                        >
+                                            {editingMessage.content}
+                                        </BaseText>
+                                    </View>
+                                    <TouchableOpacity 
+                                        style={styles.cancelEditButton} 
+                                        onPress={handleCancelEdit}
+                                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                    >
+                                        <CrossIcon width={10} height={10} color={theme.subtext} />
+                                    </TouchableOpacity>
+                                </View>
                             ) : null}
+                            {selectedMedia ? (
+                                <View style={styles.mediaPreviewContainer}>
+                                    <View style={styles.mediaPreviewWrapper}>
+                                        <FastImage source={{ uri: selectedMedia.uri }} style={styles.mediaPreviewThumb} resizeMode="cover" />
+                                        {selectedMedia.type === 'video' ? (
+                                            <View style={styles.videoBadgeSmall}>
+                                                <PlayIcon width={10} height={10} color="#FFFFFF" />
+                                            </View>
+                                        ) : null}
+                                        <TouchableOpacity 
+                                            style={styles.removeMediaButton} 
+                                            onPress={() => setSelectedMedia(null)}
+                                            disabled={isUploading}
+                                        >
+                                            <CrossIcon width={12} height={12} color="#FFFFFF" />
+                                        </TouchableOpacity>
+                                        {isUploading ? (
+                                            <View style={styles.uploadingOverlay}>
+                                                <ActivityIndicator size="small" color="#FFFFFF" />
+                                            </View>
+                                        ) : null}
+                                    </View>
+                                </View>
+                            ) : null}
+                            <View style={styles.messageInputRow}>
+                                {(!isTexting || messageContent.trim().length === 0) && !editingMessage ? (
+                                <TouchableOpacity 
+                                    style={styles.cameraIcon}
+                                    onPress={() => {
+                                        SheetManager.show('MediaSheet', {
+                                            payload: {
+                                                onSelectMedia: (media: SelectedChatMedia) => setSelectedMedia(media),
+                                            },
+                                        });
+                                    }}
+                                    disabled={isUploading}
+                                >
+                                    <CameraLightIcon height={20} width={20}/>
+                                </TouchableOpacity>
+                                ) : null}
+                                <View style={styles.textInputWrapper}>
+                                    <BaseTextInput
+                                        style={[styles.textInput, { height: computedInputHeight }]}
+                                        ref={inputRef}
+                                        placeholder={editingMessage ? 'Chỉnh sửa tin nhắn...' : 'Nhập tin nhắn...'}
+                                        value={messageContent}
+                                        onChangeText={(text) => {
+                                            setMessageContent(text);
+                                            if (!text) {
+                                                setInputHeight(MIN_INPUT_HEIGHT);
+                                            }
+                                        }}
+                                        onFocus={() => setIsTexting(true)}
+                                        onBlur={() => setIsTexting(false)}
+                                        onContentSizeChange={(e) => {
+                                            const nextHeight = e.nativeEvent.contentSize.height;
+                                            if (nextHeight > 0) {
+                                                setInputHeight(nextHeight);
+                                            }
+                                        }}
+                                        onSubmitEditing={handleSend}
+                                        multiline={true}
+                                    />
+                                </View>
+                                {(messageContent.trim().length > 0 || selectedMedia || editingMessage) ? (
+                                    <TouchableOpacity 
+                                        onPress={handleSend} 
+                                        disabled={isUploading}
+                                        style={styles.sendButton}
+                                    >
+                                        {isUploading ? (
+                                            <ActivityIndicator size="small" color="#3797EF" />
+                                        ) : (
+                                            <BaseText typography={Typography.bodyBold.medium} color="#3797EF">
+                                                Gửi
+                                            </BaseText>
+                                        )}
+                                    </TouchableOpacity>
+                                ) : null}
+                            </View>
                         </View>
                     </View>
                     <Animated.View style={[styles.fabContainer, { opacity: fadeAnim }]} pointerEvents={showScrollButton ? 'auto' : 'none'}>
                       <TouchableOpacity
                           style={styles.fabButton}
-                          onPress={() => {
-                              listRef.current?.scrollToOffset({ offset: 0, animated: true });
-                          }}
+                          onPress={scrollToBottom}
                       >
-                        <ArrowToLeft height={24} width={24} />
+                        <ArrowToLeft height={24} width={24} style={{transform: [{ rotate: '-90deg' }]}}/>
                       </TouchableOpacity>
                     </Animated.View>
                 </View>
@@ -498,11 +358,12 @@ const getStyles = (theme: Theme) => StyleSheet.create({
         paddingBottom: 8,
     },
     inputContainer: {
+        paddingHorizontal: 16,
         paddingBottom: 8,
     },
     fabContainer: {
         position: 'absolute',
-        bottom: 40,
+        bottom: 60,
         right: 16,
         zIndex: 10,
     },
@@ -510,7 +371,7 @@ const getStyles = (theme: Theme) => StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: theme.background,
+        backgroundColor: theme.darkGrey,
         justifyContent: 'center',
         alignItems: 'center',
         shadowColor: theme.black,
@@ -519,55 +380,72 @@ const getStyles = (theme: Theme) => StyleSheet.create({
         shadowRadius: 6,
         elevation: 4,
     },
-    cameraIcon: {
-        backgroundColor: theme.bubbleLavender,
-        borderRadius: 9999,
-        padding: 4,
-    },
-    messageInput: {
+    unifiedInputWrapper: {
         borderWidth: 1,
         borderColor: theme.border,
-        borderRadius: 9999,
-        height: 40,
+        borderRadius: 22,
         backgroundColor: theme.input,
-        alignItems: 'center',
+        overflow: 'hidden',
+    },
+    messageInputRow: {
         flexDirection: 'row',
-        gap: 12,
-        marginHorizontal: 16,
-        paddingHorizontal: 8,
+        alignItems: 'flex-end',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        minHeight: 44,
+        gap: 8,
+    },
+    cameraIcon: {
+        backgroundColor: theme.bubbleLavender,
+        borderRadius: 16,
+        width: 32,
+        height: 32,
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        marginBottom: 2,
     },
     textInputWrapper: {
         flex: 1,
+        justifyContent: 'center',
+        minHeight: 32,
+    },
+    textInput: {
+        paddingVertical: 4,
+        paddingHorizontal: 4,
     },
     sendButton: {
         paddingHorizontal: 8,
-        paddingVertical: 4,
+        paddingVertical: 6,
         justifyContent: 'center',
         alignItems: 'center',
+        alignSelf: 'flex-end',
     },
     mediaPreviewContainer: {
-        paddingHorizontal: 16,
-        paddingBottom: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        backgroundColor: theme.input,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: theme.border,
         flexDirection: 'row',
     },
     mediaPreviewWrapper: {
-        width: 64,
-        height: 64,
-        borderRadius: 10,
+        width: 56,
+        height: 56,
+        borderRadius: 8,
         position: 'relative',
         overflow: 'hidden',
-        borderWidth: 1,
+        borderWidth: StyleSheet.hairlineWidth,
         borderColor: theme.border,
     },
     mediaPreviewThumb: {
         width: '100%',
         height: '100%',
-        borderRadius: 10,
     },
     videoBadgeSmall: {
         position: 'absolute',
-        bottom: 4,
-        left: 4,
+        bottom: 3,
+        left: 3,
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
         borderRadius: 4,
         padding: 2,
@@ -597,5 +475,36 @@ const getStyles = (theme: Theme) => StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         top: 50,
+    },
+    editBarContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        backgroundColor: theme.input,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: theme.border,
+        gap: 8,
+    },
+    editBarAccentLine: {
+        width: 3,
+        height: 28,
+        borderRadius: 2,
+        backgroundColor: '#3797EF',
+    },
+    editBarContent: {
+        flex: 1,
+    },
+    cancelEditButton: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        backgroundColor: theme.darkGrey,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    footerLoading: {
+        paddingVertical: 12,
+        alignItems: 'center',
     },
 });

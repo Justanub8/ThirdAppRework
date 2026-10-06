@@ -1,15 +1,10 @@
 import { IProfileUser } from "./auth";
 import { IMedia } from "./media";
+import { IEmoji } from "./emoji";
 
-export interface IEmoji {
-    id?: string;
-    content: string;
-    messageId: string;
-    senderId: string;
-    sender?: IProfileUser;
-    createdAt?: Date;
-    updatedAt?: Date;
-}
+export type MessageStatus = 'Edited' | 'Deleted' | 'Pinned' | 'None';
+
+export type { IEmoji };
 
 export interface IMessage {
     id?: string;
@@ -17,6 +12,7 @@ export interface IMessage {
     senderId?: string;
     sender?: IProfileUser;
     content?: string | null;
+    status?: MessageStatus;
     media?: IMedia[];
     emojis?: IEmoji[];
     createdAt: Date;

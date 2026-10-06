@@ -1,4 +1,4 @@
-import { View, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, ScrollView, ViewToken } from 'react-native';
 import * as React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore, useTheme, Theme } from '~/hooks';
@@ -16,6 +16,7 @@ import { userApi } from '~/api/userApi';
 import { FlashList } from '@shopify/flash-list';
 import { Navigation } from '~/utils';
 import { useFocusEffect } from '@react-navigation/native';
+import { IPost, IProfileUser } from '~/interfaces';
 
 const HomeScreen = () => {
   const { theme } = useTheme();
@@ -24,7 +25,7 @@ const HomeScreen = () => {
   const [activePostId, setActivePostId] = React.useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
-  const onViewableItemsChanged = React.useCallback(({ viewableItems }: { viewableItems: any[] }) => {
+  const onViewableItemsChanged = React.useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (viewableItems && viewableItems.length > 0) {
       setActivePostId(viewableItems[0].item.id);
     }
@@ -128,7 +129,7 @@ const HomeScreen = () => {
             }
           }}
         />
-        {followedStories.map((u: any) => (
+        {followedStories.map((u: IProfileUser) => (
           <Avatar
             key={u.id}
             url={u.avatarUrl || u.imageUrl}
@@ -137,7 +138,7 @@ const HomeScreen = () => {
             hasActiveStory={true}
             isSeenStory={u.isSeenStory}
             id={u.id}
-            storyUserIds={followedStories.map((item: any) => item.id)}
+            storyUserIds={followedStories.map((item: IProfileUser) => item.id || '')}
           />
         ))}
       </ScrollView>
@@ -145,10 +146,10 @@ const HomeScreen = () => {
     </View>
   ), [effectiveUser, currentUser, hasActiveStory, isSeenStory, logoutLocal, followedStories, styles]);
 
-  const keyExtractor = React.useCallback((item: any) => item.id, []);
+  const keyExtractor = React.useCallback((item: IPost) => item.id || '', []);
 
   const renderItem = React.useCallback(
-    ({ item }: { item: any }) => (
+    ({ item }: { item: IPost }) => (
       <Post post={item} isActive={item.id === activePostId} />
     ),
     [activePostId]

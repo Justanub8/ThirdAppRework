@@ -24,12 +24,13 @@ export interface SelectedChatMedia {
   type: 'image' | 'video';
   filename?: string | null;
   extension?: string | null;
+  playableDuration?: number | null;
 }
 
 const MediaSheet = (props: SheetProps<"MediaSheet">) => {
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
-  const [photos, setPhotos] = useState<any[]>([]);
+  const [photos, setPhotos] = useState<SelectedChatMedia[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
@@ -47,9 +48,9 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
         include: ['filename', 'fileExtension', 'playableDuration'],
       });
 
-      const newPhotos = res.edges.map(edge => ({
+      const newPhotos: SelectedChatMedia[] = res.edges.map(edge => ({
         uri: edge.node.image.uri,
-        type: edge.node.type,
+        type: (edge.node.type === 'video' ? 'video' : 'image') as 'image' | 'video',
         filename: edge.node.image.filename,
         extension: edge.node.image.extension,
         playableDuration: edge.node.image.playableDuration,
@@ -86,7 +87,7 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
     return 'Chọn ảnh hoặc video';
   }, [mediaType]);
 
-  const renderItem = ({ item }: { item: any }) => {
+  const renderItem = ({ item }: { item: SelectedChatMedia }) => {
     const isVideo = isVideoMedia(item);
 
     return (

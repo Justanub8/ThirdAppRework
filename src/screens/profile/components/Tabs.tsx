@@ -25,8 +25,10 @@ import {
   BookmarkLightIcon,
 } from '~/assets/svgs';
 import { postApi, reelApi, repostApi, shareApi } from '~/api';
+import { IPost, IReel, IRepost, IShare, IBookmark } from '~/interfaces';
 
 type TabType = 'posts' | 'reels' | 'reposts' | 'shares';
+type TabItem = IPost | IReel | IRepost | IShare | IBookmark | (Record<string, unknown> & { id?: string; media?: unknown; target?: unknown; videoUrl?: string });
 
 type Route = {
   key: TabType;
@@ -110,7 +112,7 @@ const TabContent: React.FC<TabContentProps> = ({ type, id, theme }) => {
         }
         case 'reels': {
           const res = await reelApi.getAllReels(1, 30, id);
-          return (res?.data as any)?.data || (res?.data as any)?.reels || [];
+          return res?.data?.data || (res?.data as { reels?: IReel[] })?.reels || [];
         }
         case 'reposts': {
           const res = await repostApi.getUserReposts(1, 30, undefined, id);
@@ -141,10 +143,10 @@ const TabContent: React.FC<TabContentProps> = ({ type, id, theme }) => {
         data={data}
         numColumns={3}
         contentContainerStyle={styles.flashListContent}
-        keyExtractor={(item: any, index: number) =>
+        keyExtractor={(item: TabItem, index: number) =>
           item?.id ? `${type}-${item.id}` : `${type}-${index}`
         }
-        renderItem={({ item }: { item: any }) => {
+        renderItem={({ item }: { item: TabItem }) => {
           const media = extractMedia(item, type);
           if (!media?.uri) return null;
           return (

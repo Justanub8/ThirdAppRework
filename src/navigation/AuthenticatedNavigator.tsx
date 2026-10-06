@@ -16,6 +16,8 @@ import SelectReelMedia from '~/screens/create-reel/components/SelectReelMedia';
 import CreateReel from '~/screens/create-reel/CreateReel';
 import DetailMedia from '~/screens/detail-media/DetailMedia';
 import Setting from '~/screens/settings/Setting';
+import NewGroupMessage from '~/screens/new-message/NewGroupMessage';
+import ConversationDetail from '~/screens/conversation/ConversationDetail';
 
 const Stack = createNativeStackNavigator<AuthenticatedStackParamList>();
 
@@ -42,6 +44,8 @@ const AuthenticatedNavigator: React.FC = () => {
             <Stack.Screen name='CameraScreen' component={CameraScreen}/>
             <Stack.Screen name='DetailMedia' component={DetailMedia} />
             <Stack.Screen name='Setting' component={Setting}/>
+            <Stack.Screen name='NewGroupMessage' component={NewGroupMessage}/>
+            <Stack.Screen name="ConversationDetail" component={ConversationDetail}/>
         </Stack.Navigator>
     )
 }

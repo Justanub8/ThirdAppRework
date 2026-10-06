@@ -10,7 +10,7 @@ export const usePostMutation = () => {
             return postApi.createPost(payload);
         },
         onSuccess: (res) => {
-            const newPost = res.data?.post || (res.data as any)?.data;
+            const newPost = res.data?.post;
             if (newPost) {
                 for (const queryKey of [['Post'], ['Posts']]) {
                     queryClient.setQueryData(queryKey, (old: any) => {

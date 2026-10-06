@@ -18,5 +18,21 @@ export const useConversationMutation = () => {
             Alert.alert("Lỗi khi tạo cuộc trò chuyện");
         },
     });
-    return { createConversation };
+    const createGroupConversation = useMutation({
+        mutationFn: (participantIds: string[]) => {
+            if (!participantIds || participantIds.length < 2) {
+                throw new Error("Nhóm chat cần chọn ít nhất 2 thành viên khác");
+            }
+            return conversationApi.createGroupConversation(participantIds);
+        }, 
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['conversations'] });
+            queryClient.invalidateQueries({ queryKey: ['conversation'] });
+        },
+        onError: (error: any) => {
+            const message = error?.response?.data?.message || error?.message || "Lỗi khi tạo nhóm chat";
+            Alert.alert("Lỗi", message);
+        }
+    });
+    return { createConversation, createGroupConversation };
 };

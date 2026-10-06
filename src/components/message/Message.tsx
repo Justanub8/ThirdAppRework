@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import { Typography } from '~/constants';
 import { MessageVideoItem, MessageImageItem } from './components';
 import { isVideoMedia, Navigation, isEmojiOnlyText } from '~/utils';
+import { MessagePopUp } from '~/components/pop-up';
 
 const TIME_THRESHOLD_MINUTES = 15;
 
@@ -17,6 +18,13 @@ interface MessageProps {
     currentUserId?: string;
     activePlayingVideoId?: string | null;
     onTogglePlayVideo?: (videoId: string) => void;
+    onReply?: (message: IMessage) => void;
+    onCopy?: (message: IMessage) => void;
+    onPin?: (message: IMessage) => void;
+    onDelete?: (message: IMessage) => void;
+    onForward?: (message: IMessage) => void;
+    onEdit?: (message: IMessage) => void;
+    onSelectEmoji?: (message: IMessage, emoji: string) => void;
 }
 
 const Message = ({
@@ -26,6 +34,13 @@ const Message = ({
     currentUserId,
     activePlayingVideoId,
     onTogglePlayVideo,
+    onReply,
+    onCopy,
+    onPin,
+    onDelete,
+    onForward,
+    onEdit,
+    onSelectEmoji,
 }: MessageProps) => {
     const storeUserId = useAuthStore(state => state.user?.id);
     const userId = currentUserId || storeUserId;
@@ -35,17 +50,20 @@ const Message = ({
     const senderDisplayName = senderObj?.username || senderObj?.name || 'Unknown';
     const [showTime, setShowTime] = React.useState(false);
     const [showName, setShowName] = React.useState(false);
+    const bubbleRef = React.useRef<View>(null);
+    const [showPopup, setShowPopup] = React.useState(false);
     const hasLargeTimeDiff = React.useMemo(() => {
         if (!previous) return true;
         const currentMessageTime = dayjs(item.createdAt);
         const previousMessageTime = dayjs(previous.createdAt);
         return Math.abs(currentMessageTime.diff(previousMessageTime, 'minute')) > TIME_THRESHOLD_MINUTES;
-    }, [item.createdAt, previous?.createdAt]);
+    }, [item.createdAt, previous]);
 
     React.useEffect(() => {
         if (isRefreshing) {
             setShowTime(false);
             setShowName(false);
+            setShowPopup(false);
         }
     }, [isRefreshing]);
 
@@ -56,7 +74,70 @@ const Message = ({
         return isEmojiOnlyText(item.content!);
     }, [hasMedia, hasContent, item.content]);
 
-  return (
+    const isDeleted = item.status === 'Deleted' || (item.status as string) === 'DELETED';
+
+    const handleLongPress = React.useCallback(() => {
+        if (isDeleted) return;
+        setShowPopup(true);
+    }, [isDeleted]);
+
+    const renderBubbleContent = () => {
+        if (isDeleted) {
+            return <BaseText typography={Typography.bodySemiBold.large} color={"#cdcaca"}>Tin nhắn đã bị xoá</BaseText>;
+        }
+        return (
+            <>
+                {hasMedia ? (
+                    <View style={styles.mediaContainer}>
+                        {item.media!.map((m, idx) => {
+                            const isVideo = isVideoMedia(m);
+                            const videoId = m.id || `${item.id || 'msg'}_${m.url || idx}`;
+                            const isPlaying = activePlayingVideoId === videoId;
+                            return (
+                                <View key={m.id || idx} style={styles.mediaItemWrapper}>
+                                    {isVideo ? (
+                                        <MessageVideoItem
+                                            url={m.url}
+                                            videoId={videoId}
+                                            isPaused={!isPlaying}
+                                            onTogglePlay={onTogglePlayVideo}
+                                            onPress={(thumb?: string) =>
+                                                Navigation.goToDetailMedia(m.url, 'video', thumb)
+                                            }
+                                            onLongPress={handleLongPress}
+                                        />
+                                    ) : (
+                                        <MessageImageItem
+                                            url={m.url}
+                                            onPress={() => Navigation.goToDetailMedia(m.url, 'image')}
+                                            onLongPress={handleLongPress}
+                                        />
+                                    )}
+                                </View>
+                            );
+                        })}
+                    </View>
+                ) : null}
+
+                {hasContent ? (
+                    <View>
+                        <BaseText
+                            color={isOnlyEmoji ? undefined : (isMyMessage ? '#FFFFFF' : '#000000')}
+                            typography={isOnlyEmoji ? undefined : Typography.bodyRegular.medium}
+                            style={[
+                                hasMedia ? styles.textContentInMedia : undefined,
+                                isOnlyEmoji ? styles.emojiText : undefined,
+                            ]}
+                        >
+                            {item.content}
+                        </BaseText>
+                    </View>
+                ) : null}
+            </>
+        );
+    };
+
+    return (
     <View style={styles.messageWrapper}>
         {showTime || hasLargeTimeDiff ? (
             <View style={styles.timeContainer}>
@@ -77,7 +158,19 @@ const Message = ({
                 {senderDisplayName}
             </BaseText>
         ) : null}
+
+        {item.status === 'Edited' && !isOnlyEmoji ? (
+            <BaseText
+                color={isMyMessage ? 'rgba(255, 255, 255, 0.7)' : '#8E8E8E'}
+                typography={Typography.bodyRegular.xSmall}
+                style={styles.editedText}
+            >
+                Đã chỉnh sửa
+            </BaseText>
+        ) : null}
+        
         <TouchableOpacity 
+            ref={bubbleRef}
             style={[
                 styles.bubble,
                 (hasMedia && !hasContent) || isOnlyEmoji 
@@ -89,45 +182,44 @@ const Message = ({
                 setShowTime(!showTime);
                 setShowName(!showName);
             }}
+            onLongPress={handleLongPress}
+            delayLongPress={250}
             activeOpacity={0.85}
         >
-            {hasMedia ? (
-                <View style={styles.mediaContainer}>
-                    {item.media!.map((m, idx) => {
-                        const isVideo = isVideoMedia(m);
-                        const videoId = m.id || `${item.id || 'msg'}_${m.url || idx}`;
-                        const isPlaying = activePlayingVideoId === videoId;
-                        return (
-                            <View key={m.id || idx} style={styles.mediaItemWrapper}>
-                                {isVideo ? (
-                                    <MessageVideoItem
-                                        url={m.url}
-                                        videoId={videoId}
-                                        isPaused={!isPlaying}
-                                        onTogglePlay={onTogglePlayVideo}
-                                        onPress={(thumb?: string) => Navigation.goToDetailMedia(m.url, 'video', thumb)}
-                                    />
-                                ) : (
-                                    <MessageImageItem url={m.url} onPress={() => Navigation.goToDetailMedia(m.url, 'image')}/>
-                                )}
-                            </View>
-                        );
-                    })}
-                </View>
-            ) : null}
-            {hasContent ? (
-                <BaseText 
-                    color={isOnlyEmoji ? undefined : (isMyMessage ? '#FFFFFF' : '#000000')} 
-                    typography={isOnlyEmoji ? undefined : Typography.bodyRegular.medium}
-                    style={[
-                        hasMedia ? styles.textContentInMedia : undefined,
-                        isOnlyEmoji ? styles.emojiText : undefined,
-                    ]}
-                >
-                    {item.content}
-                </BaseText>
-            ) : null}
+            {renderBubbleContent()}
         </TouchableOpacity>
+
+        <MessagePopUp
+            visible={showPopup}
+            onClose={() => setShowPopup(false)}
+            anchorRef={bubbleRef}
+            transformOrigin={isMyMessage ? 'right' : 'left'}
+            onSelectEmoji={(emoji) => {
+                onSelectEmoji?.(item, emoji);
+            }}
+            onReply={() => onReply?.(item)}
+            onCopy={() => onCopy?.(item)}
+            onPin={() => onPin?.(item)}
+            onForward={() => onForward?.(item)}
+            onEdit={() => onEdit?.(item)}
+            onDelete={() => onDelete?.(item)}
+            showCopy={hasContent && !isDeleted}
+            showEdit={isMyMessage && hasContent && !isDeleted}
+            showDelete={isMyMessage && !isDeleted}
+        >
+            <View
+                style={[
+                    styles.bubble,
+                    (hasMedia && !hasContent) || isOnlyEmoji 
+                        ? styles.bubbleWithOnlyMedia 
+                        : (isMyMessage ? styles.myBubble : styles.otherBubble),
+                    styles.floatingBubble,
+                ]}
+                pointerEvents="none"
+            >
+                {renderBubbleContent()}
+            </View>
+        </MessagePopUp>
     </View>
   );
 };
@@ -162,6 +254,11 @@ const styles = StyleSheet.create({
         paddingVertical: 0,
         backgroundColor: 'transparent',
     },
+    floatingBubble: {
+        width: '100%',
+        height: '100%',
+        maxWidth: undefined,
+    },
     myBubble: {
         backgroundColor: '#3797EF',
         borderRadius: 18,
@@ -169,7 +266,7 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 18,
     },
     otherBubble: {
-        backgroundColor: '#EFEFEF',
+        backgroundColor: '#9a8e8e',
         borderRadius: 18,
         borderBottomRightRadius: 18,
         borderBottomLeftRadius: 4,
@@ -192,6 +289,11 @@ const styles = StyleSheet.create({
         fontSize: 48,
         lineHeight: 56,
     },
+    editedText: {
+        fontSize: 10,
+        alignSelf: 'flex-end',
+        marginTop: 2,
+    },
 });
 
 export default React.memo(Message, (prevProps, nextProps) => {
@@ -200,6 +302,13 @@ export default React.memo(Message, (prevProps, nextProps) => {
     if (prevProps.isRefreshing !== nextProps.isRefreshing) return false;
     if (prevProps.currentUserId !== nextProps.currentUserId) return false;
     if (prevProps.onTogglePlayVideo !== nextProps.onTogglePlayVideo) return false;
+    if (prevProps.onReply !== nextProps.onReply) return false;
+    if (prevProps.onCopy !== nextProps.onCopy) return false;
+    if (prevProps.onPin !== nextProps.onPin) return false;
+    if (prevProps.onDelete !== nextProps.onDelete) return false;
+    if (prevProps.onEdit !== nextProps.onEdit) return false;
+    if (prevProps.onForward !== nextProps.onForward) return false;
+    if (prevProps.onSelectEmoji !== nextProps.onSelectEmoji) return false;
 
     if (prevProps.activePlayingVideoId !== nextProps.activePlayingVideoId) {
         const checkHasVideo = (msg: IMessage, targetId?: string | null) => {

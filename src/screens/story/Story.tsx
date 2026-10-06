@@ -14,6 +14,7 @@ import { MultiProgressBar } from './components/MultipleProgressBar';
 import { VideoRef } from 'react-native-video';
 import { Typography } from '~/constants';
 import StoryVideoItem from './components/StoryVideoItem';
+import { IStory, IProfileUser } from '~/interfaces';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Story'>;
 
@@ -102,22 +103,22 @@ const Story = () => {
     if (!currentStory?.id) return;
 
     if (!currentStory.isViewed) {
-      queryClient.setQueryData(['story', activeUserId], (old: any) => {
+      queryClient.setQueryData(['story', activeUserId], (old: IStory[] | undefined) => {
         if (!Array.isArray(old)) return old;
-        const updated = old.map((item: any) =>
+        const updated = old.map((item: IStory) =>
           item.id === currentStory.id
             ? { ...item, isViewed: true, viewCount: (item.viewCount || 0) + 1 }
             : item
         );
-        const allViewed = updated.length > 0 && updated.every((s: any) => s.isViewed);
+        const allViewed = updated.length > 0 && updated.every((s: IStory) => s.isViewed);
         if (allViewed) {
-          queryClient.setQueryData(['userProfile', activeUserId], (oldProfile: any) => {
+          queryClient.setQueryData(['userProfile', activeUserId], (oldProfile: IProfileUser | undefined) => {
             if (!oldProfile) return oldProfile;
             return { ...oldProfile, isSeenStory: true };
           });
-          queryClient.setQueryData(['followedStories'], (oldStories: any) => {
+          queryClient.setQueryData(['followedStories'], (oldStories: IProfileUser[] | undefined) => {
             if (!Array.isArray(oldStories)) return oldStories;
-            return oldStories.map((u: any) =>
+            return oldStories.map((u: IProfileUser) =>
               u.id === activeUserId ? { ...u, isSeenStory: true } : u
             );
           });
@@ -173,7 +174,7 @@ const Story = () => {
     } else if (currentUserIndex > 0) {
       const targetPrevUserIndex = currentUserIndex - 1;
       const targetPrevUserId = userIds[targetPrevUserIndex];
-      const cached = queryClient.getQueryData<any[]>(['story', targetPrevUserId]);
+      const cached = queryClient.getQueryData<IStory[]>(['story', targetPrevUserId]);
       const lastStoryIdx = Array.isArray(cached) && cached.length > 0 ? cached.length - 1 : 0;
 
       setCurrentUserIndex(targetPrevUserIndex);

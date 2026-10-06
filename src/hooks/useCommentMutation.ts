@@ -10,7 +10,7 @@ export const useCommentMutation = () => {
             if (!params.targetId || (!params.content?.trim() && !params.media && !params.mediaUrl) || !params.targetType) {
                 throw new Error("Missing params create comment");
             }
-            return commentApi.createComment(params as any);
+            return commentApi.createComment(params);
         },
         onSuccess: (res, variables) => {
             const newComment = res.data?.data || res.data?.comment;

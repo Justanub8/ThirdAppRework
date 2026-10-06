@@ -132,7 +132,7 @@ const Avatar: React.FC<AvatarProps> = ({
           height: size,
           borderRadius: size / 2,
           overflow: 'hidden',
-          backgroundColor: theme.surface || '#2a2a2a',
+          backgroundColor: theme.darkSurface || '#2a2a2a',
         }}
       >
         <FastImage

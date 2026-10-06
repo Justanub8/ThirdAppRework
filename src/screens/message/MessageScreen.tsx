@@ -15,6 +15,7 @@ import { conversationApi } from '~/api';
 import { useAuthStore } from '~/hooks/useAuthStore';
 import { useTheme } from '~/hooks';
 import { Navigation } from '~/utils';
+import { IConversation } from '~/interfaces';
 
 const MessageScreen = () => {
   const { theme } = useTheme();
@@ -36,7 +37,7 @@ const MessageScreen = () => {
 
   const conversations = useMemo(() => {
     const list = rawConversations || [];
-    return [...list].sort((a: any, b: any) => {
+    return [...list].sort((a: IConversation, b: IConversation) => {
       const timeA = new Date(a.lastMessage?.createdAt || a.updatedAt || a.createdAt || 0).getTime();
       const timeB = new Date(b.lastMessage?.createdAt || b.updatedAt || b.createdAt || 0).getTime();
       return timeB - timeA;
@@ -75,7 +76,7 @@ const MessageScreen = () => {
           </View>
           <SizedBox height={24}/>
           <View>
-            {conversations.map((conv: any) => {
+            {conversations.map((conv: IConversation) => {
               const convKey = conv.id;
               return (
                 <View key={convKey} style={styles.chatItem}>

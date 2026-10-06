@@ -1,4 +1,4 @@
-import { View, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Dimensions, StyleSheet, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import React, { useRef } from 'react';
 import { BaseVideo, VideoRef, FastImage } from '../rn-components';
 import { Navigation, isVideoMedia } from '~/utils';
@@ -11,7 +11,7 @@ interface GridContentProps {
   uri: string;
   mediaType?: 'image' | 'video' | string;
   onPress?: () => void;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 }
 
 const GridContent = ({ uri, mediaType, onPress, style }: GridContentProps) => {

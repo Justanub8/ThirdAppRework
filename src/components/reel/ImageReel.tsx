@@ -14,7 +14,7 @@ const ImageReel = ({ reel }: ImageReelProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  const rawUrl = reel.media?.url || (reel as any).videoUrl || (reel as any).mediaUrl || '';
+  const rawUrl = reel.media?.url || reel.videoUrl || reel.mediaUrl || '';
   const mediaUrl = formatMediaUrl(rawUrl);
 
   useEffect(() => {
