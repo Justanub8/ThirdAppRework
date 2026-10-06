@@ -1,18 +1,14 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
+import React, { useState } from 'react'
 import { CustomHeader } from '~/components/headers'
-import { CameraLightIcon, LeftArrow, MoreIcon, RightArrow } from '~/assets/svgs'
-import { PrimaryInput } from '~/components/inputs'
+import { CameraLightIcon, LeftArrow } from '~/assets/svgs'
 import { BaseText, BaseTextInput } from '~/components/rn-components'
 import { Avatar } from '~/components/avatar'
 import { Typography } from '~/constants'
 import { Navigation } from '~/utils'
-import { images } from '~/assets/images'
-import { TouchableWithoutFeedback } from '@gorhom/bottom-sheet'
 import { useQuery } from '@tanstack/react-query'
 import { userApi } from '~/api'
 import { IProfileUser } from '~/interfaces'
-import { PrimaryButton } from '~/components/buttons'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useConversationMutation, useMessageMutation, useTheme, Theme } from '~/hooks'
 
@@ -28,7 +24,7 @@ const NewMessage = () => {
     const { createConversation } = useConversationMutation();
     const { createMessage } = useMessageMutation();
 
-    const { data: usersData, isLoading } = useQuery({
+    const { data: usersData } = useQuery({
         queryKey: ['suggestedUsers'],
         queryFn: async () => {
             const res = await userApi.getAllUsers(1, 20);

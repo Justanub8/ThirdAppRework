@@ -4,8 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PrimaryInput } from '~/components/inputs';
 import { SearchLightIcon } from '~/assets/svgs';
 import { useTheme } from '~/hooks';
-import VideoReel from '~/components/reel/VideoReel';
-import PreviewReel from '~/components/reel/PreviewVideoReel';
 
 const Explore = () => {
   const { theme } = useTheme();

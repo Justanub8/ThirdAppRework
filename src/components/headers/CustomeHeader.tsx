@@ -2,8 +2,6 @@ import { BaseText } from '../rn-components';
 import { Typography } from '~/constants';
 import * as React from 'react'
 import { StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
 import { useTheme, Theme } from '~/hooks';
 
 const CustomHeader = ({
@@ -15,7 +13,6 @@ const CustomHeader = ({
     RightComponent?: React.JSX.Element,
     LeftComponent?: React.JSX.Element,
 }) => {
-    const navigation = useNavigation();
     const { theme } = useTheme();
     const styles = React.useMemo(() => getStyles(theme), [theme]);
     return (

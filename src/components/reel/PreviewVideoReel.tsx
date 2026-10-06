@@ -12,7 +12,7 @@ const PreviewVideoReel = ({ reel }: PreviewReelProps) => {
   const { height, width } = Dimensions.get('window');
   const videoRef = useRef<VideoRef>(null);
   const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [_isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setHasError(false);

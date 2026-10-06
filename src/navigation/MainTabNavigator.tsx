@@ -9,7 +9,6 @@ import Profile from '~/screens/profile/Profile';
 import { useTheme, useAuthStore } from '~/hooks';
 import { HomeBoldIcon, HomeLightIcon, MessageBoldIcon, MessageLightIcon, ReelBoldIcon, ReelLightIcon, SearchBoldIcon, SearchLightIcon } from '~/assets/svgs';
 import { Avatar } from '~/components/avatar';
-import { images } from '~/assets/images';
 const ICON_SIZE = 36;
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const MainTabNavigator: React.FC = () => {

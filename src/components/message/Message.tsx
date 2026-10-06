@@ -40,7 +40,7 @@ const Message = ({
         const currentMessageTime = dayjs(item.createdAt);
         const previousMessageTime = dayjs(previous.createdAt);
         return Math.abs(currentMessageTime.diff(previousMessageTime, 'minute')) > TIME_THRESHOLD_MINUTES;
-    }, [item.createdAt, previous?.createdAt]);
+    }, [item.createdAt, previous]);
 
     React.useEffect(() => {
         if (isRefreshing) {

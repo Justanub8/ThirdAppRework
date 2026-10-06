@@ -1,6 +1,5 @@
 import { StackActions, createNavigationContainerRef } from "@react-navigation/native";
 import { SheetManager } from "react-native-actions-sheet";
-import { IProfileUser } from "~/interfaces";
 import { RootStackParamList } from "~/navigation/types";
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { CrossIcon, SettingIcon, CameraLightIcon } from '~/assets/svgs'
@@ -53,12 +53,6 @@ const SelectReelMedia = () => {
   useEffect(() => {
     fetchPhotos()
   }, []);
-
-  const isSelectedVideo = Boolean(
-    selectedPhoto?.playableDuration ||
-    selectedPhoto?.type?.startsWith('video') ||
-    /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(selectedPhoto?.uri || '')
-  );
 
 
   return (

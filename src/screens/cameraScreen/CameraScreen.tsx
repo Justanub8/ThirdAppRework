@@ -30,12 +30,12 @@ const CameraScreen = () => {
 
   const handleTakePhoto = async () => {
     try {
-      const photo = await photoOutput.capturePhoto(
+      await photoOutput.capturePhoto(
         {},
         {
           onWillCapturePhoto: () => console.log('about to capture'),
           onDidCapturePhoto: () => console.log('did capture'),
-          onPreviewImageAvailable: (image) => {
+          onPreviewImageAvailable: () => {
             console.log('Received image');
           },
         }

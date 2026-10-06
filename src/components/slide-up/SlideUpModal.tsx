@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import * as React from 'react'
-import { BottomSheetFooter, BottomSheetModal, BottomSheetScrollView, BottomSheetView, BottomSheetFooterProps } from '@gorhom/bottom-sheet';
+import { BottomSheetFooter, BottomSheetModal, BottomSheetScrollView, BottomSheetFooterProps } from '@gorhom/bottom-sheet';
 import { SizedBox } from '../separate-components';
 import { BaseText } from '../rn-components';
 import { Typography } from '~/constants';
@@ -15,7 +15,7 @@ interface SlideUpModalProps {
 const SlideUpModal = React.forwardRef<BottomSheetModal, SlideUpModalProps>((
     {modalTitle, renderComponent, footerComponent, disableScrollView = false, snapPoints = ['60%', '80%']}, ref
 ) => {
-    const handleSheetChanges = React.useCallback((index: number) => { 
+    const handleSheetChanges = React.useCallback((_index: number) => { 
     },[])
     const renderHeader = () => {
         return (
@@ -36,7 +36,7 @@ const SlideUpModal = React.forwardRef<BottomSheetModal, SlideUpModalProps>((
             {footerComponent}
         </BottomSheetFooter>
     ),
-    []
+    [footerComponent]
     );
   return (
     <BottomSheetModal

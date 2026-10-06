@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet,TouchableOpacity } from 'react-native'
+import { View, StyleSheet,TouchableOpacity } from 'react-native'
 import React, {useCallback, useState, useEffect, useRef } from 'react'
 import { Theme, useAuthStore, useTheme } from '~/hooks'
 import { useQuery } from '@tanstack/react-query';
@@ -21,7 +21,7 @@ const MyActiveStory = () => {
     const { theme } = useTheme();
     const styles = getStyles(theme);
     const { user } = useAuthStore();
-    const { top, bottom } = useSafeAreaInsets();
+    const { bottom } = useSafeAreaInsets();
     const [activeIndex, setActiveIndex] = useState(0);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(1);
@@ -226,7 +226,7 @@ const MyActiveStory = () => {
   );
 };
 
-const getStyles = (theme: Theme) =>
+const getStyles = (_theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,

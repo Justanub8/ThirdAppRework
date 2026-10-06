@@ -17,7 +17,7 @@ const Reels = () => {
   const availableHeight = Dimensions.get('window').height - bottomTabHeight;
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({ 
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({ 
     queryKey: ['Reels'], 
     queryFn: async ({ pageParam = 1 }) => {
       const response = await reelApi.getAllReels(pageParam, 10);

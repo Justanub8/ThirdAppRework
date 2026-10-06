@@ -4,7 +4,6 @@ import { Typography } from '~/constants';
 import { BaseText } from '../rn-components';
 import { Avatar } from '../avatar';
 import * as React from 'react';
-import { images } from '~/assets/images';
 import { TextButton } from '../buttons';
 import { IComment } from '~/interfaces/comment';
 import LikeButton from '../buttons/LikeButton';

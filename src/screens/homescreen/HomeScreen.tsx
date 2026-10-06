@@ -34,7 +34,7 @@ const HomeScreen = () => {
     itemVisiblePercentThreshold: 50,
   }).current;
 
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch: refetchPosts } = useInfiniteQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch: refetchPosts } = useInfiniteQuery({
     queryKey: ['Post'],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await postApi.getAllPosts(pageParam, 10);

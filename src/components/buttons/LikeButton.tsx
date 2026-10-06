@@ -1,4 +1,3 @@
-import { View, Text } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { TouchableWithoutFeedback } from 'react-native';
 import { HeartIcon, NotificationIcon } from '~/assets/svgs';

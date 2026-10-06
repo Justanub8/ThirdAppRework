@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Image, ImageResizeMode } from 'react-native';
 import FImage, {
   FastImageProps as FIProps,
@@ -16,18 +16,20 @@ const FastImage = (props: FastImageProps) => {
     { width: number; height: number } | undefined
   >();
 
-  let formattedSource = props.source;
-  if (
-    props.source &&
-    typeof props.source === 'object' &&
-    'uri' in props.source &&
-    (props.source as Source).uri
-  ) {
-    formattedSource = {
-      ...props.source,
-      uri: formatMediaUrl((props.source as Source).uri),
-    };
-  }
+  const formattedSource = useMemo(() => {
+    if (
+      props.source &&
+      typeof props.source === 'object' &&
+      'uri' in props.source &&
+      (props.source as Source).uri
+    ) {
+      return {
+        ...props.source,
+        uri: formatMediaUrl((props.source as Source).uri),
+      };
+    }
+    return props.source;
+  }, [props.source]);
 
   useEffect(() => {
     setError(false);
@@ -42,7 +44,7 @@ const FastImage = (props: FastImageProps) => {
     } else {
       setTrueSize(undefined);
     }
-  }, [props?.source, props.trueSize]);
+  }, [formattedSource, props.trueSize]);
 
   const rawUri =
     formattedSource &&

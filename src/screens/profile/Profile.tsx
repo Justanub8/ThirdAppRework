@@ -2,18 +2,15 @@ import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import React, { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Typography } from '~/constants';
-import { CreateIcon, MenuIcon, AddUserIcon, ReelLightIcon } from '~/assets/svgs';
+import { CreateIcon, MenuIcon, AddUserIcon } from '~/assets/svgs';
 import { BaseText } from '~/components/rn-components';
 import { Avatar } from '~/components/avatar';
 import { useFocusEffect } from '@react-navigation/native';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { SizedBox } from '~/components/separate-components';
-import SlideUpModal from '~/components/slide-up/SlideUpModal';
 import { useQuery } from '@tanstack/react-query';
 import { userApi } from '~/api/userApi';
-import { useAuthStore, useTheme, Theme } from '~/hooks';
+import { useTheme, Theme } from '~/hooks';
 import { SheetManager } from 'react-native-actions-sheet';
-import { Navigation } from '~/utils';
 
 const Profile = () => {
   const { theme, mode, setMode } = useTheme();

@@ -1,6 +1,6 @@
-import type { NavigatorScreenParams, RouteProp } from '@react-navigation/native';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 export type RootStackParamList = {
     Auth: NavigatorScreenParams<AuthStackParamList>;

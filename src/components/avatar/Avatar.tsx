@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleProp,
   ViewStyle,
-  ImageStyle,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { FastImage, BaseText } from '../rn-components';

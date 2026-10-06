@@ -19,7 +19,7 @@ const VideoReel = ({ reel, isActive }: VideoReelProps) => {
   const [isMuted, setIsMuted] = useState(false);
   const [duration, setDuration] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
-  const [isSeeking, setIsSeeking] = useState(false);
+  const [isSeeking, _setIsSeeking] = useState(false);
   const [playSpeed, setPlaySpeed] = useState(1);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

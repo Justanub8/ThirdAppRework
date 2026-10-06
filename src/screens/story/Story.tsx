@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Avatar from '~/components/avatar';
@@ -23,7 +23,7 @@ const Story = () => {
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
   const route = useRoute<RouteProps>();
-  const { top, bottom } = useSafeAreaInsets();
+  const { bottom } = useSafeAreaInsets();
   const { userId, userIds: initialUserIds } = route.params;
 
   const userIds = React.useMemo(() => {
@@ -368,7 +368,7 @@ const Story = () => {
   );
 };
 
-const getStyles = (theme: Theme) =>
+const getStyles = (_theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,

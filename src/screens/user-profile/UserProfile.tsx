@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Typography } from '~/constants';
-import { MenuIcon, AddUserIcon, ReelLightIcon, ArrowToLeft } from '~/assets/svgs';
+import { MenuIcon, AddUserIcon, ArrowToLeft } from '~/assets/svgs';
 import { BaseText } from '~/components/rn-components';
 import { Avatar } from '~/components/avatar';
 import { RouteProp, useRoute, useFocusEffect } from '@react-navigation/native';
-import { images } from '~/assets/images';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { SizedBox } from '~/components/separate-components';
-import SlideUpModal from '~/components/slide-up/SlideUpModal';
 import { useQuery } from '@tanstack/react-query';
 import { userApi } from '~/api/userApi';
 import { conversationApi } from '~/api/conversationApi';
@@ -27,7 +24,7 @@ const UserProfile = () => {
   const currentUser = useAuthStore(state => state.user);
   const isOwnProfile = currentUser?.id === id;
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: ['userProfile', id],
     queryFn: async () => {
       if (!id) return null;
@@ -81,7 +78,6 @@ const UserProfile = () => {
     }
   };
 
-  const createModalRef = React.useRef<BottomSheetModal>(null);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>

@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 import { Typography } from '~/constants';
 import { BaseText } from '../rn-components';
 import { Avatar } from '../avatar';
-import { images } from '~/assets/images';
 import { CrossIcon } from '~/assets/svgs';
 import { Navigation } from '~/utils';
 import { IConversation } from '~/interfaces';

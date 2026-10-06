@@ -4,9 +4,7 @@ import { Typography } from '~/constants';
 import { BaseText } from '../rn-components';
 import { CommentIcon, MoreIcon, MessageLightIcon } from '~/assets/svgs';
 import InteractNum from '../interact/InteractNum';
-import { LinearGradient } from 'react-native-linear-gradient';
 import { FastImage } from '../rn-components';
-import { images } from '~/assets/images';
 import { Avatar } from '../avatar';
 import { SizedBox } from '../separate-components';
 import { IPost } from '~/interfaces/post';
@@ -22,7 +20,7 @@ import PostVideoItem from './components/PostVideoItem';
 const Post = ({ post, isActive = true }: { post: IPost, isActive?: boolean }) => {
     const [expanded, setExpanded] = React.useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
-    const [numberOfLines, setNumberOfLines] = React.useState(0);
+    const [numberOfLines, _setNumberOfLines] = React.useState(0);
     const [likeCount, setLikeCount] = useState(post.likeCount);
     const [repostCount, setRepostCount] = useState(post.repostCount);
     const [isFollowing, setIsFollowing] = useState(!!post.isFollowing);

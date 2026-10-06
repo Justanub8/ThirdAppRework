@@ -5,7 +5,6 @@ import { SizedBox } from '../separate-components';
 import { PrimaryInput } from '../inputs';
 import { BaseText } from '../rn-components';
 import { Avatar } from '../avatar';
-import { images } from '~/assets/images';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { commentApi } from '~/api/commentApi';
 import { FlashList } from '@shopify/flash-list';

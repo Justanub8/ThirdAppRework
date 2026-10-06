@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
 import type { OnLoadEvent } from '@d11/react-native-fast-image';
 import { FastImage } from '~/components/rn-components';
@@ -27,7 +27,7 @@ export const MessageImageItem: React.FC<MessageImageItemProps> = ({
 
   const formattedUrl = formatMediaUrl(url);
 
-  const calculateAndSetDimensions = (w: number, h: number) => {
+  const calculateAndSetDimensions = useCallback((w: number, h: number) => {
     if (w > 0 && h > 0) {
       const ratio = w / h;
       const computedHeight = Math.round(targetWidth / ratio);
@@ -40,7 +40,7 @@ export const MessageImageItem: React.FC<MessageImageItemProps> = ({
         height: clampedHeight,
       });
     }
-  };
+  }, [targetWidth]);
 
   useEffect(() => {
     setDimensions({
@@ -54,7 +54,7 @@ export const MessageImageItem: React.FC<MessageImageItemProps> = ({
         () => {}
       );
     }
-  }, [formattedUrl, targetWidth]);
+  }, [formattedUrl, targetWidth, calculateAndSetDimensions]);
 
   const handleLoad = (event: OnLoadEvent) => {
     if (event?.nativeEvent?.width && event?.nativeEvent?.height) {

@@ -126,6 +126,7 @@ const MenuTrigger = React.forwardRef<MenuTriggerRef, MenuTriggerProps>(
                     onLayout={event => {
                         const width = event?.nativeEvent?.layout?.width || 0;
                         const height = event?.nativeEvent?.layout?.height || 0;
+                        archonLayout.current = { width, height };
                     }}
                     style={archonContainerStyle}
                 >

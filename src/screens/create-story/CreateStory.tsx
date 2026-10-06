@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Alert } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Alert } from 'react-native'
 import React, { useState, useEffect} from 'react'
 import { AuthenticatedStackParamList } from '~/navigation/types'
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { Theme, useStoryMutation, useTheme } from '~/hooks';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CrossIcon, MutedIcon, UnmutedIcon, TextAaIcon, StickerIcon, MenuIcon, ArrowToRight, StarIcon, MusicIcon, ScribbleIcon } from '~/assets/svgs';
+import { CrossIcon, TextAaIcon, StickerIcon, ArrowToRight, StarIcon, MusicIcon, ScribbleIcon } from '~/assets/svgs';
 import { Navigation } from '~/utils';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
@@ -19,7 +19,7 @@ const CreateStory = () => {
     const styles = getStyles(theme);
     const route = useRoute<RouteProps>();
     const { uri, mediaType } = route.params;
-    const [isMuted, setIsMuted] = useState(false);
+    const [isMuted, _setIsMuted] = useState(false);
     const [hasVideoError, setHasVideoError] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const { createStory } = useStoryMutation();

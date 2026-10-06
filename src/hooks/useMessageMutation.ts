@@ -24,7 +24,7 @@ export const useMessageMutation = () => {
             }
             Alert.alert("Lỗi khi gửi tin nhắn");
         },
-        onSettled: (data, error, variables, context: any) => {
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['conversations'] });
         },
     });
