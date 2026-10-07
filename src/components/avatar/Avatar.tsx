@@ -16,6 +16,7 @@ export interface AvatarProps {
   url?: string | null;
   hasActiveStory?: boolean;
   isSeenStory?: boolean;
+  isOnline?: boolean;
   id?: string;
   size: number;
   username?: string;
@@ -42,6 +43,7 @@ const Avatar: React.FC<AvatarProps> = ({
   url,
   hasActiveStory = false,
   isSeenStory = false,
+  isOnline = false,
   id = '',
   size = 40,
   username,
@@ -129,7 +131,7 @@ const Avatar: React.FC<AvatarProps> = ({
           height: size,
           borderRadius: size / 2,
           overflow: 'hidden',
-          backgroundColor: theme.surface || '#2a2a2a',
+          backgroundColor: theme.darkSurface || '#2a2a2a',
         }}
       >
         <FastImage
@@ -147,7 +149,23 @@ const Avatar: React.FC<AvatarProps> = ({
       disabled={disabled || !id}
       style={[styles.container, style]}
     >
-      {renderAvatarImage()}
+      <View style={{ position: 'relative' }}>
+        {renderAvatarImage()}
+        {isOnline ? (
+          <View
+            style={[
+              styles.onlineBadge,
+              {
+                width: Math.max(10, Math.round(size * 0.28)),
+                height: Math.max(10, Math.round(size * 0.28)),
+                borderRadius: Math.max(10, Math.round(size * 0.28)) / 2,
+                borderColor: theme.background,
+                borderWidth: Math.max(1.5, Math.round(size * 0.05)),
+              },
+            ]}
+          />
+        ) : null}
+      </View>
 
       {username ? (
         <BaseText
@@ -170,6 +188,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 12,
     textAlign: 'center',
+  },
+  onlineBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#4CAF50',
+    zIndex: 10,
   },
 });
 

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { StyleSheet } from 'react-native';
 import { MainTabParamList } from './types';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '~/screens/homescreen/HomeScreen';
@@ -18,11 +19,77 @@ import {
   SearchLightIcon,
 } from '~/assets/svgs';
 import { Avatar } from '~/components/avatar';
+
 const ICON_SIZE = 36;
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+const renderHomeIcon = ({ focused }: { focused: boolean }) =>
+  focused ? (
+    <HomeBoldIcon width={ICON_SIZE} height={ICON_SIZE} />
+  ) : (
+    <HomeLightIcon width={ICON_SIZE} height={ICON_SIZE} />
+  );
+
+const renderReelsIcon = ({ focused }: { focused: boolean }) =>
+  focused ? (
+    <ReelBoldIcon width={ICON_SIZE} height={ICON_SIZE} />
+  ) : (
+    <ReelLightIcon width={ICON_SIZE} height={ICON_SIZE} />
+  );
+
+const renderMessageIcon = ({ focused }: { focused: boolean }) =>
+  focused ? (
+    <MessageBoldIcon width={ICON_SIZE} height={ICON_SIZE} />
+  ) : (
+    <MessageLightIcon width={ICON_SIZE} height={ICON_SIZE} />
+  );
+
+const renderExploreIcon = ({ focused }: { focused: boolean }) =>
+  focused ? (
+    <SearchBoldIcon width={ICON_SIZE} height={ICON_SIZE} />
+  ) : (
+    <SearchLightIcon width={ICON_SIZE} height={ICON_SIZE} />
+  );
+
+const ProfileTabIcon = ({
+  focused,
+  url,
+  borderColor,
+}: {
+  focused: boolean;
+  url?: string;
+  borderColor: string;
+}) => (
+  <Avatar
+    url={url}
+    size={28}
+    disabled
+    style={focused ? [styles.focusedAvatar, { borderColor }] : undefined}
+  />
+);
+
+const styles = StyleSheet.create({
+  focusedAvatar: {
+    borderWidth: 2,
+    borderRadius: 9999,
+  },
+});
+
 const MainTabNavigator: React.FC = () => {
   const { theme } = useTheme();
   const currentUser = useAuthStore(state => state.user);
+
+  const renderProfileIcon = React.useCallback(
+    (props: { focused: boolean }) => (
+      <ProfileTabIcon
+        focused={props.focused}
+        url={currentUser?.avatarUrl || currentUser?.imageUrl}
+        borderColor={theme.text}
+      />
+    ),
+    [currentUser?.avatarUrl, currentUser?.imageUrl, theme.text]
+  );
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -37,78 +104,27 @@ const MainTabNavigator: React.FC = () => {
       <Tab.Screen
         name="HomeScreen"
         component={HomeScreen}
-        options={{
-          tabBarIcon(props) {
-            return props.focused ? (
-              <HomeBoldIcon width={ICON_SIZE} height={ICON_SIZE} />
-            ) : (
-              <HomeLightIcon width={ICON_SIZE} height={ICON_SIZE} />
-            );
-          },
-        }}
+        options={{ tabBarIcon: renderHomeIcon }}
       />
       <Tab.Screen
         name="Reels"
         component={Reels}
-        options={{
-          tabBarIcon(props) {
-            return props.focused ? (
-              <ReelBoldIcon width={ICON_SIZE} height={ICON_SIZE} />
-            ) : (
-              <ReelLightIcon width={ICON_SIZE} height={ICON_SIZE} />
-            );
-          },
-        }}
+        options={{ tabBarIcon: renderReelsIcon }}
       />
       <Tab.Screen
         name="Message"
         component={Message}
-        options={{
-          tabBarIcon(props) {
-            return props.focused ? (
-              <MessageBoldIcon width={ICON_SIZE} height={ICON_SIZE} />
-            ) : (
-              <MessageLightIcon width={ICON_SIZE} height={ICON_SIZE} />
-            );
-          },
-        }}
+        options={{ tabBarIcon: renderMessageIcon }}
       />
       <Tab.Screen
         name="Explore"
         component={Explore}
-        options={{
-          tabBarIcon(props) {
-            return props.focused ? (
-              <SearchBoldIcon width={ICON_SIZE} height={ICON_SIZE} />
-            ) : (
-              <SearchLightIcon width={ICON_SIZE} height={ICON_SIZE} />
-            );
-          },
-        }}
+        options={{ tabBarIcon: renderExploreIcon }}
       />
       <Tab.Screen
         name="Profile"
         component={Profile}
-        options={{
-          tabBarIcon(props) {
-            return (
-              <Avatar
-                url={currentUser?.avatarUrl || currentUser?.imageUrl}
-                size={28}
-                disabled
-                style={
-                  props.focused
-                    ? {
-                        borderWidth: 2,
-                        borderColor: theme.text,
-                        borderRadius: 9999,
-                      }
-                    : undefined
-                }
-              />
-            );
-          },
-        }}
+        options={{ tabBarIcon: renderProfileIcon }}
       />
     </Tab.Navigator>
   );

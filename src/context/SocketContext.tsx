@@ -1,24 +1,45 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '~/hooks';
 import Config from 'react-native-config';
 
+export interface UserPresenceInfo {
+  isOnline: boolean;
+  lastActive?: string | Date | null;
+}
+
+export interface PresenceContextType {
+  onlineUsers: Record<string, UserPresenceInfo>;
+  isUserOnline: (userId?: string) => boolean;
+  getUserLastActive: (userId?: string) => string | Date | null | undefined;
+}
+
 const SocketContext = createContext<Socket | null>(null);
+const PresenceContext = createContext<PresenceContextType>({
+  onlineUsers: {},
+  isUserOnline: () => false,
+  getUserLastActive: () => null,
+});
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const { accessToken } = useAuthStore();
   const isAuthenticated = !!accessToken;
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<Record<string, UserPresenceInfo>>({});
   const socketRef = useRef<Socket | null>(null);
+  const heartbeatTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const clearHeartbeat = () => {
+    if (heartbeatTimerRef.current) {
+      clearInterval(heartbeatTimerRef.current);
+      heartbeatTimerRef.current = null;
+    }
+  };
 
   useEffect(() => {
     if (!isAuthenticated || !accessToken) {
+      clearHeartbeat();
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -29,9 +50,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     const socketUrl =
       Config.SOCKET_URL ||
-      (Config.BASE_API_URL
-        ? Config.BASE_API_URL.replace(/\/api\/?$/, '')
-        : 'http://localhost:5050');
+      (Config.BASE_API_URL ? Config.BASE_API_URL.replace(/\/api\/?$/, '') : 'http://localhost:5050');
 
     const socketInstance = io(socketUrl, {
       auth: { token: accessToken },
@@ -43,24 +62,104 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     socketInstance.on('connect', () => {
       console.log('Đã kết nối chat socket:', socketInstance.id);
+      // Gửi heartbeat ban đầu và định kỳ mỗi 30s
+      socketInstance.emit('heartbeat');
+      clearHeartbeat();
+      heartbeatTimerRef.current = setInterval(() => {
+        if (socketInstance.connected) {
+          socketInstance.emit('heartbeat');
+        }
+      }, 30000);
     });
 
-    socketInstance.on('connect_error', err => {
+    // Lắng nghe sự kiện thay đổi trạng thái online của người dùng
+    socketInstance.on(
+      'user_status_change',
+      (data: { userId: string; isOnline: boolean; lastActive?: string | Date }) => {
+        if (!data?.userId) return;
+        setOnlineUsers((prev) => ({
+          ...prev,
+          [data.userId]: {
+            isOnline: !!data.isOnline,
+            lastActive: data.lastActive,
+          },
+        }));
+      },
+    );
+
+    socketInstance.on('connect_error', (err) => {
       console.log('Lỗi kết nối socket:', err.message);
+      clearHeartbeat();
+    });
+
+    socketInstance.on('disconnect', (reason) => {
+      console.log('Socket ngắt kết nối:', reason);
+      clearHeartbeat();
     });
 
     return () => {
+      clearHeartbeat();
       socketInstance.disconnect();
       socketRef.current = null;
       setSocket(null);
     };
   }, [isAuthenticated, accessToken]);
 
+  // Xử lý AppState: khi app xuống background thì ngắt socket (server sẽ tính offline), khi quay lại app thì kết nối lại
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        clearHeartbeat();
+        if (socketRef.current?.connected) {
+          socketRef.current.disconnect();
+        }
+      } else if (nextAppState === 'active') {
+        if (socketRef.current && !socketRef.current.connected && isAuthenticated) {
+          socketRef.current.connect();
+        }
+      }
+    });
+
+    return () => subscription.remove();
+  }, [isAuthenticated]);
+
+  const isUserOnline = useCallback(
+    (userId?: string) => {
+      if (!userId) return false;
+      return !!onlineUsers[userId]?.isOnline;
+    },
+    [onlineUsers],
+  );
+
+  const getUserLastActive = useCallback(
+    (userId?: string) => {
+      if (!userId) return null;
+      return onlineUsers[userId]?.lastActive;
+    },
+    [onlineUsers],
+  );
+
   return (
-    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
+    <SocketContext.Provider value={socket}>
+      <PresenceContext.Provider value={{ onlineUsers, isUserOnline, getUserLastActive }}>
+        {children}
+      </PresenceContext.Provider>
+    </SocketContext.Provider>
   );
 }
 
 export function useSocket() {
   return useContext(SocketContext);
+}
+
+export function usePresence() {
+  return useContext(PresenceContext);
+}
+
+export function useOnlineStatus(userId?: string) {
+  const { isUserOnline, getUserLastActive } = usePresence();
+  return {
+    isOnline: isUserOnline(userId),
+    lastActive: getUserLastActive(userId),
+  };
 }

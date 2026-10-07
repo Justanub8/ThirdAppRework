@@ -14,8 +14,7 @@ const ImageReel = ({ reel }: ImageReelProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  const rawUrl =
-    reel.media?.url || (reel as any).videoUrl || (reel as any).mediaUrl || '';
+  const rawUrl = reel.media?.url || reel.videoUrl || reel.mediaUrl || '';
   const mediaUrl = formatMediaUrl(rawUrl);
 
   useEffect(() => {
@@ -35,10 +34,7 @@ const ImageReel = ({ reel }: ImageReelProps) => {
       ) : null}
 
       {/* Dark blur overlay over background */}
-      <View
-        style={[StyleSheet.absoluteFill, styles.backdropOverlay]}
-        pointerEvents="none"
-      />
+      <View style={[StyleSheet.absoluteFill, styles.backdropOverlay]} pointerEvents="none" />
 
       {/* Main sharp image */}
       {mediaUrl && !hasError ? (
@@ -63,10 +59,7 @@ const ImageReel = ({ reel }: ImageReelProps) => {
 
       {/* Subtle dark tint over image so overlays and captions pop */}
       {!hasError && (
-        <View
-          style={[StyleSheet.absoluteFill, styles.darkOverlay]}
-          pointerEvents="none"
-        />
+        <View style={[StyleSheet.absoluteFill, styles.darkOverlay]} pointerEvents="none" />
       )}
 
       {/* Loading indicator */}

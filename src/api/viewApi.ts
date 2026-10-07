@@ -1,19 +1,12 @@
-import axiosInstance from '~/services/axiosClient';
+import axiosInstance from "~/services/axiosClient";
+import { IView, ViewPayload, IResponseGetViews } from "~/interfaces";
 
-export interface ViewPayload {
-  targetId: string;
-  targetType: 'Reel' | 'Story';
-}
+export type { ViewPayload };
 
 export const viewApi = {
-  createView: (payload: ViewPayload) =>
-    axiosInstance.post<{ message: string; view?: any }>(
-      '/view/create',
-      payload,
-    ),
+    createView: (payload: ViewPayload) =>
+        axiosInstance.post<{ message: string; view?: IView }>('/view/create', payload),
 
-  getViewsByTarget: (targetId: string, targetType: 'Reel' | 'Story') =>
-    axiosInstance.get<{ total: number; data: any[] }>(
-      `/view/target?targetId=${targetId}&targetType=${targetType}`,
-    ),
+    getViewsByTarget: (targetId: string, targetType: 'Reel' | 'Story') =>
+        axiosInstance.get<IResponseGetViews>(`/view/target?targetId=${targetId}&targetType=${targetType}`),
 };

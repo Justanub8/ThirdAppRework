@@ -6,15 +6,13 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import ActionSheet, {
-  SheetProps,
-  SheetManager,
-} from 'react-native-actions-sheet';
+import ActionSheet, { SheetProps, SheetManager } from 'react-native-actions-sheet';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { Theme, useTheme } from '~/hooks';
 import { BaseText, FastImage } from '../rn-components';
-import { PlayIcon } from '~/assets/svgs';
+import { CrossIcon, PlayIcon, CameraLightIcon } from '~/assets/svgs';
 import { Typography } from '~/constants';
+import { Navigation, formatDuration, isVideoMedia } from '~/utils';
 import { FlashList } from '@shopify/flash-list';
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
@@ -26,36 +24,33 @@ export interface SelectedChatMedia {
   type: 'image' | 'video';
   filename?: string | null;
   extension?: string | null;
+  playableDuration?: number | null;
 }
 
-const formatDuration = (seconds?: number) => {
-  if (!seconds || seconds <= 0) return '';
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-};
-
-const MediaSheet = (props: SheetProps<'MediaSheet'>) => {
+const MediaSheet = (props: SheetProps<"MediaSheet">) => {
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
-  const [photos, setPhotos] = useState<any[]>([]);
+  const [photos, setPhotos] = useState<SelectedChatMedia[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
 
+  const mediaType = props.payload?.mediaType || 'all';
+
   const fetchPhotos = useCallback(async (after?: string) => {
     try {
       if (!after) setIsLoading(true);
+      const assetType = mediaType === 'image' ? 'Photos' : mediaType === 'video' ? 'Videos' : 'All';
       const res = await CameraRoll.getPhotos({
         first: 30,
         after,
-        assetType: 'All',
+        assetType,
         include: ['filename', 'fileExtension', 'playableDuration'],
       });
 
-      const newPhotos = res.edges.map(edge => ({
+      const newPhotos: SelectedChatMedia[] = res.edges.map(edge => ({
         uri: edge.node.image.uri,
-        type: edge.node.type,
+        type: (edge.node.type === 'video' ? 'video' : 'image') as 'image' | 'video',
         filename: edge.node.image.filename,
         extension: edge.node.image.extension,
         playableDuration: edge.node.image.playableDuration,
@@ -69,7 +64,7 @@ const MediaSheet = (props: SheetProps<'MediaSheet'>) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [mediaType]);
 
   useEffect(() => {
     fetchPhotos();
@@ -86,13 +81,14 @@ const MediaSheet = (props: SheetProps<'MediaSheet'>) => {
     SheetManager.hide(props.sheetId, { payload: selected });
   };
 
-  const renderItem = ({ item }: { item: any }) => {
-    const isVideo =
-      Boolean(item.playableDuration) ||
-      item.type?.startsWith('video') ||
-      item.type === 'video' ||
-      /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i.test(item.uri || '') ||
-      /\.(mp4|mov|avi|mkv|webm|3gp|m4v)$/i.test(item.filename || '');
+  const sheetTitle = useMemo(() => {
+    if (mediaType === 'image') return 'Chọn ảnh';
+    if (mediaType === 'video') return 'Chọn video';
+    return 'Chọn ảnh hoặc video';
+  }, [mediaType]);
+
+  const renderItem = ({ item }: { item: SelectedChatMedia }) => {
+    const isVideo = isVideoMedia(item);
 
     return (
       <TouchableOpacity
@@ -101,26 +97,18 @@ const MediaSheet = (props: SheetProps<'MediaSheet'>) => {
         onPress={() => {
           handleSelectMedia({
             uri: item.uri,
-            type: isVideo ? 'video' : 'image',
+            type: mediaType === 'image' ? 'image' : (isVideo ? 'video' : 'image'),
             filename: item.filename,
             extension: item.extension,
           });
         }}
       >
-        <FastImage
-          source={{ uri: item.uri }}
-          style={styles.thumbnail}
-          resizeMode="cover"
-        />
-        {isVideo ? (
+        <FastImage source={{ uri: item.uri }} style={styles.thumbnail} resizeMode="cover" />
+        {isVideo && mediaType !== 'image' ? (
           <View style={styles.videoBadge}>
             <PlayIcon width={12} height={12} color="#FFFFFF" />
             {item.playableDuration ? (
-              <BaseText
-                typography={Typography.bodyRegular.small}
-                color="#FFFFFF"
-                style={styles.durationText}
-              >
+              <BaseText typography={Typography.bodyRegular.small} color="#FFFFFF" style={styles.durationText}>
                 {formatDuration(item.playableDuration)}
               </BaseText>
             ) : null}
@@ -142,7 +130,26 @@ const MediaSheet = (props: SheetProps<'MediaSheet'>) => {
     >
       <View style={styles.contentContainer}>
         <View style={styles.header}>
-          <BaseText style={styles.title}>Chọn ảnh hoặc video</BaseText>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => SheetManager.hide(props.sheetId)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <CrossIcon width={24} height={24} color={theme.text} />
+          </TouchableOpacity>
+
+          <BaseText style={styles.title}>{sheetTitle}</BaseText>
+
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => {
+              SheetManager.hide(props.sheetId);
+              Navigation.goToCameraScreen();
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <CameraLightIcon height={24} width={24} color={theme.text} />
+          </TouchableOpacity>
         </View>
 
         {isLoading && photos.length === 0 ? (
@@ -190,15 +197,25 @@ const getStyles = (theme: Theme) =>
       flex: 1,
     },
     header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
       borderBottomColor: theme.divider,
       borderBottomWidth: 1,
-      paddingBottom: 8,
+    },
+    headerButton: {
+      width: 36,
+      height: 36,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     title: {
       fontSize: 16,
       fontWeight: 'bold',
-      marginVertical: 6,
       textAlign: 'center',
+      flex: 1,
     },
     columnWrapper: {
       gap: ITEM_SPACING,

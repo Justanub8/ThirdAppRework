@@ -22,6 +22,7 @@ declare module 'react-native-actions-sheet' {
     MediaSheet: {
       payload?: {
         onSelectMedia?: (media: SelectedChatMedia) => void;
+        mediaType?: 'all' | 'image' | 'video';
       };
       returnValue?: SelectedChatMedia;
     };

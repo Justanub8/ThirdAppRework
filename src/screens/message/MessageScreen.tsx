@@ -15,6 +15,7 @@ import { conversationApi } from '~/api';
 import { useAuthStore } from '~/hooks/useAuthStore';
 import { useTheme } from '~/hooks';
 import { Navigation } from '~/utils';
+import { IConversation } from '~/interfaces';
 
 const MessageScreen = () => {
   const { theme } = useTheme();
@@ -25,96 +26,87 @@ const MessageScreen = () => {
     queryFn: async () => {
       const response = await conversationApi.getConversations();
       return response.data?.data || [];
-    },
+    }
   });
-
+  
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [refetch]),
+    }, [refetch])
   );
 
   const conversations = useMemo(() => {
     const list = rawConversations || [];
-    return [...list].sort((a: any, b: any) => {
-      const timeA = new Date(
-        a.lastMessage?.createdAt || a.updatedAt || a.createdAt || 0,
-      ).getTime();
-      const timeB = new Date(
-        b.lastMessage?.createdAt || b.updatedAt || b.createdAt || 0,
-      ).getTime();
+    return [...list].sort((a: IConversation, b: IConversation) => {
+      const timeA = new Date(a.lastMessage?.createdAt || a.updatedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.lastMessage?.createdAt || b.updatedAt || b.createdAt || 0).getTime();
       return timeB - timeA;
     });
   }, [rawConversations]);
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.background }]}
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView style={styles.scrollContent}>
-        <View style={[styles.header, { borderColor: theme.border }]}>
-          <View style={styles.headerPlaceholder}></View>
-          <BaseText typography={Typography.bodyBold.xxxLarge} numberOfLines={1}>
-            {user?.username || 'Message'}
-          </BaseText>
-          <TouchableOpacity
-            onPress={() => {
-              Navigation.goToNewMessage();
-            }}
-          >
-            <NoteIcon width={24} height={24} />
-          </TouchableOpacity>
-        </View>
-        <SizedBox height={24} />
-        <PrimaryInput
-          LeftComponent={SearchLightIcon}
-          placeholder="Tìm kiếm hoặc hỏi Meta AI"
-        />
-        <SizedBox height={16} />
-        <View>
-          <Note />
-        </View>
-        <SizedBox height={24} />
-        <View style={styles.sectionHeader}>
-          <BaseText typography={Typography.bodyBold.large}>Tin nhắn</BaseText>
-          <BaseText
-            typography={Typography.bodyRegular.medium}
-            color={theme.charcoal}
-          >
-            Tin nhắn đang chờ
-          </BaseText>
-        </View>
-        <SizedBox height={24} />
-        <View>
-          {conversations.map((conv: any) => {
-            const convKey = conv.id;
-            return (
-              <View key={convKey} style={styles.chatItem}>
-                <Chat conversation={conv} currentUserId={user?.id} />
-              </View>
-            );
-          })}
-        </View>
-        <SizedBox height={24} />
-        <View>
-          <BaseText typography={Typography.bodyBold.large}>Gợi ý</BaseText>
-        </View>
-        <SizedBox height={24} />
-        {null}
-        <SizedBox height={24} />
-        <View style={styles.sectionHeader}>
-          <BaseText typography={Typography.bodyBold.large}>
-            Tài khoản nên theo dõi
-          </BaseText>
-          <TextButton
-            title="Xem tất cả"
-            color={theme.blue}
-            typography={Typography.bodyRegular.medium}
+          <View style={[styles.header, { borderColor: theme.border }]}>
+            <View style={styles.headerPlaceholder} />
+            <BaseText typography={Typography.bodyBold.xxxLarge} numberOfLines={1}>
+              {user?.username || 'Message'}
+            </BaseText>
+            <TouchableOpacity onPress={() => { Navigation.goToNewMessage(); }}>
+              <NoteIcon width={24} height={24} />
+            </TouchableOpacity>
+          </View>
+          <SizedBox height={24}/>
+          <PrimaryInput 
+            LeftComponent={SearchLightIcon}
+            placeholder="Tìm kiếm hoặc hỏi Meta AI"
           />
-        </View>
-        <SizedBox height={24} />
-        {null}
-        <SizedBox height={24} />
+          <SizedBox height={16}/>
+          <View>
+            <Note/>
+          </View>
+          <SizedBox height={24}/>
+          <View style={styles.sectionHeader}>
+            <BaseText typography={Typography.bodyBold.large}>
+              Tin nhắn
+            </BaseText>
+            <BaseText typography={Typography.bodyRegular.medium} color={theme.charcoal}>
+              Tin nhắn đang chờ 
+            </BaseText>
+          </View>
+          <SizedBox height={24}/>
+          <View>
+            {conversations.map((conv: IConversation) => {
+              const convKey = conv.id;
+              return (
+                <View key={convKey} style={styles.chatItem}>
+                  <Chat 
+                    conversation={conv}
+                    currentUserId={user?.id}
+                  />
+                </View>
+              );
+
+            })}
+          </View>
+          <SizedBox height={24}/>
+          <View>
+            <BaseText typography={Typography.bodyBold.large}>
+              Gợi ý
+            </BaseText>
+          </View>
+          <SizedBox height={24}/>
+          {null}
+          <SizedBox height={24}/>
+          <View style={styles.sectionHeader}>
+            <BaseText typography={Typography.bodyBold.large}>
+              Tài khoản nên theo dõi 
+            </BaseText>
+            <TextButton title='Xem tất cả' color={theme.blue} typography={Typography.bodyRegular.medium}/>
+          </View>
+          <SizedBox height={24}/>
+          {null}
+          <SizedBox height={24}/>
       </ScrollView>
     </SafeAreaView>
   );
