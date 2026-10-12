@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
 import { VideoRef } from 'react-native-video';
-import ReelOverlay from './ReelOverlay';
+import ReelOverlay from '~/components/reel/ReelOverlay';
 import { IReel } from '~/interfaces/reel';
 import { MutedIcon, PlayIcon, UnmutedIcon } from '~/assets/svgs';
 import { BaseText, BaseVideo } from '~/components/rn-components';

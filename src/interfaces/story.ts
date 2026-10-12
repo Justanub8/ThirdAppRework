@@ -1,5 +1,5 @@
-import { IProfileUser } from './auth';
-import { IMedia } from './media';
+import { IProfileUser } from '~/interfaces/auth';
+import { IMedia } from '~/interfaces/media';
 
 export interface IStory {
   id?: string;

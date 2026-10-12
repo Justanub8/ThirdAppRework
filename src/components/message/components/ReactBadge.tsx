@@ -24,7 +24,7 @@ const ReactBadge = ({ emojis, onPress, onRemoveEmoji }: ReactBadgeProps) => {
   const recentEmoji = useMemo(() => {
     if (!emojis || emojis.length === 0) return '';
     const unique = Array.from(
-      new Set(emojis.map(e => e.content).filter(Boolean))
+      new Set(emojis.map(e => e.content).filter(Boolean)),
     );
     return unique.slice(0, 3).join('');
   }, [emojis]);
@@ -84,11 +84,13 @@ const ReactBadge = ({ emojis, onPress, onRemoveEmoji }: ReactBadgeProps) => {
           >
             {emojis.map((emoji, index) => {
               const isMyEmoji = Boolean(
-                authUserId && (emoji.senderId === authUserId || emoji.sender?.id === authUserId)
+                authUserId &&
+                  (emoji.senderId === authUserId ||
+                    emoji.sender?.id === authUserId),
               );
               const displayName = isMyEmoji
-                ? (emoji.sender?.name || emoji.sender?.username || 'Bạn')
-                : (emoji.sender?.name || emoji.sender?.username || 'Người dùng');
+                ? emoji.sender?.name || emoji.sender?.username || 'Bạn'
+                : emoji.sender?.name || emoji.sender?.username || 'Người dùng';
               const avatarUrl = emoji.sender?.avatarUrl;
 
               const rowContent = (
@@ -113,7 +115,9 @@ const ReactBadge = ({ emojis, onPress, onRemoveEmoji }: ReactBadgeProps) => {
               if (isMyEmoji) {
                 return (
                   <TouchableOpacity
-                    key={emoji.id || `${emoji.senderId || index}_${emoji.content}`}
+                    key={
+                      emoji.id || `${emoji.senderId || index}_${emoji.content}`
+                    }
                     activeOpacity={0.65}
                     onPress={() => handleRemoveEmoji(emoji)}
                   >
@@ -123,7 +127,11 @@ const ReactBadge = ({ emojis, onPress, onRemoveEmoji }: ReactBadgeProps) => {
               }
 
               return (
-                <View key={emoji.id || `${emoji.senderId || index}_${emoji.content}`}>
+                <View
+                  key={
+                    emoji.id || `${emoji.senderId || index}_${emoji.content}`
+                  }
+                >
                   {rowContent}
                 </View>
               );

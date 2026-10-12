@@ -18,19 +18,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme, Theme } from '~/hooks';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
-import {
-  CrossIcon,
-  FlashIcon,
-  FlashOffIcon,
-  RepostIcon,
-} from '~/assets/svgs';
+import { CrossIcon, FlashIcon, FlashOffIcon, RepostIcon } from '~/assets/svgs';
 import { Navigation } from '~/utils';
 
 const CameraScreen = () => {
   const { theme } = useTheme();
-  const styles = getStyles(theme);
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
 
-  const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
+  const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>(
+    'back',
+  );
   const device = useCameraDevice(cameraPosition);
   const camera = useRef<React.ElementRef<typeof Camera>>(null);
 
@@ -40,10 +37,14 @@ const CameraScreen = () => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [flash, setFlash] = useState<'off' | 'on'>('off');
 
-  const { hasPermission: hasCameraPermission, requestPermission: requestCameraPermission } =
-    useCameraPermission();
-  const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } =
-    useMicrophonePermission();
+  const {
+    hasPermission: hasCameraPermission,
+    requestPermission: requestCameraPermission,
+  } = useCameraPermission();
+  const {
+    hasPermission: hasMicPermission,
+    requestPermission: requestMicPermission,
+  } = useMicrophonePermission();
 
   const photoOutput = usePhotoOutput();
   const videoOutput = useVideoOutput({
@@ -63,7 +64,7 @@ const CameraScreen = () => {
     let interval: ReturnType<typeof setInterval> | null = null;
     if (isRecording) {
       interval = setInterval(() => {
-        setRecordingSeconds((prev) => prev + 1);
+        setRecordingSeconds(prev => prev + 1);
       }, 1000);
     } else {
       setRecordingSeconds(0);
@@ -83,7 +84,7 @@ const CameraScreen = () => {
 
   const toggleCamera = () => {
     if (isRecording) return;
-    setCameraPosition((prev) => (prev === 'back' ? 'front' : 'back'));
+    setCameraPosition(prev => (prev === 'back' ? 'front' : 'back'));
   };
 
   const toggleFlash = () => {
@@ -91,7 +92,7 @@ const CameraScreen = () => {
       Alert.alert('Thông báo', 'Camera hiện tại không hỗ trợ đèn flash');
       return;
     }
-    setFlash((prev) => (prev === 'off' ? 'on' : 'off'));
+    setFlash(prev => (prev === 'off' ? 'on' : 'off'));
   };
 
   const formatTimer = (sec: number) => {
@@ -109,13 +110,12 @@ const CameraScreen = () => {
           {
             flashMode: flash === 'on' && device?.hasFlash ? 'on' : 'off',
           },
-          {}
+          {},
         );
 
         const uri = photoFile.filePath.startsWith('file://')
           ? photoFile.filePath
           : `file://${photoFile.filePath}`;
-        console.log(uri);
         Navigation.goToCreateStory(uri, 'image');
       } catch (error) {
         console.error('Lỗi khi chụp ảnh:', error);
@@ -144,18 +144,20 @@ const CameraScreen = () => {
           setIsRecording(true);
 
           await recorder.startRecording(
-            (filePath) => {
+            filePath => {
               setIsRecording(false);
               recorderRef.current = null;
-              const uri = filePath.startsWith('file://') ? filePath : `file://${filePath}`;
+              const uri = filePath.startsWith('file://')
+                ? filePath
+                : `file://${filePath}`;
               Navigation.goToCreateStory(uri, 'video');
             },
-            (error) => {
+            error => {
               console.error('Lỗi khi quay video:', error);
               setIsRecording(false);
               recorderRef.current = null;
               Alert.alert('Lỗi', 'Không thể quay video. Vui lòng thử lại.');
-            }
+            },
           );
         } catch (error) {
           console.error('Lỗi khi bắt đầu quay video:', error);
@@ -170,11 +172,14 @@ const CameraScreen = () => {
   if (!hasCameraPermission) {
     return (
       <SafeAreaView style={styles.centerContainer}>
-        <BaseText typography={Typography.bodyMedium.large} color="#FFFFFF">
+        <BaseText typography={Typography.bodyMedium.large} color={theme.white}>
           Ứng dụng cần quyền truy cập Camera
         </BaseText>
-        <TouchableOpacity style={styles.permissionButton} onPress={requestCameraPermission}>
-          <BaseText color="#FFFFFF">Cấp quyền Camera</BaseText>
+        <TouchableOpacity
+          style={styles.permissionButton}
+          onPress={requestCameraPermission}
+        >
+          <BaseText color={theme.white}>Cấp quyền Camera</BaseText>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -183,8 +188,8 @@ const CameraScreen = () => {
   if (device == null) {
     return (
       <SafeAreaView style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#FFFFFF" />
-        <BaseText style={{ marginTop: 12 }} color="#FFFFFF">
+        <ActivityIndicator size="large" color={theme.white} />
+        <BaseText style={styles.loadingText} color={theme.white}>
           Đang tìm thiết bị Camera...
         </BaseText>
       </SafeAreaView>
@@ -206,12 +211,12 @@ const CameraScreen = () => {
           onPress={() => Navigation.pop()}
           disabled={isRecording}
         >
-          <CrossIcon width={24} height={24} color="#FFFFFF" />
+          <CrossIcon width={24} height={24} color={theme.white} />
         </TouchableOpacity>
         {isRecording && (
           <View style={styles.timerBadge}>
             <View style={styles.timerDot} />
-            <BaseText typography={Typography.bodyMedium.medium} color="#FFFFFF">
+            <BaseText typography={Typography.bodyMedium.medium} color={theme.white}>
               {formatTimer(recordingSeconds)}
             </BaseText>
           </View>
@@ -225,19 +230,19 @@ const CameraScreen = () => {
               disabled={isRecording}
             >
               {flash === 'on' ? (
-                <FlashIcon width={22} height={22} color="#FFD700" />
+                <FlashIcon width={22} height={22} color={theme.gold} />
               ) : (
-                <FlashOffIcon width={22} height={22} color="#FFFFFF" />
+                <FlashOffIcon width={22} height={22} color={theme.white} />
               )}
             </TouchableOpacity>
           )}
 
           <TouchableOpacity
-            style={[styles.circleButton, { marginLeft: 12 }]}
+            style={styles.circleButtonWithMargin}
             onPress={toggleCamera}
             disabled={isRecording}
           >
-            <RepostIcon width={22} height={22} color="#FFFFFF" />
+            <RepostIcon width={22} height={22} color={theme.white} />
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -251,7 +256,9 @@ const CameraScreen = () => {
             >
               <BaseText
                 typography={Typography.bodyMedium.medium}
-                color={mode === 'image' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)'}
+                color={
+                  mode === 'image' ? theme.white : theme.overlayWhite60
+                }
               >
                 Ảnh
               </BaseText>
@@ -263,7 +270,9 @@ const CameraScreen = () => {
             >
               <BaseText
                 typography={Typography.bodyMedium.medium}
-                color={mode === 'video' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)'}
+                color={
+                  mode === 'video' ? theme.white : theme.overlayWhite60
+                }
               >
                 Video
               </BaseText>
@@ -281,7 +290,7 @@ const CameraScreen = () => {
           disabled={isCapturing}
         >
           {isCapturing ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={theme.white} />
           ) : (
             <View
               style={[
@@ -297,24 +306,27 @@ const CameraScreen = () => {
   );
 };
 
-const getStyles = (_theme: Theme) =>
+const getStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#000000',
+      backgroundColor: theme.black,
     },
     centerContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: '#000000',
+      backgroundColor: theme.black,
       padding: 16,
+    },
+    loadingText: {
+      marginTop: 12,
     },
     permissionButton: {
       marginTop: 16,
       paddingHorizontal: 20,
-      paddingVertical: 10,
-      backgroundColor: '#3797EF',
+      paddingVertical: 12,
+      backgroundColor: theme.primaryBlue,
       borderRadius: 8,
     },
     topOverlay: {
@@ -334,27 +346,36 @@ const getStyles = (_theme: Theme) =>
       alignItems: 'center',
     },
     circleButton: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      backgroundColor: 'rgba(0, 0, 0, 0.45)',
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.overlayBlack40,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    circleButtonWithMargin: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.overlayBlack40,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginLeft: 12,
     },
     timerBadge: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      backgroundColor: theme.overlayBlack40,
       paddingHorizontal: 12,
-      paddingVertical: 6,
+      paddingVertical: 8,
       borderRadius: 16,
     },
     timerDot: {
       width: 8,
       height: 8,
       borderRadius: 4,
-      backgroundColor: '#FF3B30',
-      marginRight: 6,
+      backgroundColor: theme.errorRed,
+      marginRight: 8,
     },
     bottomOverlay: {
       position: 'absolute',
@@ -366,45 +387,45 @@ const getStyles = (_theme: Theme) =>
     },
     modeSelector: {
       flexDirection: 'row',
-      backgroundColor: 'rgba(0, 0, 0, 0.45)',
+      backgroundColor: theme.overlayBlack40,
       borderRadius: 20,
       padding: 4,
       marginBottom: 20,
     },
     modeTab: {
-      paddingHorizontal: 18,
-      paddingVertical: 6,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
       borderRadius: 16,
     },
     modeTabActive: {
-      backgroundColor: 'rgba(255, 255, 255, 0.25)',
+      backgroundColor: theme.overlayWhite25,
     },
     captureButton: {
       width: 80,
       height: 80,
       borderRadius: 40,
       borderWidth: 4,
-      borderColor: '#FFFFFF',
+      borderColor: theme.white,
       justifyContent: 'center',
       alignItems: 'center',
     },
     captureButtonRecording: {
-      borderColor: '#FF3B30',
+      borderColor: theme.errorRed,
     },
     captureButtonInner: {
       width: 64,
       height: 64,
       borderRadius: 32,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.white,
     },
     captureButtonInnerVideo: {
-      backgroundColor: '#FF3B30',
+      backgroundColor: theme.errorRed,
     },
     captureButtonInnerRecording: {
       width: 32,
       height: 32,
-      borderRadius: 6,
-      backgroundColor: '#FF3B30',
+      borderRadius: 8,
+      backgroundColor: theme.errorRed,
     },
   });
 

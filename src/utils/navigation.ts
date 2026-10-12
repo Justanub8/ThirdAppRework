@@ -1,255 +1,262 @@
-import { StackActions, createNavigationContainerRef } from "@react-navigation/native";
-import { SheetManager } from "react-native-actions-sheet";
-import { RootStackParamList } from "~/navigation/types";
+import {
+  StackActions,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
+import { SheetManager } from 'react-native-actions-sheet';
+import { RootStackParamList } from '~/navigation/types';
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 export const Navigation = {
-    goBack: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            if(navigationRef.canGoBack()){
-                navigationRef.goBack()
-            } else {
-                navigationRef.navigate('App', {
-                    screen: 'Main',
-                    params: {
-                        screen: 'HomeScreen'
-                    },
-                });
-            };
-        }
-    },
-
-    pop: (count?: number ) => {
-        SheetManager.hideAll();
-        if (navigationRef.isReady()){
-            navigationRef.dispatch(StackActions.pop(count ?? 1));
-        }
-    },
-
-    goToHomeScreen: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate("App", {
-                screen: 'Main',
-                params: {
-                    screen: 'HomeScreen'
-                }
-            })
-        }
-    },
-    
-    goToSignUp: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('Auth', {
-                screen: "SignUp"
-            })
-        }
-    },
-
-    goToReels: () => {
-        SheetManager.hideAll();
-        if (navigationRef.isReady()) {
+  goBack: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      if (navigationRef.canGoBack()) {
+        navigationRef.goBack();
+      } else {
         navigationRef.navigate('App', {
-            screen: 'Main',
-            params: {
-            screen: 'Reels',
-            },
+          screen: 'Main',
+          params: {
+            screen: 'HomeScreen',
+          },
         });
-        }
-    },
+      }
+    }
+  },
 
-    goToMessage: () => {
-        SheetManager.hideAll();
-        if (navigationRef.isReady()) {
-        navigationRef.navigate('App', {
-            screen: 'Main',
-            params: {
-            screen: 'Message',
-            },
-        });
-        }
-    },
+  pop: (count?: number) => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.dispatch(StackActions.pop(count ?? 1));
+    }
+  },
 
-    goToExplore: () => {
-        SheetManager.hideAll();
-        if (navigationRef.isReady()) {
-        navigationRef.navigate('App', {
-            screen: 'Main',
-            params: {
-            screen: 'Explore',
-            },
-        });
-        }
-    },
+  goToHomeScreen: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'Main',
+        params: {
+          screen: 'HomeScreen',
+        },
+      });
+    }
+  },
 
-    goToProfile: () => {
-        SheetManager.hideAll();
-        if (navigationRef.isReady()) {
-        navigationRef.navigate('App', {
-            screen: 'Main',
-            params: {
-            screen: 'Profile',
-            },
-        });
-        }
-    },
+  goToSignUp: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('Auth', {
+        screen: 'SignUp',
+      });
+    }
+  },
 
-    goToConversation: (id: string, name?: string, imageUrl?: string) => {
-        SheetManager.hideAll();
-        if (navigationRef.isReady()){
-            navigationRef.navigate("App", {
-                screen: 'Conversation',
-                params: {id, name, imageUrl}
-            });
-        }
-    },
+  goToReels: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'Main',
+        params: {
+          screen: 'Reels',
+        },
+      });
+    }
+  },
 
-    goToConversationDetail: (id: string) => {
-        SheetManager.hideAll();
-        if (navigationRef.isReady()){
-            navigationRef.navigate("App", {
-                screen: 'ConversationDetail',
-                params: {id}
-            });
-        }
-    },
+  goToMessage: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'Main',
+        params: {
+          screen: 'Message',
+        },
+      });
+    }
+  },
 
-    goToNewMessage: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App', {
-                screen: 'NewMessage'
-            })
-        }
-    },
+  goToExplore: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'Main',
+        params: {
+          screen: 'Explore',
+        },
+      });
+    }
+  },
 
-    goToNewGroupMessage: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App', {
-                screen: 'NewGroupMessage'
-            })
-        }
-    },
+  goToProfile: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'Main',
+        params: {
+          screen: 'Profile',
+        },
+      });
+    }
+  },
 
-    goToUserProfile: (id: string) => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            const currentRoute = navigationRef.getCurrentRoute();
-            const currentParams = currentRoute?.params as { id?: string } | undefined;
-            if (currentRoute?.name === 'UserProfile' && currentParams?.id === id) {
-                return;
-            }
-            navigationRef.navigate('App',{
-                screen: 'UserProfile',
-                params: {id}
-            })
-        }
-    },
+  goToConversation: (id: string, name?: string, imageUrl?: string) => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'Conversation',
+        params: { id, name, imageUrl },
+      });
+    }
+  },
 
-    goToSelectPostMedia: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App' , {
-                screen: 'SelectPostMedia'
-            })
-        }
-    },
+  goToConversationDetail: (id: string) => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'ConversationDetail',
+        params: { id },
+      });
+    }
+  },
 
-    goToCreatePost: (uri: string, mediaType?: 'image' | 'video') => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App' , {
-                screen: 'CreatePost',
-                params: { uri, mediaType }
-            })
-        }
-    },
+  goToNewMessage: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'NewMessage',
+      });
+    }
+  },
 
-    goToSelectStoryMedia: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App', {
-                screen: 'SelectStoryMedia'
-            })
-        }
-    },
+  goToNewGroupMessage: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'NewGroupMessage',
+      });
+    }
+  },
 
-    goToCreateStory: (uri: string, mediaType?: 'image' | 'video') => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App', {
-                screen: 'CreateStory',
-                params: { uri, mediaType}
-            })
-        }
-    },
+  goToUserProfile: (id: string) => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      const currentRoute = navigationRef.getCurrentRoute();
+      const currentParams = currentRoute?.params as { id?: string } | undefined;
+      if (currentRoute?.name === 'UserProfile' && currentParams?.id === id) {
+        return;
+      }
+      navigationRef.navigate('App', {
+        screen: 'UserProfile',
+        params: { id },
+      });
+    }
+  },
 
-    goToSelectReelMedia: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App' , {
-                screen: 'SelectReelMedia'
-            })
-        }
-    },
+  goToSelectPostMedia: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'SelectPostMedia',
+      });
+    }
+  },
 
-    goToCreateReel: (uri: string, mediaType?: 'image' | 'video') => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App' , {
-                screen: 'CreateReel',
-                params: { uri, mediaType }
-            })
-        }
-    },
+  goToCreatePost: (uri: string, mediaType?: 'image' | 'video') => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'CreatePost',
+        params: { uri, mediaType },
+      });
+    }
+  },
 
-    goToStory: (userId: string, userIds?: string[]) => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App',{
-                screen: 'Story',
-                params: { userId, userIds }
-            })
-        }
-    },
+  goToSelectStoryMedia: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'SelectStoryMedia',
+      });
+    }
+  },
 
-    goToMyActiveStory: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App',{
-                screen: 'MyActiveStory'
-            })
-        }
-    },
-    
-    goToCameraScreen: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate("App", {
-                screen: 'CameraScreen'
-            })
-        }
-    },
+  goToCreateStory: (uri: string, mediaType?: 'image' | 'video') => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'CreateStory',
+        params: { uri, mediaType },
+      });
+    }
+  },
 
-    goToDetailMedia: (uri: string, mediaType?: 'image' | 'video', thumbnail?: string) => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate('App' , {
-                screen: 'DetailMedia',
-                params: { uri, mediaType, thumbnail }
-            })
-        }
-    },
+  goToSelectReelMedia: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'SelectReelMedia',
+      });
+    }
+  },
 
-    goToSetting: () => {
-        SheetManager.hideAll();
-        if(navigationRef.isReady()){
-            navigationRef.navigate("App", {
-                screen: 'Setting'
-            })
-        }
-    },
+  goToCreateReel: (uri: string, mediaType?: 'image' | 'video') => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'CreateReel',
+        params: { uri, mediaType },
+      });
+    }
+  },
+
+  goToStory: (userId: string, userIds?: string[]) => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'Story',
+        params: { userId, userIds },
+      });
+    }
+  },
+
+  goToMyActiveStory: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'MyActiveStory',
+      });
+    }
+  },
+
+  goToCameraScreen: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'CameraScreen',
+      });
+    }
+  },
+
+  goToDetailMedia: (
+    uri: string,
+    mediaType?: 'image' | 'video',
+    thumbnail?: string,
+  ) => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'DetailMedia',
+        params: { uri, mediaType, thumbnail },
+      });
+    }
+  },
+
+  goToSetting: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'Setting',
+      });
+    }
+  },
 };

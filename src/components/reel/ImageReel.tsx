@@ -1,6 +1,6 @@
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import ReelOverlay from './ReelOverlay';
+import ReelOverlay from '~/components/reel/ReelOverlay';
 import { IReel } from '~/interfaces/reel';
 import { BaseText, FastImage } from '~/components/rn-components';
 import { Typography } from '~/constants';
@@ -24,7 +24,6 @@ const ImageReel = ({ reel }: ImageReelProps) => {
 
   return (
     <View style={styles.container}>
-      {/* Background cover image */}
       {mediaUrl && !hasError ? (
         <FastImage
           source={{ uri: mediaUrl }}
@@ -33,10 +32,11 @@ const ImageReel = ({ reel }: ImageReelProps) => {
         />
       ) : null}
 
-      {/* Dark blur overlay over background */}
-      <View style={[StyleSheet.absoluteFill, styles.backdropOverlay]} pointerEvents="none" />
+      <View
+        style={[StyleSheet.absoluteFill, styles.backdropOverlay]}
+        pointerEvents="none"
+      />
 
-      {/* Main sharp image */}
       {mediaUrl && !hasError ? (
         <FastImage
           source={{ uri: mediaUrl }}
@@ -57,12 +57,13 @@ const ImageReel = ({ reel }: ImageReelProps) => {
         </View>
       )}
 
-      {/* Subtle dark tint over image so overlays and captions pop */}
       {!hasError && (
-        <View style={[StyleSheet.absoluteFill, styles.darkOverlay]} pointerEvents="none" />
+        <View
+          style={[StyleSheet.absoluteFill, styles.darkOverlay]}
+          pointerEvents="none"
+        />
       )}
 
-      {/* Loading indicator */}
       {isLoading && !hasError && (
         <View style={styles.centerLoading} pointerEvents="none">
           <ActivityIndicator size="large" color="#FFFFFF" />

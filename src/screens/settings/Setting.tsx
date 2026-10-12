@@ -12,8 +12,8 @@ import { Navigation } from '~/utils';
 const Setting = () => {
   const { theme, mode, setMode } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
-  const currentUser = useAuthStore((state) => state.user);
-  const updateUser = useAuthStore((state) => state.updateUser);
+  const currentUser = useAuthStore(state => state.user);
+  const updateUser = useAuthStore(state => state.updateUser);
 
   const handleToggleTheme = () => {
     setMode(mode === 'dark' ? 'light' : 'dark');
@@ -43,16 +43,18 @@ const Setting = () => {
     }
   };
 
+  const hitSlop8 = { top: 8, bottom: 8, left: 8, right: 8 };
+
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader
         title="Cài đặt và Hoạt động"
         LeftComponent={
-          <TouchableOpacity onPress={() => Navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <LeftArrow
-              height={24}
-              width={24}
-            />
+          <TouchableOpacity
+            onPress={() => Navigation.goBack()}
+            hitSlop={hitSlop8}
+          >
+            <LeftArrow height={24} width={24} />
           </TouchableOpacity>
         }
       />
@@ -61,25 +63,40 @@ const Setting = () => {
           <BaseText color={theme.text} typography={Typography.bodyBold.medium}>
             Chế độ tối
           </BaseText>
-          <BaseText color={theme.placeholder} typography={Typography.bodyRegular.medium}>
+          <BaseText
+            color={theme.placeholder}
+            typography={Typography.bodyRegular.medium}
+          >
             {mode === 'dark' ? 'Tối' : 'Sáng'}
           </BaseText>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.settingRow} onPress={handleToggleActiveStatus}>
+        <TouchableOpacity
+          style={styles.settingRow}
+          onPress={handleToggleActiveStatus}
+        >
           <BaseText color={theme.text} typography={Typography.bodyBold.medium}>
             Trạng thái hoạt động
           </BaseText>
-          <BaseText color={theme.placeholder} typography={Typography.bodyRegular.medium}>
+          <BaseText
+            color={theme.placeholder}
+            typography={Typography.bodyRegular.medium}
+          >
             {currentUser?.showActiveStatus !== false ? 'Bật' : 'Tắt'}
           </BaseText>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.settingRow} onPress={handleTogglePrivate}>
+        <TouchableOpacity
+          style={styles.settingRow}
+          onPress={handleTogglePrivate}
+        >
           <BaseText color={theme.text} typography={Typography.bodyBold.medium}>
             Tài khoản riêng tư
           </BaseText>
-          <BaseText color={theme.placeholder} typography={Typography.bodyRegular.medium}>
+          <BaseText
+            color={theme.placeholder}
+            typography={Typography.bodyRegular.medium}
+          >
             {currentUser?.isPrivate ? 'Bật' : 'Tắt'}
           </BaseText>
         </TouchableOpacity>

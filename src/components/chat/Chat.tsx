@@ -2,21 +2,21 @@ import { View, StyleSheet, Button, TouchableOpacity } from 'react-native';
 import React from 'react';
 import dayjs from 'dayjs';
 import { Typography } from '~/constants';
-import { BaseText } from '../rn-components';
-import { Avatar } from '../avatar';
+import { BaseText } from '~/components/rn-components';
+import { Avatar } from '~/components/avatar';
 import { CrossIcon } from '~/assets/svgs';
 import { Navigation } from '~/utils';
 import { IConversation } from '~/interfaces';
 import { Theme, useTheme } from '~/hooks';
 
 interface ChatProps {
-    conversation: IConversation;
-    currentUserId?: string;
+  conversation: IConversation;
+  currentUserId?: string;
 }
 
 const Chat = ({ conversation, currentUserId }: ChatProps) => {
   const otherMember =
-    conversation.members?.find((m) => m.userId !== currentUserId) ||
+    conversation.members?.find(m => m.userId !== currentUserId) ||
     conversation.members?.[0];
   const otherUser = otherMember?.user;
 
@@ -27,8 +27,8 @@ const Chat = ({ conversation, currentUserId }: ChatProps) => {
     } else {
       displayName =
         conversation.members
-          ?.filter((m) => m.userId !== currentUserId)
-          .map((m) => m.nickname || m.user?.name || m.user?.username)
+          ?.filter(m => m.userId !== currentUserId)
+          .map(m => m.nickname || m.user?.name || m.user?.username)
           .filter(Boolean)
           .join(', ') || 'Nhóm trò chuyện';
     }
@@ -46,90 +46,98 @@ const Chat = ({ conversation, currentUserId }: ChatProps) => {
   const conversationId = conversation.id || '';
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
-  const targetDate = conversation.lastMessage?.createdAt || conversation.createdAt || new Date();
+  const targetDate =
+    conversation.lastMessage?.createdAt || conversation.createdAt || new Date();
   const isToday = dayjs(targetDate).isSame(dayjs(), 'day');
-  const timeDisplay = isToday 
-    ? dayjs(targetDate).format('HH:mm') 
+  const timeDisplay = isToday
+    ? dayjs(targetDate).format('HH:mm')
     : dayjs(targetDate).format('DD/MM/YYYY');
 
   return (
-    <TouchableOpacity 
-        style={styles.chatContainer}
-        onPress={() => Navigation.goToConversation(conversationId, displayName, avatarUri)}
+    <TouchableOpacity
+      style={styles.chatContainer}
+      onPress={() =>
+        Navigation.goToConversation(conversationId, displayName, avatarUri)
+      }
     >
-        <View style={styles.leftRow}>
-            <Avatar 
-                url={avatarUri} 
-                size={56} 
-                disabled 
-            />
-            <View style={styles.infoColumn}>
-                <BaseText typography={Typography.bodyBold.medium} numberOfLines={1} style={{maxWidth: '75%'}}>
-                    {displayName}
-                </BaseText>
-                <View style={styles.messageRow}>
-                    <BaseText typography={Typography.bodyRegular.medium} numberOfLines={1} style={styles.messagePreview}>
-                    {conversation.lastMessage?.content || 'Đã gửi 1 nội dung'}
-                    </BaseText>
-                    <BaseText typography={Typography.bodyRegular.medium}>
-                        {timeDisplay}
-                    </BaseText>
-                </View>
-            </View>
+      <View style={styles.leftRow}>
+        <Avatar url={avatarUri} size={56} disabled />
+        <View style={styles.infoColumn}>
+          <BaseText
+            typography={Typography.bodyBold.medium}
+            numberOfLines={1}
+            style={{ maxWidth: '75%' }}
+          >
+            {displayName}
+          </BaseText>
+          <View style={styles.messageRow}>
+            <BaseText
+              typography={Typography.bodyRegular.medium}
+              numberOfLines={1}
+              style={styles.messagePreview}
+            >
+              {conversation.lastMessage?.content || 'Đã gửi 1 nội dung'}
+            </BaseText>
+            <BaseText typography={Typography.bodyRegular.medium}>
+              {timeDisplay}
+            </BaseText>
+          </View>
         </View>
-        
-        {false ? (
-            <View style={styles.actionRow}>
-                <View style={styles.followButton}>
-                    <Button title='Theo dõi' color={'#FFFFFF'} />
-                </View>
-                <TouchableOpacity>
-                    <CrossIcon height={24} width={24} />
-                </TouchableOpacity>
-            </View>
-        ) : null}
+      </View>
+
+      {false ? (
+        <View style={styles.actionRow}>
+          <View style={styles.followButton}>
+            <Button title="Theo dõi" color={'#FFFFFF'} />
+          </View>
+          <TouchableOpacity>
+            <CrossIcon height={24} width={24} />
+          </TouchableOpacity>
+        </View>
+      ) : null}
     </TouchableOpacity>
   );
 };
 
-const getStyles =(theme: Theme) =>  StyleSheet.create({
-  chatContainer: {
-    backgroundColor: theme.background,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  leftRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  infoColumn: {
-    flex: 1,
-  },
-  messageRow: {
-    flexDirection: 'row',
-    gap: 16,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  messagePreview: {
-    width: '60%',
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  followButton: {
-    borderColor: '#000000',
-    borderWidth: 1,
-    borderRadius: 16,
-    backgroundColor: '#3797EF',
-  },
-});
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    chatContainer: {
+      backgroundColor: theme.background,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+    },
+    leftRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      flex: 1,
+    },
+    infoColumn: {
+      flex: 1,
+    },
+    messageRow: {
+      flexDirection: 'row',
+      gap: 16,
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    messagePreview: {
+      width: '60%',
+    },
+    actionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
+    followButton: {
+      borderColor: '#000000',
+      borderWidth: 1,
+      borderRadius: 16,
+      backgroundColor: '#3797EF',
+    },
+  });
 
 export default Chat;

@@ -1,26 +1,26 @@
-import { IProfileUser } from "./auth";
+import { IProfileUser } from '~/interfaces/auth';
 
 export interface IEmoji {
-    id?: string;
-    content: string;
-    messageId: string;
-    senderId: string;
-    sender?: IProfileUser;
-    createdAt?: Date;
-    updatedAt?: Date;
+  id?: string;
+  content: string;
+  messageId: string;
+  senderId: string;
+  sender?: IProfileUser;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface CreateEmojiPayload {
-    messageId: string;
-    content: string;
+  messageId: string;
+  content: string;
 }
 
 export interface DeleteEmojiPayload {
-    messageId: string;
+  messageId: string;
 }
 
 export interface GetEmojiQuery {
-    messageId: string;
-    page?: number;
-    limit?: number;
+  messageId: string;
+  page?: number;
+  limit?: number;
 }

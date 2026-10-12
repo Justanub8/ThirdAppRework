@@ -4,8 +4,15 @@ import RNFS from 'react-native-fs';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { createThumbnail } from 'react-native-create-thumbnail';
 
-// Định dạng video và regex hỗ trợ
-export const VIDEO_EXTENSIONS = ['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp', 'm4v'] as const;
+export const VIDEO_EXTENSIONS = [
+  'mp4',
+  'mov',
+  'avi',
+  'mkv',
+  'webm',
+  '3gp',
+  'm4v',
+] as const;
 export const VIDEO_REGEX = /\.(mp4|mov|avi|mkv|webm|3gp|m4v)(\?.*)?$/i;
 export const IMAGE_REGEX = /\.(jpe?g|png|webp|gif|heic|heif)(\?.*)?$/i;
 
@@ -59,8 +66,9 @@ export const getMediaMimeType = (
   const cleanUri = uri.split('?')[0];
   const rawName = customFilename || cleanUri.split('/').pop() || '';
   const match = /\.(\w+)$/.exec(rawName);
-  const ext = match ? match[1].toLowerCase() : (isExplicitVideo ? 'mp4' : 'jpg');
-  const isVideo = isExplicitVideo || (VIDEO_EXTENSIONS as readonly string[]).includes(ext);
+  const ext = match ? match[1].toLowerCase() : isExplicitVideo ? 'mp4' : 'jpg';
+  const isVideo =
+    isExplicitVideo || (VIDEO_EXTENSIONS as readonly string[]).includes(ext);
 
   if (isVideo) {
     if (ext === 'mov') return 'video/quicktime';
@@ -83,9 +91,14 @@ export const formatMediaUrl = (url?: string): string => {
 
   if (minioMatch) {
     const key = minioMatch[1];
-    const baseApi = (Config.BASE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/+$/, '');
+    const baseApi = (Config.BASE_API_URL || '')
+      .replace(/\/api\/?$/, '')
+      .replace(/\/+$/, '');
 
-    if (baseApi && (baseApi.startsWith('https://') || !baseApi.includes(':5050'))) {
+    if (
+      baseApi &&
+      (baseApi.startsWith('https://') || !baseApi.includes(':5050'))
+    ) {
       return `${baseApi}/media/file/${key}`;
     }
 
@@ -93,13 +106,21 @@ export const formatMediaUrl = (url?: string): string => {
     if (baseApi) {
       try {
         const match = baseApi.match(/https?:\/\/([^:/]+)/);
-        if (match && match[1] && match[1] !== 'localhost' && match[1] !== '127.0.0.1') {
+        if (
+          match &&
+          match[1] &&
+          match[1] !== 'localhost' &&
+          match[1] !== '127.0.0.1'
+        ) {
           host = match[1];
         }
       } catch {}
     }
 
-    if (Platform.OS === 'android' && (host === 'localhost' || host === '127.0.0.1')) {
+    if (
+      Platform.OS === 'android' &&
+      (host === 'localhost' || host === '127.0.0.1')
+    ) {
       host = '10.0.2.2';
     }
 
@@ -107,7 +128,9 @@ export const formatMediaUrl = (url?: string): string => {
   }
 
   if (url.includes('localhost:9000') || url.includes('127.0.0.1:9000')) {
-    const baseApi = (Config.BASE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/+$/, '');
+    const baseApi = (Config.BASE_API_URL || '')
+      .replace(/\/api\/?$/, '')
+      .replace(/\/+$/, '');
     if (baseApi && baseApi.startsWith('https://')) {
       const parts = url.split(/social-media\//);
       if (parts.length > 1) {
@@ -130,8 +153,12 @@ export const resolveLocalMediaUri = async (
 
   const isVideo = isVideoMedia(uri, fileName, isVideoHint);
   const extMatch = /\.(\w+)(\?.*)?$/.exec(uri);
-  const ext = extMatch ? `.${extMatch[1]}` : (isVideo ? '.mp4' : '.jpg');
-  const name = fileName || `${isVideo ? 'video' : 'media'}_${Date.now()}${ext.startsWith('.') ? ext : `.${ext}`}`;
+  const ext = extMatch ? `.${extMatch[1]}` : isVideo ? '.mp4' : '.jpg';
+  const name =
+    fileName ||
+    `${isVideo ? 'video' : 'media'}_${Date.now()}${
+      ext.startsWith('.') ? ext : `.${ext}`
+    }`;
   const destPath = `${RNFS.CachesDirectoryPath}/${name}`;
 
   try {
@@ -146,7 +173,9 @@ export const resolveLocalMediaUri = async (
           if (RNFS.copyAssetsVideoIOS) {
             const copiedPath = await RNFS.copyAssetsVideoIOS(uri, destPath);
             if (copiedPath) {
-              return copiedPath.startsWith('file://') ? copiedPath : `file://${copiedPath}`;
+              return copiedPath.startsWith('file://')
+                ? copiedPath
+                : `file://${copiedPath}`;
             }
           }
         } catch (videoErr) {
@@ -155,7 +184,9 @@ export const resolveLocalMediaUri = async (
       }
 
       try {
-        const asset = await CameraRoll.iosGetImageDataById(uri, { convertHeicImages: true });
+        const asset = await CameraRoll.iosGetImageDataById(uri, {
+          convertHeicImages: true,
+        });
         if (asset?.node?.image?.filepath) {
           return asset.node.image.filepath;
         }
@@ -164,16 +195,18 @@ export const resolveLocalMediaUri = async (
       }
     }
 
-    if (
-      Platform.OS === 'ios' &&
-      uri.startsWith('assets-library://')
-    ) {
+    if (Platform.OS === 'ios' && uri.startsWith('assets-library://')) {
       if (isVideo && RNFS.copyAssetsVideoIOS) {
         try {
           const copiedPath = await RNFS.copyAssetsVideoIOS(uri, destPath);
-          return copiedPath.startsWith('file://') ? copiedPath : `file://${copiedPath}`;
+          return copiedPath.startsWith('file://')
+            ? copiedPath
+            : `file://${copiedPath}`;
         } catch (videoErr) {
-          console.log('Error copyAssetsVideoIOS from assets-library:', videoErr);
+          console.log(
+            'Error copyAssetsVideoIOS from assets-library:',
+            videoErr,
+          );
         }
       }
       await RNFS.copyAssetsFileIOS(uri, destPath, 0, 0);
@@ -216,7 +249,7 @@ export const fetchDeviceMedia = async (
       assetType,
     });
 
-    const photos: NormalizedMediaAsset[] = res.edges.map((edge) => {
+    const photos: NormalizedMediaAsset[] = res.edges.map(edge => {
       const image = edge.node.image;
       const isVideo = isVideoMedia(image);
 
@@ -246,9 +279,20 @@ export const fetchDeviceMedia = async (
 export async function uploadMediaFromUri(
   uri: string,
   mediaType: 'photo' | 'video' | 'image',
-  getUploadUrlFn?: (fileName: string, contentType: string) => Promise<{ uploadUrl: string; key: string }>,
-): Promise<{ key: string; uploadUrl: string; contentType: string; fileName: string }> {
-  const isVideo = mediaType === 'video' || mediaType === 'photo' ? mediaType === 'video' : isVideoMedia(uri);
+  getUploadUrlFn?: (
+    fileName: string,
+    contentType: string,
+  ) => Promise<{ uploadUrl: string; key: string }>,
+): Promise<{
+  key: string;
+  uploadUrl: string;
+  contentType: string;
+  fileName: string;
+}> {
+  const isVideo =
+    mediaType === 'video' || mediaType === 'photo'
+      ? mediaType === 'video'
+      : isVideoMedia(uri);
   const ext =
     uri.match(/\.(\w+)(\?.*)?$/)?.[1]?.toLowerCase() ||
     (isVideo ? 'mp4' : 'jpg');
@@ -266,7 +310,10 @@ export async function uploadMediaFromUri(
     key = res.key;
   } else {
     const { mediaApi } = await import('~/api');
-    const res = await mediaApi.getUploadUrl({ filename: fileName, contentType });
+    const res = await mediaApi.getUploadUrl({
+      filename: fileName,
+      contentType,
+    });
     uploadUrl = res.data.uploadUrl;
     key = res.data.key;
   }
@@ -293,7 +340,9 @@ export async function uploadMediaFromUri(
 
 const thumbnailCache = new Map<string, string>();
 
-export const getVideoThumbnail = async (url?: string): Promise<string | null> => {
+export const getVideoThumbnail = async (
+  url?: string,
+): Promise<string | null> => {
   if (!url) return null;
   const formattedUrl = formatMediaUrl(url);
   if (thumbnailCache.has(formattedUrl)) {
@@ -308,8 +357,7 @@ export const getVideoThumbnail = async (url?: string): Promise<string | null> =>
       thumbnailCache.set(formattedUrl, res.path);
       return res.path;
     }
-  } catch {
-  }
+  } catch {}
   return null;
 };
 
@@ -334,13 +382,18 @@ export const saveMediaToDevice = async (
       }
     }
 
-    const tempPath = `${RNFS.CachesDirectoryPath}/download_${Date.now()}.${ext}`;
+    const tempPath = `${
+      RNFS.CachesDirectoryPath
+    }/download_${Date.now()}.${ext}`;
     const downloadResult = await RNFS.downloadFile({
       fromUrl: fullUrl,
       toFile: tempPath,
     }).promise;
 
-    if (downloadResult.statusCode !== 200 && downloadResult.statusCode !== 206) {
+    if (
+      downloadResult.statusCode !== 200 &&
+      downloadResult.statusCode !== 206
+    ) {
       throw new Error('Tải file thất bại');
     }
     await CameraRoll.saveAsset(`file://${tempPath}`, {

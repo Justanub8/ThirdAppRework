@@ -1,6 +1,6 @@
 import axiosInstance from '~/services/axiosClient';
 import { IStory, IResponseGetStory } from '~/interfaces';
-import { PaginatedResponse } from './api';
+import { PaginatedResponse } from '~/api/api';
 
 export interface CreateStoryPayload {
   content?: string;
@@ -14,24 +14,21 @@ export const storyApi = {
   getAllStories: (page: number = 1, limit: number = 20, userId?: string) => {
     const userParam = userId ? `&userId=${userId}` : '';
     return axiosInstance.get<PaginatedResponse<IStory> & { stories: IStory[] }>(
-      `/story/all?page=${page}&limit=${limit}${userParam}`,
+      `/stories?page=${page}&limit=${limit}${userParam}`,
     );
   },
 
   getStory: (storyId: string) =>
-    axiosInstance.get<IResponseGetStory>(`/story/${storyId}`),
+    axiosInstance.get<IResponseGetStory>(`/stories/${storyId}`),
 
   createStory: (payload: CreateStoryPayload) =>
-    axiosInstance.post<{ message: string; story: IStory }>(
-      '/story/create',
-      payload,
-    ),
+    axiosInstance.post<{ message: string; story: IStory }>('/stories', payload),
 
   deleteStory: (storyId: string) =>
-    axiosInstance.delete<{ message: string }>(`/story/${storyId}`),
+    axiosInstance.delete<{ message: string }>(`/stories/${storyId}`),
 
   viewStory: (storyId: string) =>
     axiosInstance.post<{ message: string; story: IStory }>(
-      `/story/${storyId}/view`,
+      `/stories/${storyId}/views`,
     ),
 };

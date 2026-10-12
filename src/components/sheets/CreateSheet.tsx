@@ -2,7 +2,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import React from 'react';
 import { useTheme, Theme } from '~/hooks';
 import ActionSheet, { SheetProps } from 'react-native-actions-sheet';
-import { BaseText } from '../rn-components';
+import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
 import { Navigation } from '~/utils';
 

@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, Dimensions, Image, TouchableOpacity, StyleProp, ImageStyle } from 'react-native';
+import {
+  StyleSheet,
+  Dimensions,
+  Image,
+  TouchableOpacity,
+  StyleProp,
+  ImageStyle,
+} from 'react-native';
 import type { OnLoadEvent } from '@d11/react-native-fast-image';
 import { FastImage } from '~/components/rn-components';
 import { formatMediaUrl } from '~/utils';
@@ -7,7 +14,10 @@ import { formatMediaUrl } from '~/utils';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DEFAULT_MEDIA_WIDTH = Math.round(SCREEN_WIDTH * 0.58);
 
-const imageDimensionCache = new Map<string, { width: number; height: number }>();
+const imageDimensionCache = new Map<
+  string,
+  { width: number; height: number }
+>();
 
 interface MessageImageItemProps {
   url: string;
@@ -39,7 +49,10 @@ export const MessageImageItem: React.FC<MessageImageItemProps> = ({
         const computedHeight = Math.round(targetWidth / ratio);
         const minHeight = Math.round(targetWidth * 0.5);
         const maxHeight = Math.round(targetWidth * 1.85);
-        const clampedHeight = Math.min(Math.max(computedHeight, minHeight), maxHeight);
+        const clampedHeight = Math.min(
+          Math.max(computedHeight, minHeight),
+          maxHeight,
+        );
 
         const newDims = {
           width: targetWidth,
@@ -63,14 +76,17 @@ export const MessageImageItem: React.FC<MessageImageItemProps> = ({
       Image.getSize(
         formattedUrl,
         (w, h) => calculateAndSetDimensions(w, h),
-        () => {}
+        () => {},
       );
     }
   }, [calculateAndSetDimensions, formattedUrl, url]);
 
   const handleLoad = (event: OnLoadEvent) => {
     if (event?.nativeEvent?.width && event?.nativeEvent?.height) {
-      calculateAndSetDimensions(event.nativeEvent.width, event.nativeEvent.height);
+      calculateAndSetDimensions(
+        event.nativeEvent.width,
+        event.nativeEvent.height,
+      );
     }
   };
 

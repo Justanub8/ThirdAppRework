@@ -6,7 +6,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import FastImage from '@d11/react-native-fast-image';
 import { images } from '~/assets/images';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,23 +15,21 @@ import { PrimaryInput } from '~/components/inputs';
 import { SizedBox } from '~/components/separate-components';
 import { BaseText } from '~/components/rn-components';
 import { FacebookIcon } from '~/assets/svgs';
-import { useLogin, useTheme } from '~/hooks';
+import { useLogin, useTheme, Theme } from '~/hooks';
 import { Navigation } from '~/utils';
 
 const Login = () => {
   const { theme } = useTheme();
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const styles = useMemo(() => getStyles(theme), [theme]);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const mutationLogin = useLogin();
   const onLogin = () => {
     mutationLogin.mutate({ email, password });
   };
 
   return (
-    <SafeAreaView
-      edges={['top', 'bottom']}
-      style={[styles.container, { backgroundColor: theme.background }]}
-    >
+    <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardAvoid}
@@ -52,6 +50,7 @@ const Login = () => {
             onChangeText={setEmail}
             autoCorrect={false}
             autoCapitalize="none"
+            style={styles.inputField}
           />
           <SizedBox height={16} />
           <PrimaryInput
@@ -62,6 +61,7 @@ const Login = () => {
             autoCapitalize="none"
             secureTextEntry
             onSubmitEditing={onLogin}
+            style={styles.inputField}
           />
           <SizedBox height={16} />
           <TextButton
@@ -99,7 +99,7 @@ const Login = () => {
             <BaseText color={theme.muted}>Don't have an account?</BaseText>
             <TextButton
               title="Sign up."
-              style={{ color: theme.blue }}
+              color={theme.blue}
               onPress={() => Navigation.goToSignUp()}
             />
           </View>
@@ -109,53 +109,58 @@ const Login = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardAvoid: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 8,
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  logo: {
-    alignSelf: 'center',
-    width: 200,
-    height: 180,
-  },
-  alignEnd: {
-    alignSelf: 'flex-end',
-  },
-  alignCenter: {
-    alignSelf: 'center',
-  },
-  facebookRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'center',
-    gap: 8,
-  },
-  orDividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  signUpRow: {
-    flexDirection: 'row',
-    alignSelf: 'center',
-    gap: 4,
-  },
-  background: {
-    position: 'absolute',
-    bottom: 0,
-    width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height / 2,
-  },
-});
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    keyboardAvoid: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: 24,
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+    logo: {
+      alignSelf: 'center',
+      width: 200,
+      height: 180,
+    },
+    inputField: {
+      paddingLeft: 8,
+    },
+    alignEnd: {
+      alignSelf: 'flex-end',
+    },
+    alignCenter: {
+      alignSelf: 'center',
+    },
+    facebookRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'center',
+      gap: 8,
+    },
+    orDividerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '100%',
+      justifyContent: 'center',
+      gap: 16,
+    },
+    signUpRow: {
+      flexDirection: 'row',
+      alignSelf: 'center',
+      gap: 4,
+    },
+    background: {
+      position: 'absolute',
+      bottom: 0,
+      width: Dimensions.get('window').width,
+      height: Dimensions.get('window').height / 2,
+    },
+  });
 
 export default Login;

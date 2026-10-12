@@ -28,7 +28,18 @@ import { postApi, reelApi, repostApi, shareApi } from '~/api';
 import { IPost, IReel, IRepost, IShare, IBookmark } from '~/interfaces';
 
 type TabType = 'posts' | 'reels' | 'reposts' | 'shares';
-type TabItem = IPost | IReel | IRepost | IShare | IBookmark | (Record<string, unknown> & { id?: string; media?: unknown; target?: unknown; videoUrl?: string });
+type TabItem =
+  | IPost
+  | IReel
+  | IRepost
+  | IShare
+  | IBookmark
+  | (Record<string, unknown> & {
+      id?: string;
+      media?: unknown;
+      target?: unknown;
+      videoUrl?: string;
+    });
 
 type Route = {
   key: TabType;
@@ -50,7 +61,6 @@ const extractMedia = (item: any, type: TabType) => {
     return uri ? { uri, mediaType: media?.type || 'image' } : null;
   }
 
-  // reposts & shares
   const target = item.target || item;
   const targetMedia = Array.isArray(target?.media)
     ? target.media[0]
@@ -112,7 +122,9 @@ const TabContent: React.FC<TabContentProps> = ({ type, id, theme }) => {
         }
         case 'reels': {
           const res = await reelApi.getAllReels(1, 30, id);
-          return res?.data?.data || (res?.data as { reels?: IReel[] })?.reels || [];
+          return (
+            res?.data?.data || (res?.data as { reels?: IReel[] })?.reels || []
+          );
         }
         case 'reposts': {
           const res = await repostApi.getUserReposts(1, 30, undefined, id);
@@ -149,12 +161,7 @@ const TabContent: React.FC<TabContentProps> = ({ type, id, theme }) => {
         renderItem={({ item }: { item: TabItem }) => {
           const media = extractMedia(item, type);
           if (!media?.uri) return null;
-          return (
-            <GridContent
-              uri={media.uri}
-              mediaType={media.mediaType}
-            />
-          );
+          return <GridContent uri={media.uri} mediaType={media.mediaType} />;
         }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -227,7 +234,7 @@ export interface TabsProps {
 }
 
 const Tabs: React.FC<TabsProps> = ({ id: propId, style }) => {
-  const currentUser = useAuthStore((state) => state.user);
+  const currentUser = useAuthStore(state => state.user);
   const id = propId || currentUser?.id || '';
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
@@ -255,11 +262,15 @@ const Tabs: React.FC<TabsProps> = ({ id: propId, style }) => {
           return null;
       }
     },
-    [id]
+    [id],
   );
 
   const renderTabBar = useCallback(
-    (props: SceneRendererProps & { navigationState: { index: number; routes: Route[] } }) => {
+    (
+      props: SceneRendererProps & {
+        navigationState: { index: number; routes: Route[] };
+      },
+    ) => {
       return (
         <View style={styles.tabBar}>
           {props.navigationState.routes.map((route: Route, i: number) => {
@@ -271,10 +282,7 @@ const Tabs: React.FC<TabsProps> = ({ id: propId, style }) => {
                 key={route.key}
                 activeOpacity={0.7}
                 onPress={() => props.jumpTo(route.key)}
-                style={[
-                  styles.tabItem,
-                  isFocused && styles.activeTabItem,
-                ]}
+                style={[styles.tabItem, isFocused && styles.activeTabItem]}
               >
                 {renderTabIcon(route.key, isFocused, color)}
               </TouchableOpacity>
@@ -283,7 +291,7 @@ const Tabs: React.FC<TabsProps> = ({ id: propId, style }) => {
         </View>
       );
     },
-    [styles, theme]
+    [styles, theme],
   );
 
   return (
@@ -321,7 +329,7 @@ const getStyles = (theme: Theme) =>
       justifyContent: 'center',
       paddingVertical: 12,
       borderBottomWidth: 2,
-      borderBottomColor: 'transparent',
+      borderBottomColor: theme.transparent,
     },
     activeTabItem: {
       borderBottomColor: theme.text,

@@ -9,7 +9,7 @@ import {
   TextInputProps,
 } from 'react-native';
 import { Typography } from '~/constants';
-import { BaseTextInput } from '../rn-components';
+import { BaseTextInput } from '~/components/rn-components';
 import { useTheme } from '~/hooks';
 
 interface MultipleLineInputProps extends TextInputProps {

@@ -1,7 +1,7 @@
 import { registerSheet } from 'react-native-actions-sheet';
-import CommentSheet from './CommentSheet';
-import CreateSheet from './CreateSheet';
-import MediaSheet, { SelectedChatMedia } from './MediaSheet';
+import CommentSheet from '~/components/sheets/CommentSheet';
+import CreateSheet from '~/components/sheets/CreateSheet';
+import MediaSheet, { SelectedChatMedia } from '~/components/sheets/MediaSheet';
 
 registerSheet('CommentSheet', CommentSheet);
 registerSheet('CreateSheet', CreateSheet);

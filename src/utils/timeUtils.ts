@@ -1,6 +1,9 @@
-export const timeAgo = (createdAt?: Date | string | number | null, justNow: string = 'Vừa xong'): string => {
+export const timeAgo = (
+  createdAt?: Date | string | number | null,
+  justNow: string = 'Vừa xong',
+): string => {
   if (!createdAt) return '';
-  const now = Date.now(); 
+  const now = Date.now();
   const created = new Date(createdAt).getTime();
   if (isNaN(created)) return '';
   const diffMs = now - created;
@@ -13,13 +16,13 @@ export const timeAgo = (createdAt?: Date | string | number | null, justNow: stri
 };
 
 export const getRemainingTime = (expiresAt: Date) => {
-  const now = Date.now(); 
+  const now = Date.now();
   const expireTime = new Date(expiresAt).getTime();
   const remainingMs = expireTime - now;
 
-  if (remainingMs <= 0) return null; 
+  if (remainingMs <= 0) return null;
 
   const hours = Math.floor(remainingMs / (1000 * 60 * 60));
   const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
   return { hours, minutes };
-}
+};

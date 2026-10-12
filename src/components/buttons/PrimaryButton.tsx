@@ -6,8 +6,8 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { BaseText, BaseTextProps } from '../rn-components';
-import { SizedBox } from '../separate-components';
+import { BaseText, BaseTextProps } from '~/components/rn-components';
+import { SizedBox } from '~/components/separate-components';
 import { Typography } from '~/constants';
 export interface PrimaryButtonProps {
   color?: ViewStyle['backgroundColor'];

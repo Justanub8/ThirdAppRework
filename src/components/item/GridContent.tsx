@@ -1,6 +1,12 @@
-import { Dimensions, StyleSheet, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
+import {
+  Dimensions,
+  StyleSheet,
+  TouchableOpacity,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import React, { useRef } from 'react';
-import { BaseVideo, VideoRef, FastImage } from '../rn-components';
+import { BaseVideo, VideoRef, FastImage } from '~/components/rn-components';
 import { isVideoMedia } from '~/utils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

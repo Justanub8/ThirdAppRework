@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { StyleSheet } from 'react-native';
-import { MainTabParamList } from './types';
+import { MainTabParamList } from '~/navigation/types';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import HomeScreen from '~/screens/homescreen/HomeScreen';
-import Reels from '~/screens/reels/Reels';
-import Message from '~/screens/message/MessageScreen';
-import Explore from '~/screens/explore/Explore';
-import Profile from '~/screens/profile/Profile';
+import {
+  HomeScreen,
+  Reels,
+  MessageScreen as Message,
+  Explore,
+  Profile,
+} from '~/screens';
 import { useTheme, useAuthStore } from '~/hooks';
 import {
   HomeBoldIcon,
@@ -54,29 +56,23 @@ const renderExploreIcon = ({ focused }: { focused: boolean }) =>
 const ProfileTabIcon = ({
   focused,
   url,
-  borderColor,
+  focusedStyle,
 }: {
   focused: boolean;
   url?: string;
-  borderColor: string;
+  focusedStyle?: object;
 }) => (
   <Avatar
     url={url}
     size={28}
     disabled
-    style={focused ? [styles.focusedAvatar, { borderColor }] : undefined}
+    style={focused ? focusedStyle : undefined}
   />
 );
 
-const styles = StyleSheet.create({
-  focusedAvatar: {
-    borderWidth: 2,
-    borderRadius: 9999,
-  },
-});
-
 const MainTabNavigator: React.FC = () => {
   const { theme } = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const currentUser = useAuthStore(state => state.user);
 
   const renderProfileIcon = React.useCallback(
@@ -84,23 +80,23 @@ const MainTabNavigator: React.FC = () => {
       <ProfileTabIcon
         focused={props.focused}
         url={currentUser?.avatarUrl || currentUser?.imageUrl}
-        borderColor={theme.text}
+        focusedStyle={styles.focusedAvatar}
       />
     ),
-    [currentUser?.avatarUrl, currentUser?.imageUrl, theme.text]
+    [currentUser?.avatarUrl, currentUser?.imageUrl, styles.focusedAvatar],
+  );
+
+  const screenOptions = React.useMemo(
+    () => ({
+      headerShown: false,
+      tabBarStyle: styles.tabBar,
+      tabBarShowLabel: false,
+    }),
+    [styles.tabBar],
   );
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: theme.background,
-          borderTopColor: theme.border,
-        },
-        tabBarShowLabel: false,
-      }}
-    >
+    <Tab.Navigator screenOptions={screenOptions}>
       <Tab.Screen
         name="HomeScreen"
         component={HomeScreen}
@@ -129,5 +125,18 @@ const MainTabNavigator: React.FC = () => {
     </Tab.Navigator>
   );
 };
+
+const getStyles = (theme: any) =>
+  StyleSheet.create({
+    focusedAvatar: {
+      borderWidth: 2,
+      borderRadius: 9999,
+      borderColor: theme.text,
+    },
+    tabBar: {
+      backgroundColor: theme.background,
+      borderTopColor: theme.border,
+    },
+  });
 
 export default React.memo(MainTabNavigator);

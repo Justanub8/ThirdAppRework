@@ -15,6 +15,13 @@ export interface BaseResponse<T = any> {
   data?: T;
 }
 
-// Legacy aliases for backward compatibility
+export interface ApiResponse<T = any> {
+  success: boolean;
+  statusCode: number;
+  message?: string;
+  data: T;
+  pagination?: PaginationMeta;
+}
+
 export type ApiRes<T> = BaseResponse<T>;
 export type PaginatedRes<T> = PaginatedResponse<T>;

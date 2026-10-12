@@ -1,7 +1,7 @@
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { Alert } from 'react-native';
 import { storyApi } from '~/api';
-import { useAuthStore } from './useAuthStore';
+import { useAuthStore } from '~/hooks/useAuthStore';
 
 export const useStoryMutation = () => {
   const queryClient = useQueryClient();
@@ -34,7 +34,6 @@ export const useStoryMutation = () => {
       });
     },
     onSuccess: () => {
-      // Update auth store user immediately
       const currentUser = useAuthStore.getState().user;
       if (currentUser) {
         useAuthStore.getState().updateUser({
@@ -43,7 +42,6 @@ export const useStoryMutation = () => {
         });
       }
 
-      // Invalidate queries so HomeScreen and related views update immediately
       queryClient.invalidateQueries({ queryKey: ['my-profile'] });
       queryClient.invalidateQueries({ queryKey: ['my-story'] });
       queryClient.invalidateQueries({ queryKey: ['followedStories'] });

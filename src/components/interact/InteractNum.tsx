@@ -1,4 +1,4 @@
-import { BaseText } from '../rn-components';
+import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
 import * as React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';

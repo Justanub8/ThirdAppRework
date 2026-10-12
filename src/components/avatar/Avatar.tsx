@@ -7,7 +7,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { FastImage, BaseText } from '../rn-components';
+import { FastImage, BaseText } from '~/components/rn-components';
 import { images } from '~/assets/images';
 import { Navigation } from '~/utils';
 import { useTheme, useAuthStore } from '~/hooks';

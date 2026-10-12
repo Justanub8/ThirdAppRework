@@ -1,6 +1,6 @@
-import { BaseTextInputProps, BaseText, BaseTextInput } from '../rn-components';
+import { BaseTextInputProps, BaseText, BaseTextInput } from '~/components/rn-components';
 import { Typography } from '~/constants';
-import { SizedBox } from '../separate-components';
+import { SizedBox } from '~/components/separate-components';
 
 import * as React from 'react';
 import { StyleSheet, TextInput, View, ViewStyle } from 'react-native';

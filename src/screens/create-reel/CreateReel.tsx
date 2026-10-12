@@ -1,9 +1,19 @@
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Alert } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Image,
+  Alert,
+} from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AuthenticatedStackParamList } from '~/navigation/types';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { Theme, useReelMutation, useTheme } from '~/hooks';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   CrossIcon,
   MutedIcon,
@@ -18,7 +28,7 @@ import {
 import { Navigation, isVideoMedia } from '~/utils';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
-import CreateReelVideo from './components/CreateReelVideo';
+import CreateReelVideo from '~/screens/create-reel/components/CreateReelVideo';
 import { mediaApi } from '~/api';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreateReel'>;
@@ -26,7 +36,7 @@ type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreateReel'>;
 const CreateReel = () => {
   const { top } = useSafeAreaInsets();
   const { theme } = useTheme();
-  const styles = getStyles(theme);
+  const styles = useMemo(() => getStyles(theme), [theme]);
   const route = useRoute<RouteProps>();
   const { uri, mediaType } = route.params || {};
   const [isMuted, setIsMuted] = useState(false);
@@ -45,7 +55,12 @@ const CreateReel = () => {
 
     try {
       setIsUploading(true);
-      const uploadRes = await mediaApi.uploadImage(uri, undefined, undefined, isVideo);
+      const uploadRes = await mediaApi.uploadImage(
+        uri,
+        undefined,
+        undefined,
+        isVideo,
+      );
       const uploadedUrl = uploadRes?.url || uri;
       const mediaId = uploadRes?.media?.id;
 
@@ -65,7 +80,12 @@ const CreateReel = () => {
       ]);
     } catch (error: any) {
       console.log('Error creating reel:', error);
-      Alert.alert('Lỗi', error?.response?.data?.message || error?.message || 'Không thể tạo thước phim');
+      Alert.alert(
+        'Lỗi',
+        error?.response?.data?.message ||
+          error?.message ||
+          'Không thể tạo thước phim',
+      );
     } finally {
       setIsUploading(false);
     }
@@ -73,9 +93,15 @@ const CreateReel = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={[{ paddingTop: top + 10 }, styles.toolBar]} pointerEvents="box-none">
+      <View
+        style={[{ paddingTop: top + 12 }, styles.toolBar]}
+        pointerEvents="box-none"
+      >
         <View style={styles.headerRow} pointerEvents="box-none">
-          <TouchableOpacity style={styles.iconButton} onPress={() => Navigation.pop()}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => Navigation.pop()}
+          >
             <CrossIcon width={24} height={24} color={theme.white} />
           </TouchableOpacity>
           <View style={styles.rightTools} pointerEvents="box-none">
@@ -114,7 +140,10 @@ const CreateReel = () => {
         {isVideo ? (
           hasVideoError ? (
             <View style={[styles.mainImage, styles.errorContainer]}>
-              <BaseText color={theme.white} typography={Typography.bodyMedium.medium}>
+              <BaseText
+                color={theme.white}
+                typography={Typography.bodyMedium.medium}
+              >
                 Không thể phát nội dung
               </BaseText>
             </View>
@@ -162,82 +191,83 @@ const CreateReel = () => {
   );
 };
 
-const getStyles = (theme: Theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.black,
-  },
-  toolBar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    paddingHorizontal: 16,
-    alignItems: 'flex-start',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-  rightTools: {
-    flexDirection: 'column',
-    gap: 8,
-  },
-  iconButton: {
-    backgroundColor: theme.overlayMedium,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 40,
-    height: 40,
-  },
-  imageWrapper: {
-    width: '100%',
-    height: '84%',
-    position: 'relative',
-    backgroundColor: '#1F1F1F',
-    borderRadius: 24,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mainImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 24,
-  },
-  errorContainer: {
-    backgroundColor: '#000000',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bottomBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-  },
-  storyButton: {
-    backgroundColor: theme.darkSurface,
-    borderRadius: 9999,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexGrow: 1,
-    height: 44,
-  },
-  nextButton: {
-    backgroundColor: theme.white,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 44,
-    height: 44,
-  },
-});
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.black,
+    },
+    toolBar: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 10,
+      paddingHorizontal: 16,
+      alignItems: 'flex-start',
+    },
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      width: '100%',
+    },
+    rightTools: {
+      flexDirection: 'column',
+      gap: 8,
+    },
+    iconButton: {
+      backgroundColor: theme.overlayMedium,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 40,
+      height: 40,
+    },
+    imageWrapper: {
+      width: '100%',
+      height: '84%',
+      position: 'relative',
+      backgroundColor: theme.darkCard,
+      borderRadius: 24,
+      overflow: 'hidden',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    mainImage: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 24,
+    },
+    errorContainer: {
+      backgroundColor: theme.black,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    bottomBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingTop: 16,
+    },
+    storyButton: {
+      backgroundColor: theme.darkSurface,
+      borderRadius: 9999,
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexGrow: 1,
+      height: 44,
+    },
+    nextButton: {
+      backgroundColor: theme.white,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 44,
+      height: 44,
+    },
+  });
 
 export default CreateReel;

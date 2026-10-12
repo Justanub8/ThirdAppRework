@@ -16,7 +16,7 @@ import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import Tabs from '~/screens/profile/components/Tabs';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'UserProfile'>;
- 
+
 const UserProfile = () => {
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
@@ -38,7 +38,7 @@ const UserProfile = () => {
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [refetch])
+    }, [refetch]),
   );
 
   const [isFollowing, setIsFollowing] = useState(false);
@@ -117,26 +117,36 @@ const UserProfile = () => {
     }
   };
 
+  const hitSlop8 = { top: 8, bottom: 8, left: 8, right: 8 };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.paddingHorizontal}>
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => Navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <TouchableOpacity
+              onPress={() => Navigation.goBack()}
+              hitSlop={hitSlop8}
+            >
               <ArrowToLeft height={36} width={36} />
             </TouchableOpacity>
             <BaseText typography={Typography.bodyBold.xxxLarge}>
               {user?.username}
             </BaseText>
-            <TouchableOpacity onPress={() => { console.log(id); }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <TouchableOpacity
+              onPress={() => {
+                console.log(id);
+              }}
+              hitSlop={hitSlop8}
+            >
               <MenuIcon height={36} width={36} />
             </TouchableOpacity>
           </View>
           <View style={styles.profileInfoRow}>
-            <Avatar 
-              url={user?.avatarUrl || user?.imageUrl} 
-              size={86} 
-              id={id} 
+            <Avatar
+              url={user?.avatarUrl || user?.imageUrl}
+              size={86}
+              id={id}
               hasActiveStory={user?.hasActiveStory}
               isSeenStory={user?.isSeenStory}
             />
@@ -144,56 +154,64 @@ const UserProfile = () => {
               <BaseText typography={Typography.bodyBold.medium}>
                 {user?.username}
               </BaseText>
-              <SizedBox height={8}/>
+              <SizedBox height={8} />
               <View style={styles.statsRow}>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {user?.postCount ?? 0}
+                    {user?.postCount ?? 0}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
-                  bài viết
+                    bài viết
                   </BaseText>
                 </View>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {followerCount}
+                    {followerCount}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
-                  người theo dõi
+                    người theo dõi
                   </BaseText>
                 </View>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {user?.following ?? 0}
+                    {user?.following ?? 0}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
-                  đang theo dõi
+                    đang theo dõi
                   </BaseText>
                 </View>
               </View>
             </View>
           </View>
 
-          <SizedBox height={16}/>
+          <SizedBox height={16} />
 
           <View style={styles.actionButtonsRow}>
             {!isOwnProfile && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.button, followButtonConfig.style, styles.flex1]}
                 onPress={handleFollowToggle}
               >
-                <BaseText color={followButtonConfig.textColor} typography={Typography.bodyBold.medium}>
+                <BaseText
+                  color={followButtonConfig.textColor}
+                  typography={Typography.bodyBold.medium}
+                >
                   {followButtonConfig.text}
                 </BaseText>
               </TouchableOpacity>
             )}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.button, styles.flex1]}
               onPress={handleMessage}
             >
-              <BaseText color={theme.white} typography={Typography.bodyBold.medium}>Nhắn tin</BaseText>
+              <BaseText
+                color={theme.white}
+                typography={Typography.bodyBold.medium}
+              >
+                Nhắn tin
+              </BaseText>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.iconButton}
               onPress={() => console.log(user)}
             >
@@ -201,7 +219,7 @@ const UserProfile = () => {
             </TouchableOpacity>
           </View>
         </View>
-        <SizedBox height={24}/>
+        <SizedBox height={24} />
 
         {!isOwnProfile && user?.isPrivate && !isFollowing ? (
           <View style={styles.privateContainer}>
@@ -209,11 +227,18 @@ const UserProfile = () => {
               <LockIcon height={36} width={36} color={theme.white} />
             </View>
             <SizedBox height={16} />
-            <BaseText typography={Typography.bodyBold.large} color={theme.white}>
+            <BaseText
+              typography={Typography.bodyBold.large}
+              color={theme.white}
+            >
               Đây là tài khoản riêng tư
             </BaseText>
-            <SizedBox height={6} />
-            <BaseText typography={Typography.bodyRegular.medium} color={theme.placeholder} style={styles.privateSubtitle}>
+            <SizedBox height={8} />
+            <BaseText
+              typography={Typography.bodyRegular.medium}
+              color={theme.placeholder}
+              style={styles.privateSubtitle}
+            >
               Hãy theo dõi tài khoản này để xem bài viết và thước phim của họ.
             </BaseText>
           </View>
@@ -227,87 +252,88 @@ const UserProfile = () => {
   );
 };
 
-const getStyles = (theme: Theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-  },
-  paddingHorizontal: {
-    paddingHorizontal: 8,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  profileInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 24,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  actionButtonsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 4,
-  },
-  flex1: {
-    flex: 1,
-  },
-  button: {
-    borderRadius: 10,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.grey,
-  },
-  followButton: {
-    backgroundColor: theme.blue,
-  },
-  followingButton: {
-    backgroundColor: theme.buttonLightGrey,
-  },
-  iconButton: {
-    borderRadius: 10,
-    height: 36,
-    width: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.grey,
-  },
-  tabContainer: {
-    height: 500,
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  privateContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 56,
-    paddingHorizontal: 24,
-  },
-  lockCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: theme.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  privateSubtitle: {
-    textAlign: 'center',
-  },
-  modalOption: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: theme.border,
-    gap: 16,
-  },
-});
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    paddingHorizontal: {
+      paddingHorizontal: 8,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    profileInfoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 24,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      gap: 16,
+    },
+    actionButtonsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 4,
+    },
+    flex1: {
+      flex: 1,
+    },
+    button: {
+      borderRadius: 8,
+      height: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.grey,
+    },
+    followButton: {
+      backgroundColor: theme.blue,
+    },
+    followingButton: {
+      backgroundColor: theme.buttonLightGrey,
+    },
+    iconButton: {
+      borderRadius: 8,
+      height: 36,
+      width: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.grey,
+    },
+    tabContainer: {
+      height: 500,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    privateContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 56,
+      paddingHorizontal: 24,
+    },
+    lockCircle: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    privateSubtitle: {
+      textAlign: 'center',
+    },
+    modalOption: {
+      flexDirection: 'row',
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: 16,
+    },
+  });
 
 export default UserProfile;

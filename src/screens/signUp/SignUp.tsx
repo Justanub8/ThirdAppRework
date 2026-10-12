@@ -119,13 +119,13 @@ const SignUp = () => {
           />
           <SizedBox height={16} />
           <TouchableOpacity
-            style={[styles.signUpButton, signUp.isPending && { opacity: 0.6 }]}
+            style={[styles.signUpButton, signUp.isPending && styles.buttonPending]}
             onPress={handleSignUp}
             disabled={signUp.isPending}
           >
             <BaseText
               typography={Typography.bodyBold.large}
-              style={{ color: theme.white }}
+              style={styles.signUpButtonText}
             >
               {signUp.isPending ? 'Signing Up...' : 'Sign Up'}
             </BaseText>
@@ -226,7 +226,13 @@ const getStyles = (theme: Theme) =>
       marginHorizontal: 24,
       justifyContent: 'center',
       alignItems: 'center',
-      borderRadius: 6,
+      borderRadius: 8,
+    },
+    buttonPending: {
+      opacity: 0.6,
+    },
+    signUpButtonText: {
+      color: theme.white,
     },
   });
 

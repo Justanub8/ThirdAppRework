@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { create } from 'zustand';
-import { CoverLoadingView } from '../loading';
+import { CoverLoadingView } from '~/components/loading';
 type GlobalLoadingView = {
   visible: boolean;
   show: () => void;

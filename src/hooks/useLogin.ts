@@ -1,4 +1,4 @@
-import { useAuthStore } from './useAuthStore';
+import { useAuthStore } from '~/hooks/useAuthStore';
 import { useMutation } from '@tanstack/react-query';
 import { Alert } from 'react-native';
 import { authApi } from '~/api';

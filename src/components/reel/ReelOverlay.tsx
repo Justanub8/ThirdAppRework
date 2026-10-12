@@ -7,11 +7,11 @@ import { images } from '~/assets/images';
 import { CommentIcon, MessageLightIcon, MoreIcon } from '~/assets/svgs';
 import { SizedBox } from '~/components/separate-components';
 import { IReel } from '~/interfaces/reel';
-import LikeButton from '../buttons/LikeButton';
-import BookmarkButton from '../buttons/BookmarkButton';
+import LikeButton from '~/components/buttons/LikeButton';
+import BookmarkButton from '~/components/buttons/BookmarkButton';
 import { SheetManager } from 'react-native-actions-sheet';
 import { useFollowMutation, useAuthStore } from '~/hooks';
-import { RepostButton } from '../buttons';
+import { RepostButton } from '~/components/buttons';
 
 type ReelOverlayProps = {
   reel: IReel;

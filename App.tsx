@@ -11,14 +11,14 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { SocketProvider, ThemeProvider } from '~/context';
+import { CallProvider, SocketProvider, ThemeProvider } from '~/context';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: 1000 * 30, // Cache tươi trong 30s, tránh fetch trùng lặp khi đổi tab
-      gcTime: 1000 * 60 * 5, // Giữ cache 5 phút trong RAM
+      staleTime: 1000 * 30,
+      gcTime: 1000 * 60 * 5,
     },
   },
 });
@@ -32,19 +32,21 @@ const App = () => {
               <BottomSheetModalProvider>
                 <SheetProvider>
                   <SocketProvider>
-                    <View style={{ flex: 1 }}>
-                      <NavigationContainer
-                        ref={navigationRef}
-                        onStateChange={() => {
-                          SheetManager.hideAll();
-                        }}
-                      >
-                        <RootNavigator />
-                      </NavigationContainer>
-                      <GlobalToast />
-                      <GlobalLoading />
-                      <GlobalAlert />
-                    </View>
+                    <CallProvider>
+                      <View style={{ flex: 1 }}>
+                        <NavigationContainer
+                          ref={navigationRef}
+                          onStateChange={() => {
+                            SheetManager.hideAll();
+                          }}
+                        >
+                          <RootNavigator />
+                        </NavigationContainer>
+                        <GlobalToast />
+                        <GlobalLoading />
+                        <GlobalAlert />
+                      </View>
+                    </CallProvider>
                   </SocketProvider>
                 </SheetProvider>
               </BottomSheetModalProvider>

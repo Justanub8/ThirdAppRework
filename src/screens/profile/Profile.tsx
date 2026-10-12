@@ -13,7 +13,7 @@ import { useAuthStore, useTheme, Theme } from '~/hooks';
 import { SheetManager } from 'react-native-actions-sheet';
 import { Navigation } from '~/utils';
 import { bookmarkApi, postApi, reelApi } from '~/api';
-import Tabs from './components/Tabs';
+import Tabs from '~/screens/profile/components/Tabs';
 const Profile = () => {
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
@@ -22,7 +22,7 @@ const Profile = () => {
     queryFn: async () => {
       const res = await userApi.getMyProfile();
       return res.data.user;
-    }
+    },
   });
 
   const currentUser = useAuthStore(state => state.user);
@@ -62,7 +62,7 @@ const Profile = () => {
         refetchReels();
       }
       refetchBookmarks();
-    }, [refetch, refetchPosts, refetchReels, refetchBookmarks, currentUserId])
+    }, [refetch, refetchPosts, refetchReels, refetchBookmarks, currentUserId]),
   );
   return (
     <SafeAreaView style={styles.container}>
@@ -80,10 +80,10 @@ const Profile = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.profileInfoRow}>
-            <Avatar 
-              url={data?.avatarUrl || data?.imageUrl} 
-              size={86} 
-              id={data?.id} 
+            <Avatar
+              url={data?.avatarUrl || data?.imageUrl}
+              size={86}
+              id={data?.id}
               hasActiveStory={data?.hasActiveStory}
               isSeenStory={data?.isSeenStory}
             />
@@ -91,53 +91,66 @@ const Profile = () => {
               <BaseText typography={Typography.bodyBold.medium}>
                 {data?.username}
               </BaseText>
-              <SizedBox height={8}/>
+              <SizedBox height={8} />
               <View style={styles.statsRow}>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {data?.postCount}
+                    {data?.postCount}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
-                  bài viết
+                    bài viết
                   </BaseText>
                 </View>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {data?.follower}
+                    {data?.follower}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
-                  người theo dõi
+                    người theo dõi
                   </BaseText>
                 </View>
                 <View>
                   <BaseText typography={Typography.bodyBold.large}>
-                  {data?.following}
+                    {data?.following}
                   </BaseText>
                   <BaseText typography={Typography.bodyRegular.medium}>
-                  đang theo dõi
+                    đang theo dõi
                   </BaseText>
                 </View>
               </View>
             </View>
           </View>
 
-          <SizedBox height={16}/>
+          <SizedBox height={16} />
 
           <View style={styles.actionButtonsRow}>
-            <TouchableOpacity style={[styles.button, styles.flex1]}>
-              <BaseText color={theme.white} typography={Typography.bodyBold.medium}>Chỉnh sửa</BaseText>
+            <TouchableOpacity style={styles.flexButton}>
+              <BaseText
+                color={theme.white}
+                typography={Typography.bodyBold.medium}
+              >
+                Chỉnh sửa
+              </BaseText>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.flex1]}>
-              <BaseText color={theme.white} typography={Typography.bodyBold.medium}>Chia sẻ trang cá nhân</BaseText>
+            <TouchableOpacity style={styles.flexButton}>
+              <BaseText
+                color={theme.white}
+                typography={Typography.bodyBold.medium}
+              >
+                Chia sẻ trang cá nhân
+              </BaseText>
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
-              <AddUserIcon height={20} width={20} color={theme.white}
+              <AddUserIcon
+                height={20}
+                width={20}
+                color={theme.white}
                 onPress={() => console.log(data)}
               />
             </TouchableOpacity>
           </View>
         </View>
-        <SizedBox height={24}/>
+        <SizedBox height={24} />
 
         <View style={styles.tabContainer}>
           <Tabs id={currentUserId} />
@@ -147,62 +160,61 @@ const Profile = () => {
   );
 };
 
-const getStyles = (theme: Theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-  },
-  paddingHorizontal: {
-    paddingHorizontal: 8,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  profileInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 24,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  actionButtonsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 4,
-  },
-  flex1: {
-    flex: 1,
-  },
-  tabContainer: {
-    flex: 1,
-    backgroundColor: theme.background,
-  },
-  modalOption: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: theme.border,
-    gap: 16,
-  },
-  button: {
-    borderRadius: 10,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.grey,
-  },
-  iconButton: {
-    borderRadius: 10,
-    height: 36,
-    width: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.grey,
-  },
-});
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    paddingHorizontal: {
+      paddingHorizontal: 8,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    profileInfoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 24,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      gap: 16,
+    },
+    actionButtonsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 4,
+    },
+    flexButton: {
+      flex: 1,
+      borderRadius: 8,
+      height: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.grey,
+    },
+    tabContainer: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    modalOption: {
+      flexDirection: 'row',
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: 16,
+    },
+    iconButton: {
+      borderRadius: 8,
+      height: 36,
+      width: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.grey,
+    },
+  });
 
 export default Profile;

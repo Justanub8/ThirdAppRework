@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Dimensions, StyleProp, ViewStyle } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import type { OnLoadData } from 'react-native-video';
 import { BaseVideo } from '~/components/rn-components';
 import { PlayIcon } from '~/assets/svgs';
@@ -8,7 +15,10 @@ import { getVideoThumbnail } from '~/utils';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DEFAULT_MEDIA_WIDTH = Math.round(SCREEN_WIDTH * 0.58);
 
-const videoDimensionsCache = new Map<string, { width: number; height: number }>();
+const videoDimensionsCache = new Map<
+  string,
+  { width: number; height: number }
+>();
 const videoThumbnailCache = new Map<string, string>();
 
 interface MessageVideoItemProps {
@@ -41,7 +51,9 @@ export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
     width: cachedDims?.width || targetWidth,
     height: cachedDims?.height || targetWidth,
   }));
-  const [thumbnailUri, setThumbnailUri] = useState<string | undefined>(cachedThumb);
+  const [thumbnailUri, setThumbnailUri] = useState<string | undefined>(
+    cachedThumb,
+  );
 
   const effectivePaused =
     controlledPaused !== undefined ? controlledPaused : internalPaused;
@@ -146,18 +158,22 @@ export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
         />
       </TouchableOpacity>
 
-      { effectivePaused ? 
-      <View style={styles.controlsOverlay} pointerEvents="box-none">
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={handleTogglePlay}
-          style={styles.playPauseButton}
-        >
-          <PlayIcon width={24} height={24} color="#FFFFFF" style={styles.playIcon} />
-        </TouchableOpacity>
-      </View> :
-        null
-      }
+      {effectivePaused ? (
+        <View style={styles.controlsOverlay} pointerEvents="box-none">
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleTogglePlay}
+            style={styles.playPauseButton}
+          >
+            <PlayIcon
+              width={24}
+              height={24}
+              color="#FFFFFF"
+              style={styles.playIcon}
+            />
+          </TouchableOpacity>
+        </View>
+      ) : null}
     </View>
   );
 };

@@ -1,15 +1,34 @@
-import { View, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, TextInput } from 'react-native'
-import React, { useState, useEffect } from 'react'
-import { RouteProp, useRoute } from '@react-navigation/native'
-import { AuthenticatedStackParamList } from '~/navigation/types'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowToRight, CrossIcon, MenuIcon, MutedIcon, StickerIcon, TextAaIcon, UnmutedIcon } from '~/assets/svgs';
+import {
+  View,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  TextInput,
+} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { AuthenticatedStackParamList } from '~/navigation/types';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import {
+  ArrowToRight,
+  CrossIcon,
+  MenuIcon,
+  MutedIcon,
+  StickerIcon,
+  TextAaIcon,
+  UnmutedIcon,
+} from '~/assets/svgs';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
 import { Navigation, isVideoMedia } from '~/utils';
 import { usePostMutation, useTheme, Theme } from '~/hooks';
 import { mediaApi } from '~/api';
-import CreatePostVideo from './components/CreatePostVideo';
+import CreatePostVideo from '~/screens/createPost/components/CreatePostVideo';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreatePost'>;
 
@@ -37,7 +56,12 @@ const CreatePost = () => {
 
     try {
       setIsUploading(true);
-      const uploadRes = await mediaApi.uploadImage(uri, undefined, undefined, isVideo);
+      const uploadRes = await mediaApi.uploadImage(
+        uri,
+        undefined,
+        undefined,
+        isVideo,
+      );
       const uploadedUrl = uploadRes?.url || uri;
       const finalType = isVideo ? 'video' : 'image';
 
@@ -55,7 +79,12 @@ const CreatePost = () => {
       ]);
     } catch (error: any) {
       console.log('Error creating post:', error);
-      Alert.alert('Lỗi', error?.response?.data?.message || error?.message || 'Không thể tạo bài viết');
+      Alert.alert(
+        'Lỗi',
+        error?.response?.data?.message ||
+          error?.message ||
+          'Không thể tạo bài viết',
+      );
     } finally {
       setIsUploading(false);
     }
@@ -63,15 +92,18 @@ const CreatePost = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={[{ paddingTop: top + 10 }, styles.toolBar]}>
+      <View style={[{ paddingTop: top + 12 }, styles.toolBar]}>
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => Navigation.pop()}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => Navigation.pop()}
+          >
             <CrossIcon width={24} height={24} color={theme.white} />
-          </TouchableOpacity> 
+          </TouchableOpacity>
 
           <View style={styles.rightTools}>
             {isVideo && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => setIsMuted(prev => !prev)}
               >
@@ -82,8 +114,11 @@ const CreatePost = () => {
                 )}
               </TouchableOpacity>
             )}
-            <TouchableOpacity 
-              style={[styles.iconButton, showCaptionInput && styles.activeIconButton]}
+            <TouchableOpacity
+              style={[
+                styles.iconButton,
+                showCaptionInput && styles.activeIconButton,
+              ]}
               onPress={() => setShowCaptionInput(prev => !prev)}
             >
               <TextAaIcon width={16} height={16} color={theme.white} />
@@ -97,12 +132,15 @@ const CreatePost = () => {
           </View>
         </View>
       </View>
-      
+
       <View style={styles.imageWrapper}>
         {isVideo ? (
           hasVideoError ? (
             <View style={[styles.mainImage, styles.errorContainer]}>
-              <BaseText color={theme.white} typography={Typography.bodyMedium.medium}>
+              <BaseText
+                color={theme.white}
+                typography={Typography.bodyMedium.medium}
+              >
                 Không thể phát nội dung
               </BaseText>
             </View>
@@ -115,11 +153,7 @@ const CreatePost = () => {
             />
           )
         ) : (
-          <Image
-            source={{ uri }}
-            resizeMode="cover"
-            style={styles.mainImage}
-          />
+          <Image source={{ uri }} resizeMode="cover" style={styles.mainImage} />
         )}
         {showCaptionInput && (
           <View style={styles.captionOverlay}>
@@ -137,21 +171,17 @@ const CreatePost = () => {
       </View>
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity 
-          style={styles.storyButton}
-        >
+        <TouchableOpacity style={styles.storyButton}>
           <BaseText typography={Typography.bodyBold.medium} color={theme.white}>
             Your Story
           </BaseText>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.storyButton}
-        >
+        <TouchableOpacity style={styles.storyButton}>
           <BaseText typography={Typography.bodyBold.medium} color={theme.white}>
             Close Friends
           </BaseText>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.nextButton}
           onPress={handleCreatePost}
           disabled={createPost.isPending || isUploading}
@@ -167,95 +197,96 @@ const CreatePost = () => {
   );
 };
 
-const getStyles = (theme: Theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.black,
-  },
-  toolBar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    paddingHorizontal: 16,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-  },
-  rightTools: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  iconButton: {
-    backgroundColor: theme.overlayMedium,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 40,
-    height: 40,
-  },
-  activeIconButton: {
-    backgroundColor: theme.overlayLight,
-    borderWidth: 1,
-    borderColor: theme.white,
-  },
-  imageWrapper: {
-    width: '100%',
-    height: '84%',
-    position: 'relative',
-  },
-  mainImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 24,
-  },
-  errorContainer: {
-    backgroundColor: '#000000',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  captionOverlay: {
-    position: 'absolute',
-    top: '40%',
-    left: 24,
-    right: 24,
-    borderRadius: 16,
-    padding: 16,
-  },
-  captionInput: {
-    color: theme.white,
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  bottomBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-  },
-  storyButton: {
-    backgroundColor: theme.darkSurface,
-    borderRadius: 9999,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexGrow: 1,
-    height: 44,
-  },
-  nextButton: {
-    backgroundColor: theme.white,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 44,
-    height: 44,
-  },
-});
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.black,
+    },
+    toolBar: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 10,
+      paddingHorizontal: 16,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
+    },
+    rightTools: {
+      flexDirection: 'row',
+      gap: 8,
+      alignItems: 'center',
+    },
+    iconButton: {
+      backgroundColor: theme.overlayMedium,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 40,
+      height: 40,
+    },
+    activeIconButton: {
+      backgroundColor: theme.overlayLight,
+      borderWidth: 1,
+      borderColor: theme.white,
+    },
+    imageWrapper: {
+      width: '100%',
+      height: '84%',
+      position: 'relative',
+    },
+    mainImage: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 24,
+    },
+    errorContainer: {
+      backgroundColor: theme.black,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    captionOverlay: {
+      position: 'absolute',
+      top: '40%',
+      left: 24,
+      right: 24,
+      borderRadius: 16,
+      padding: 16,
+    },
+    captionInput: {
+      color: theme.white,
+      fontSize: 16,
+      textAlign: 'center',
+    },
+    bottomBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingTop: 16,
+    },
+    storyButton: {
+      backgroundColor: theme.darkSurface,
+      borderRadius: 9999,
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexGrow: 1,
+      height: 44,
+    },
+    nextButton: {
+      backgroundColor: theme.white,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 44,
+      height: 44,
+    },
+  });
 
 export default CreatePost;

@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '~/hooks';
@@ -26,7 +33,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const { accessToken } = useAuthStore();
   const isAuthenticated = !!accessToken;
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [onlineUsers, setOnlineUsers] = useState<Record<string, UserPresenceInfo>>({});
+  const [onlineUsers, setOnlineUsers] = useState<
+    Record<string, UserPresenceInfo>
+  >({});
   const socketRef = useRef<Socket | null>(null);
   const heartbeatTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -50,7 +59,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     const socketUrl =
       Config.SOCKET_URL ||
-      (Config.BASE_API_URL ? Config.BASE_API_URL.replace(/\/api\/?$/, '') : 'http://localhost:5050');
+      (Config.BASE_API_URL
+        ? Config.BASE_API_URL.replace(/\/api\/?$/, '')
+        : 'http://localhost:5050');
 
     const socketInstance = io(socketUrl, {
       auth: { token: accessToken },
@@ -62,7 +73,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     socketInstance.on('connect', () => {
       console.log('Đã kết nối chat socket:', socketInstance.id);
-      // Gửi heartbeat ban đầu và định kỳ mỗi 30s
       socketInstance.emit('heartbeat');
       clearHeartbeat();
       heartbeatTimerRef.current = setInterval(() => {
@@ -72,12 +82,15 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       }, 30000);
     });
 
-    // Lắng nghe sự kiện thay đổi trạng thái online của người dùng
     socketInstance.on(
       'user_status_change',
-      (data: { userId: string; isOnline: boolean; lastActive?: string | Date }) => {
+      (data: {
+        userId: string;
+        isOnline: boolean;
+        lastActive?: string | Date;
+      }) => {
         if (!data?.userId) return;
-        setOnlineUsers((prev) => ({
+        setOnlineUsers(prev => ({
           ...prev,
           [data.userId]: {
             isOnline: !!data.isOnline,
@@ -87,12 +100,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       },
     );
 
-    socketInstance.on('connect_error', (err) => {
+    socketInstance.on('connect_error', err => {
       console.log('Lỗi kết nối socket:', err.message);
       clearHeartbeat();
     });
 
-    socketInstance.on('disconnect', (reason) => {
+    socketInstance.on('disconnect', reason => {
       console.log('Socket ngắt kết nối:', reason);
       clearHeartbeat();
     });
@@ -105,20 +118,26 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isAuthenticated, accessToken]);
 
-  // Xử lý AppState: khi app xuống background thì ngắt socket (server sẽ tính offline), khi quay lại app thì kết nối lại
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-      if (nextAppState === 'background' || nextAppState === 'inactive') {
-        clearHeartbeat();
-        if (socketRef.current?.connected) {
-          socketRef.current.disconnect();
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextAppState: AppStateStatus) => {
+        if (nextAppState === 'background' || nextAppState === 'inactive') {
+          clearHeartbeat();
+          if (socketRef.current?.connected) {
+            socketRef.current.disconnect();
+          }
+        } else if (nextAppState === 'active') {
+          if (
+            socketRef.current &&
+            !socketRef.current.connected &&
+            isAuthenticated
+          ) {
+            socketRef.current.connect();
+          }
         }
-      } else if (nextAppState === 'active') {
-        if (socketRef.current && !socketRef.current.connected && isAuthenticated) {
-          socketRef.current.connect();
-        }
-      }
-    });
+      },
+    );
 
     return () => subscription.remove();
   }, [isAuthenticated]);
@@ -141,7 +160,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <SocketContext.Provider value={socket}>
-      <PresenceContext.Provider value={{ onlineUsers, isUserOnline, getUserLastActive }}>
+      <PresenceContext.Provider
+        value={{ onlineUsers, isUserOnline, getUserLastActive }}
+      >
         {children}
       </PresenceContext.Provider>
     </SocketContext.Provider>

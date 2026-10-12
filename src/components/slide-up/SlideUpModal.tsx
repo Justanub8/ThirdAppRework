@@ -6,8 +6,8 @@ import {
   BottomSheetScrollView,
   BottomSheetFooterProps,
 } from '@gorhom/bottom-sheet';
-import { SizedBox } from '../separate-components';
-import { BaseText } from '../rn-components';
+import { SizedBox } from '~/components/separate-components';
+import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
 interface SlideUpModalProps {
   modalTitle?: string;

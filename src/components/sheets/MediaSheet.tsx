@@ -6,10 +6,13 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import ActionSheet, { SheetProps, SheetManager } from 'react-native-actions-sheet';
+import ActionSheet, {
+  SheetProps,
+  SheetManager,
+} from 'react-native-actions-sheet';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { Theme, useTheme } from '~/hooks';
-import { BaseText, FastImage } from '../rn-components';
+import { BaseText, FastImage } from '~/components/rn-components';
 import { CrossIcon, PlayIcon, CameraLightIcon } from '~/assets/svgs';
 import { Typography } from '~/constants';
 import { Navigation, formatDuration, isVideoMedia } from '~/utils';
@@ -27,7 +30,7 @@ export interface SelectedChatMedia {
   playableDuration?: number | null;
 }
 
-const MediaSheet = (props: SheetProps<"MediaSheet">) => {
+const MediaSheet = (props: SheetProps<'MediaSheet'>) => {
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
   const [photos, setPhotos] = useState<SelectedChatMedia[]>([]);
@@ -37,34 +40,44 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
 
   const mediaType = props.payload?.mediaType || 'all';
 
-  const fetchPhotos = useCallback(async (after?: string) => {
-    try {
-      if (!after) setIsLoading(true);
-      const assetType = mediaType === 'image' ? 'Photos' : mediaType === 'video' ? 'Videos' : 'All';
-      const res = await CameraRoll.getPhotos({
-        first: 30,
-        after,
-        assetType,
-        include: ['filename', 'fileExtension', 'playableDuration'],
-      });
+  const fetchPhotos = useCallback(
+    async (after?: string) => {
+      try {
+        if (!after) setIsLoading(true);
+        const assetType =
+          mediaType === 'image'
+            ? 'Photos'
+            : mediaType === 'video'
+            ? 'Videos'
+            : 'All';
+        const res = await CameraRoll.getPhotos({
+          first: 30,
+          after,
+          assetType,
+          include: ['filename', 'fileExtension', 'playableDuration'],
+        });
 
-      const newPhotos: SelectedChatMedia[] = res.edges.map(edge => ({
-        uri: edge.node.image.uri,
-        type: (edge.node.type === 'video' ? 'video' : 'image') as 'image' | 'video',
-        filename: edge.node.image.filename,
-        extension: edge.node.image.extension,
-        playableDuration: edge.node.image.playableDuration,
-      }));
+        const newPhotos: SelectedChatMedia[] = res.edges.map(edge => ({
+          uri: edge.node.image.uri,
+          type: (edge.node.type === 'video' ? 'video' : 'image') as
+            | 'image'
+            | 'video',
+          filename: edge.node.image.filename,
+          extension: edge.node.image.extension,
+          playableDuration: edge.node.image.playableDuration,
+        }));
 
-      setPhotos(prev => (after ? [...prev, ...newPhotos] : newPhotos));
-      setHasNextPage(res.page_info.has_next_page);
-      setEndCursor(res.page_info.end_cursor);
-    } catch (error) {
-      console.log('Error fetching photos in MediaSheet:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [mediaType]);
+        setPhotos(prev => (after ? [...prev, ...newPhotos] : newPhotos));
+        setHasNextPage(res.page_info.has_next_page);
+        setEndCursor(res.page_info.end_cursor);
+      } catch (error) {
+        console.log('Error fetching photos in MediaSheet:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [mediaType],
+  );
 
   useEffect(() => {
     fetchPhotos();
@@ -97,18 +110,26 @@ const MediaSheet = (props: SheetProps<"MediaSheet">) => {
         onPress={() => {
           handleSelectMedia({
             uri: item.uri,
-            type: mediaType === 'image' ? 'image' : (isVideo ? 'video' : 'image'),
+            type: mediaType === 'image' ? 'image' : isVideo ? 'video' : 'image',
             filename: item.filename,
             extension: item.extension,
           });
         }}
       >
-        <FastImage source={{ uri: item.uri }} style={styles.thumbnail} resizeMode="cover" />
+        <FastImage
+          source={{ uri: item.uri }}
+          style={styles.thumbnail}
+          resizeMode="cover"
+        />
         {isVideo && mediaType !== 'image' ? (
           <View style={styles.videoBadge}>
             <PlayIcon width={12} height={12} color="#FFFFFF" />
             {item.playableDuration ? (
-              <BaseText typography={Typography.bodyRegular.small} color="#FFFFFF" style={styles.durationText}>
+              <BaseText
+                typography={Typography.bodyRegular.small}
+                color="#FFFFFF"
+                style={styles.durationText}
+              >
                 {formatDuration(item.playableDuration)}
               </BaseText>
             ) : null}

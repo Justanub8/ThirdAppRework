@@ -1,6 +1,26 @@
-import {Modal, Pressable, StyleSheet, useWindowDimensions, View, TouchableOpacity,} from 'react-native';
-import Animated, {useSharedValue, withTiming, useAnimatedStyle, runOnJS, Easing} from 'react-native-reanimated';
-import React, { useState, useMemo, useEffect, useCallback, useRef, ReactNode } from 'react';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  TouchableOpacity,
+} from 'react-native';
+import Animated, {
+  useSharedValue,
+  withTiming,
+  useAnimatedStyle,
+  runOnJS,
+  Easing,
+} from 'react-native-reanimated';
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  useRef,
+  ReactNode,
+} from 'react';
 import { useTheme, Theme } from '~/hooks';
 import { BaseText } from '~/components/rn-components';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -76,11 +96,16 @@ const MessagePopUp = ({
   const progress = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
-  const topOrigin = transformOrigin === 'right' ? 'bottom right' : 'bottom left';
+  const topOrigin =
+    transformOrigin === 'right' ? 'bottom right' : 'bottom left';
   const bottomOrigin = transformOrigin === 'right' ? 'top right' : 'top left';
 
   const actions = useMemo(() => {
-    const list: { label: string; onPress?: () => void; isDestructive?: boolean }[] = [
+    const list: {
+      label: string;
+      onPress?: () => void;
+      isDestructive?: boolean;
+    }[] = [
       {
         label: 'Trả lời',
         onPress: onReply,
@@ -121,7 +146,17 @@ const MessagePopUp = ({
     }
 
     return list;
-  }, [onReply, showCopy, onCopy, onPin, onForward, showDelete, onDelete, showEdit, onEdit]);
+  }, [
+    onReply,
+    showCopy,
+    onCopy,
+    onPin,
+    onForward,
+    showDelete,
+    onDelete,
+    showEdit,
+    onEdit,
+  ]);
 
   const calculateTargetShift = useCallback(
     (y: number, h: number, actionCount: number) => {
@@ -147,11 +182,13 @@ const MessagePopUp = ({
         return maxAllowedY - y;
       }
 
-      // Nếu ở khoảng an toàn, dịch nhẹ về tâm màn hình (focal position) để tạo cảm giác tập trung
       const totalGroupHeight = topSpaceNeeded + h + bottomSpaceNeeded;
       const idealY = (screenHeight - totalGroupHeight) / 2 + topSpaceNeeded;
       const focalY = y + (idealY - y) * 0.35;
-      const clampedFocalY = Math.min(Math.max(focalY, minAllowedY), maxAllowedY);
+      const clampedFocalY = Math.min(
+        Math.max(focalY, minAllowedY),
+        maxAllowedY,
+      );
       return clampedFocalY - y;
     },
     [insets.top, insets.bottom, offset, screenHeight],
@@ -173,10 +210,10 @@ const MessagePopUp = ({
           easing: Easing.out(Easing.cubic),
         });
       } else {
-        progress.value = withTiming(
-          0,
-          { duration: 180, easing: Easing.in(Easing.cubic) },
-        );
+        progress.value = withTiming(0, {
+          duration: 180,
+          easing: Easing.in(Easing.cubic),
+        });
         scale.value = withTiming(1, {
           duration: 200,
           easing: Easing.inOut(Easing.cubic),
@@ -184,7 +221,7 @@ const MessagePopUp = ({
         translateY.value = withTiming(
           0,
           { duration: 200, easing: Easing.inOut(Easing.cubic) },
-          (isFinished) => {
+          isFinished => {
             if (isFinished) {
               runOnJS(setMounted)(false);
               runOnJS(setAnchorPos)(null);
@@ -200,19 +237,21 @@ const MessagePopUp = ({
     if (visible) {
       if (!isPresentedRef.current && anchorRef?.current) {
         isPresentedRef.current = true;
-        anchorRef.current.measureInWindow((x: number, y: number, w: number, h: number) => {
-          if (!w && !h) {
-            isPresentedRef.current = false;
-            return;
-          }
-          const targetShift = calculateTargetShift(y, h, actions.length);
-          translateY.value = 0;
-          scale.value = 1;
-          progress.value = 0;
-          setAnchorPos({ x, y, w, h });
-          setMounted(true);
-          triggerAnimation(true, targetShift);
-        });
+        anchorRef.current.measureInWindow(
+          (x: number, y: number, w: number, h: number) => {
+            if (!w && !h) {
+              isPresentedRef.current = false;
+              return;
+            }
+            const targetShift = calculateTargetShift(y, h, actions.length);
+            translateY.value = 0;
+            scale.value = 1;
+            progress.value = 0;
+            setAnchorPos({ x, y, w, h });
+            setMounted(true);
+            triggerAnimation(true, targetShift);
+          },
+        );
       }
     } else {
       if (isPresentedRef.current) {
@@ -243,10 +282,7 @@ const MessagePopUp = ({
   }));
 
   const bubbleAnimStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
   }));
 
   const groupTranslateAnimStyle = useAnimatedStyle(() => ({
@@ -320,7 +356,7 @@ const MessagePopUp = ({
                 groupTranslateAnimStyle,
               ]}
             >
-              <Pressable onPress={(e) => e.stopPropagation()}>
+              <Pressable onPress={e => e.stopPropagation()}>
                 <Animated.View
                   style={[
                     styles.reactionBar,
@@ -357,7 +393,7 @@ const MessagePopUp = ({
                 groupTranslateAnimStyle,
               ]}
             >
-              <Pressable onPress={(e) => e.stopPropagation()}>
+              <Pressable onPress={e => e.stopPropagation()}>
                 <Animated.View
                   style={[
                     styles.menuBox,

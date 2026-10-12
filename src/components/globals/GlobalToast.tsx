@@ -2,9 +2,9 @@ import * as React from 'react';
 import { create } from 'zustand';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SizedBox } from '../separate-components';
+import { SizedBox } from '~/components/separate-components';
 import Animated, { SlideInUp, SlideOutUp } from 'react-native-reanimated';
-import { BaseText } from '../rn-components';
+import { BaseText } from '~/components/rn-components';
 import { CrossIcon, HeartIcon } from '~/assets/svgs';
 
 type GlobalToastType = {

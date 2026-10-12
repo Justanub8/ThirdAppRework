@@ -1,6 +1,6 @@
-import { PrimaryButton } from '../buttons';
-import { BaseText, BaseTextProps } from '../rn-components';
-import { SizedBox } from '../separate-components';
+import { PrimaryButton } from '~/components/buttons';
+import { BaseText, BaseTextProps } from '~/components/rn-components';
+import { SizedBox } from '~/components/separate-components';
 import { Typography } from '~/constants';
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';

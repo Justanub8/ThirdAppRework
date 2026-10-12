@@ -13,12 +13,13 @@ import Note from '~/components/note/Note';
 import Chat from '~/components/chat/Chat';
 import { conversationApi } from '~/api';
 import { useAuthStore } from '~/hooks/useAuthStore';
-import { useTheme } from '~/hooks';
+import { useTheme, Theme } from '~/hooks';
 import { Navigation } from '~/utils';
 import { IConversation } from '~/interfaces';
 
 const MessageScreen = () => {
   const { theme } = useTheme();
+  const styles = useMemo(() => getStyles(theme), [theme]);
   const user = useAuthStore(state => state.user);
 
   const { data: rawConversations, refetch } = useQuery({
@@ -26,115 +27,125 @@ const MessageScreen = () => {
     queryFn: async () => {
       const response = await conversationApi.getConversations();
       return response.data?.data || [];
-    }
+    },
   });
-  
+
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [refetch])
+    }, [refetch]),
   );
 
   const conversations = useMemo(() => {
     const list = rawConversations || [];
     return [...list].sort((a: IConversation, b: IConversation) => {
-      const timeA = new Date(a.lastMessage?.createdAt || a.updatedAt || a.createdAt || 0).getTime();
-      const timeB = new Date(b.lastMessage?.createdAt || b.updatedAt || b.createdAt || 0).getTime();
+      const timeA = new Date(
+        a.lastMessage?.createdAt || a.updatedAt || a.createdAt || 0,
+      ).getTime();
+      const timeB = new Date(
+        b.lastMessage?.createdAt || b.updatedAt || b.createdAt || 0,
+      ).getTime();
       return timeB - timeA;
     });
   }, [rawConversations]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollContent}>
-          <View style={[styles.header, { borderColor: theme.border }]}>
-            <View style={styles.headerPlaceholder} />
-            <BaseText typography={Typography.bodyBold.xxxLarge} numberOfLines={1}>
-              {user?.username || 'Message'}
-            </BaseText>
-            <TouchableOpacity onPress={() => { Navigation.goToNewMessage(); }}>
-              <NoteIcon width={24} height={24} />
-            </TouchableOpacity>
-          </View>
-          <SizedBox height={24}/>
-          <PrimaryInput 
-            LeftComponent={SearchLightIcon}
-            placeholder="Tìm kiếm hoặc hỏi Meta AI"
+        <View style={styles.header}>
+          <View style={styles.headerPlaceholder} />
+          <BaseText typography={Typography.bodyBold.xxxLarge} numberOfLines={1}>
+            {user?.username || 'Message'}
+          </BaseText>
+          <TouchableOpacity
+            onPress={() => {
+              Navigation.goToNewMessage();
+            }}
+          >
+            <NoteIcon width={24} height={24} />
+          </TouchableOpacity>
+        </View>
+        <SizedBox height={24} />
+        <PrimaryInput
+          LeftComponent={SearchLightIcon}
+          placeholder="Tìm kiếm hoặc hỏi Meta AI"
+        />
+        <SizedBox height={16} />
+        <View>
+          <Note />
+        </View>
+        <SizedBox height={24} />
+        <View style={styles.sectionHeader}>
+          <BaseText typography={Typography.bodyBold.large}>Tin nhắn</BaseText>
+          <BaseText
+            typography={Typography.bodyRegular.medium}
+            color={theme.charcoal}
+          >
+            Tin nhắn đang chờ
+          </BaseText>
+        </View>
+        <SizedBox height={24} />
+        <View>
+          {conversations.map((conv: IConversation) => {
+            const convKey = conv.id;
+            return (
+              <View key={convKey} style={styles.chatItem}>
+                <Chat conversation={conv} currentUserId={user?.id} />
+              </View>
+            );
+          })}
+        </View>
+        <SizedBox height={24} />
+        <View>
+          <BaseText typography={Typography.bodyBold.large}>Gợi ý</BaseText>
+        </View>
+        <SizedBox height={24} />
+        {null}
+        <SizedBox height={24} />
+        <View style={styles.sectionHeader}>
+          <BaseText typography={Typography.bodyBold.large}>
+            Tài khoản nên theo dõi
+          </BaseText>
+          <TextButton
+            title="Xem tất cả"
+            color={theme.blue}
+            typography={Typography.bodyRegular.medium}
           />
-          <SizedBox height={16}/>
-          <View>
-            <Note/>
-          </View>
-          <SizedBox height={24}/>
-          <View style={styles.sectionHeader}>
-            <BaseText typography={Typography.bodyBold.large}>
-              Tin nhắn
-            </BaseText>
-            <BaseText typography={Typography.bodyRegular.medium} color={theme.charcoal}>
-              Tin nhắn đang chờ 
-            </BaseText>
-          </View>
-          <SizedBox height={24}/>
-          <View>
-            {conversations.map((conv: IConversation) => {
-              const convKey = conv.id;
-              return (
-                <View key={convKey} style={styles.chatItem}>
-                  <Chat 
-                    conversation={conv}
-                    currentUserId={user?.id}
-                  />
-                </View>
-              );
-
-            })}
-          </View>
-          <SizedBox height={24}/>
-          <View>
-            <BaseText typography={Typography.bodyBold.large}>
-              Gợi ý
-            </BaseText>
-          </View>
-          <SizedBox height={24}/>
-          {null}
-          <SizedBox height={24}/>
-          <View style={styles.sectionHeader}>
-            <BaseText typography={Typography.bodyBold.large}>
-              Tài khoản nên theo dõi 
-            </BaseText>
-            <TextButton title='Xem tất cả' color={theme.blue} typography={Typography.bodyRegular.medium}/>
-          </View>
-          <SizedBox height={24}/>
-          {null}
-          <SizedBox height={24}/>
+        </View>
+        <SizedBox height={24} />
+        {null}
+        <SizedBox height={24} />
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 8,
-  },
-  header: {
-    alignItems: 'center',
-    borderWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  headerPlaceholder: {
-    width: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  chatItem: {
-    marginBottom: 16,
-  },
-});
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    scrollContent: {
+      paddingHorizontal: 8,
+    },
+    header: {
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    headerPlaceholder: {
+      width: 24,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    chatItem: {
+      marginBottom: 16,
+    },
+  });
 
 export default MessageScreen;

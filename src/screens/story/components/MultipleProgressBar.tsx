@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet, DimensionValue } from 'react-native';
+import { useTheme, Theme } from '~/hooks';
 
 interface MultiProgressBarProps {
   total: number;
@@ -12,6 +13,9 @@ export const MultiProgressBar: React.FC<MultiProgressBarProps> = ({
   activeIndex,
   progress,
 }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => getStyles(theme), [theme]);
+
   if (total <= 0) return null;
 
   return (
@@ -34,25 +38,26 @@ export const MultiProgressBar: React.FC<MultiProgressBarProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    width: '100%',
-    paddingHorizontal: 8,
-    gap: 4,
-    position: 'absolute',
-    top: 8,
-    zIndex: 10,
-  },
-  track: {
-    flex: 1,
-    height: 2.5,
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-  },
-});
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      width: '100%',
+      paddingHorizontal: 8,
+      gap: 4,
+      position: 'absolute',
+      top: 8,
+      zIndex: 10,
+    },
+    track: {
+      flex: 1,
+      height: 4,
+      backgroundColor: theme.overlayWhite40,
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    fill: {
+      height: '100%',
+      backgroundColor: theme.white,
+    },
+  });

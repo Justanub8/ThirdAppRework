@@ -1,14 +1,25 @@
-import { View, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { CrossIcon, SettingIcon, CameraLightIcon } from '~/assets/svgs'
-import { Navigation, formatDuration, isVideoMedia, NormalizedMediaAsset } from '~/utils'
-import { BaseText } from '~/components/rn-components'
-import { Theme, useTheme } from '~/hooks'
-import { CustomHeader } from '~/components/headers'
-import { Typography } from '~/constants'
-import { FlashList } from '@shopify/flash-list'
-import { CameraRoll } from '@react-native-camera-roll/camera-roll'
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  Image,
+} from 'react-native';
+import React, { useEffect, useState, useMemo } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { CrossIcon, SettingIcon, CameraLightIcon } from '~/assets/svgs';
+import {
+  Navigation,
+  formatDuration,
+  isVideoMedia,
+  NormalizedMediaAsset,
+} from '~/utils';
+import { BaseText } from '~/components/rn-components';
+import { Theme, useTheme } from '~/hooks';
+import { CustomHeader } from '~/components/headers';
+import { Typography } from '~/constants';
+import { FlashList } from '@shopify/flash-list';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const GRID_WIDTH = SCREEN_WIDTH / 3;
@@ -16,14 +27,15 @@ const GRID_HEIGHT = GRID_WIDTH * (SCREEN_HEIGHT / SCREEN_WIDTH);
 
 const SelectStoryMedia = () => {
   const { theme } = useTheme();
-  const styles = getStyles(theme);
-  const [selectedPhoto, setSelectedPhoto] = useState<NormalizedMediaAsset | null>(null);
+  const styles = useMemo(() => getStyles(theme), [theme]);
+  const [selectedPhoto, setSelectedPhoto] =
+    useState<NormalizedMediaAsset | null>(null);
   const [photos, setPhotos] = useState<NormalizedMediaAsset[]>([]);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
-  
+
   const fetchPhotos = async (after?: string) => {
-    try{
+    try {
       const res = await CameraRoll.getPhotos({
         first: 16,
         after: after,
@@ -32,29 +44,42 @@ const SelectStoryMedia = () => {
 
       const newPhotos: NormalizedMediaAsset[] = res.edges.map(edge => ({
         ...edge.node.image,
-        type: (edge.node.type === 'video' ? 'video' : 'image') as 'image' | 'video',
+        type: (edge.node.type === 'video' ? 'video' : 'image') as
+          | 'image'
+          | 'video',
         playableDuration: edge.node.image.playableDuration ?? undefined,
       }));
-      setPhotos((prev) => after ? [...prev, ...newPhotos] : newPhotos);
+      setPhotos(prev => (after ? [...prev, ...newPhotos] : newPhotos));
       setHasNextPage(res.page_info.has_next_page);
       setEndCursor(res.page_info.end_cursor);
-    }catch(error){
+    } catch (error) {
       console.log('error fetching story media', error);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchPhotos()
+    fetchPhotos();
   }, []);
-
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
       <CustomHeader
-        title='Thêm vào tin'
-        LeftComponent={<CrossIcon width={32} height={32} onPress={() => Navigation.goBack()}/>}
-        RightComponent={<SettingIcon width={32} height={32} onPress={() => Navigation.goBack()}/>}
-      /> 
+        title="Thêm vào tin"
+        LeftComponent={
+          <CrossIcon
+            width={32}
+            height={32}
+            onPress={() => Navigation.goBack()}
+          />
+        }
+        RightComponent={
+          <SettingIcon
+            width={32}
+            height={32}
+            onPress={() => Navigation.goBack()}
+          />
+        }
+      />
 
       <View style={styles.optionContainer}>
         <View style={styles.option}>
@@ -70,12 +95,10 @@ const SelectStoryMedia = () => {
 
       <View style={styles.toolbar}>
         <TouchableOpacity style={styles.albumSelector}>
-          <BaseText typography={Typography.bodyBold.medium}>
-            Gần đây
-          </BaseText>
+          <BaseText typography={Typography.bodyBold.medium}>Gần đây</BaseText>
         </TouchableOpacity>
         <TouchableOpacity>
-          <CameraLightIcon width={24} height={24}/>
+          <CameraLightIcon width={24} height={24} />
         </TouchableOpacity>
       </View>
 
@@ -96,7 +119,10 @@ const SelectStoryMedia = () => {
               onPress={() => {
                 setSelectedPhoto(item);
                 if (item?.uri) {
-                  Navigation.goToCreateStory(item.uri, isVideo ? 'video' : 'image');
+                  Navigation.goToCreateStory(
+                    item.uri,
+                    isVideo ? 'video' : 'image',
+                  );
                 }
               }}
               style={[styles.gridItem, isSelected && styles.gridItemSelected]}
@@ -108,7 +134,10 @@ const SelectStoryMedia = () => {
               />
               {isVideo && (
                 <View style={styles.videoBadge}>
-                  <BaseText typography={Typography.bodyRegular.xSmall} color={theme.white}>
+                  <BaseText
+                    typography={Typography.bodyRegular.xSmall}
+                    color={theme.white}
+                  >
                     {formatDuration(item.playableDuration) || 'Video'}
                   </BaseText>
                 </View>
@@ -118,68 +147,69 @@ const SelectStoryMedia = () => {
         }}
       />
     </SafeAreaView>
-  )
-}
+  );
+};
 
-const getStyles = (theme: Theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-  },
-  option: {
-    backgroundColor: '#1F1F1F',
-    height: 80,
-    width: '30%',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  optionContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    option: {
+      backgroundColor: theme.darkCard,
+      height: 80,
+      width: '30%',
+      borderRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    optionContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      paddingVertical: 32,
+    },
     toolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderColor: theme.border,
-    borderBottomWidth: 1,
-  },
-  albumSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  gridItem: {
-    width: GRID_WIDTH,
-    height: GRID_HEIGHT,
-    position: 'relative',
-    backgroundColor: '#1F1F1F',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.background,
-    overflow: 'hidden',
-  },
-  gridItemSelected: {
-    opacity: 0.5,
-  },
-  gridImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#1F1F1F',
-  },
-  videoBadge: {
-    position: 'absolute',
-    bottom: 4,
-    right: 4,
-    backgroundColor: theme.overlaySubtle,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 3,
-  },
-})
-export default SelectStoryMedia
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderColor: theme.border,
+      borderBottomWidth: 1,
+    },
+    albumSelector: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    gridItem: {
+      width: GRID_WIDTH,
+      height: GRID_HEIGHT,
+      position: 'relative',
+      backgroundColor: theme.darkCard,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.background,
+      overflow: 'hidden',
+    },
+    gridItemSelected: {
+      opacity: 0.5,
+    },
+    gridImage: {
+      width: '100%',
+      height: '100%',
+      backgroundColor: theme.darkCard,
+    },
+    videoBadge: {
+      position: 'absolute',
+      bottom: 4,
+      right: 4,
+      backgroundColor: theme.overlaySubtle,
+      paddingHorizontal: 4,
+      paddingVertical: 0,
+      borderRadius: 4,
+    },
+  });
+export default SelectStoryMedia;

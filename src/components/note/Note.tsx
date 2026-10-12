@@ -1,6 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import React from 'react';
-import { Avatar } from '../avatar';
+import { Avatar } from '~/components/avatar';
 import { useTheme, Theme } from '~/hooks';
 
 const Note = () => {

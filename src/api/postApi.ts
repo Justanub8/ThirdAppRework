@@ -1,6 +1,6 @@
 import axiosInstance from '~/services/axiosClient';
 import { IPost, IResponseGetPost } from '~/interfaces';
-import { PaginatedResponse } from './api';
+import { PaginatedResponse } from '~/api/api';
 
 export interface CreatePostPayload {
   caption?: string;
@@ -11,25 +11,22 @@ export const postApi = {
   getAllPosts: (page: number = 1, limit: number = 10, userId?: string) => {
     const userParam = userId ? `&userId=${userId}` : '';
     return axiosInstance.get<PaginatedResponse<IPost>>(
-      `/post/all?page=${page}&limit=${limit}${userParam}`,
+      `/posts?page=${page}&limit=${limit}${userParam}`,
     );
   },
 
   getPost: (postId: string) =>
-    axiosInstance.get<IResponseGetPost>(`/post/${postId}`),
+    axiosInstance.get<IResponseGetPost>(`/posts/${postId}`),
 
   createPost: (payload: CreatePostPayload) =>
-    axiosInstance.post<{ message: string; post: IPost }>(
-      '/post/create',
-      payload,
-    ),
+    axiosInstance.post<{ message: string; post: IPost }>('/posts', payload),
 
   updatePost: (postId: string, payload: { caption?: string }) =>
     axiosInstance.put<{ message: string; post: IPost }>(
-      `/post/${postId}`,
+      `/posts/${postId}`,
       payload,
     ),
 
   deletePost: (postId: string) =>
-    axiosInstance.delete<{ message: string }>(`/post/${postId}`),
+    axiosInstance.delete<{ message: string }>(`/posts/${postId}`),
 };

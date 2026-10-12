@@ -51,7 +51,7 @@ const BasePopUp = ({
           if (isFinished) {
             runOnJS(setMounted)(false);
           }
-        }
+        },
       );
     }
   }, [visible, progress]);

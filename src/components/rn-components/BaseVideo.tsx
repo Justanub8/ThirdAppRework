@@ -1,5 +1,10 @@
 import React, { forwardRef, useMemo } from 'react';
-import Video, { VideoRef, ReactVideoProps, ReactVideoSource, BufferConfig } from 'react-native-video';
+import Video, {
+  VideoRef,
+  ReactVideoProps,
+  ReactVideoSource,
+  BufferConfig,
+} from 'react-native-video';
 import { formatMediaUrl } from '~/utils';
 
 export interface BaseVideoProps extends Omit<ReactVideoProps, 'source'> {
@@ -13,7 +18,7 @@ const DEFAULT_BUFFER_CONFIG: BufferConfig = {
   maxBufferMs: 15000,
   bufferForPlaybackMs: 1500,
   bufferForPlaybackAfterRebufferMs: 2500,
-  cacheSizeMB: 100, 
+  cacheSizeMB: 100,
 };
 
 const BaseVideo = forwardRef<VideoRef, BaseVideoProps>((props, ref) => {
@@ -33,7 +38,12 @@ const BaseVideo = forwardRef<VideoRef, BaseVideoProps>((props, ref) => {
         bufferConfig: mergedBufferConfig,
       };
     }
-    if (source && typeof source === 'object' && 'uri' in source && typeof source.uri === 'string') {
+    if (
+      source &&
+      typeof source === 'object' &&
+      'uri' in source &&
+      typeof source.uri === 'string'
+    ) {
       return {
         ...source,
         uri: formatMediaUrl(source.uri),
@@ -43,13 +53,7 @@ const BaseVideo = forwardRef<VideoRef, BaseVideoProps>((props, ref) => {
     return source || { uri: '' };
   }, [uri, source, mergedBufferConfig]);
 
-  return (
-    <Video
-      ref={ref}
-      source={formattedSource}
-      {...rest}
-    />
-  );
+  return <Video ref={ref} source={formattedSource} {...rest} />;
 });
 
 BaseVideo.displayName = 'BaseVideo';
