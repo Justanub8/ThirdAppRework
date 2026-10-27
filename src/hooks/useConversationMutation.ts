@@ -37,5 +37,102 @@ export const useConversationMutation = () => {
       Alert.alert('Lỗi', message);
     },
   });
-  return { createConversation, createGroupConversation };
+
+  const updateGroup = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { name?: string; avatarUrl?: string };
+    }) => {
+      if (!id) {
+        throw new Error('Thiếu ID cuộc trò chuyện');
+      }
+      return conversationApi.updateGroup(id, data);
+    },
+    onSuccess: (res, variables) => {
+      const updatedData = res?.data?.data;
+      if (updatedData) {
+        queryClient.setQueryData(
+          ['conversation', variables.id],
+          (old: any) => ({
+            ...old,
+            ...updatedData,
+          }),
+        );
+      }
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({
+        queryKey: ['conversation', variables.id],
+      });
+    },
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Lỗi khi cập nhật thông tin nhóm';
+      Alert.alert('Lỗi', message);
+    },
+  });
+
+  const updateMemberNickname = useMutation({
+    mutationFn: ({
+      conversationId,
+      targetUserId,
+      nickname,
+    }: {
+      conversationId: string;
+      targetUserId: string;
+      nickname?: string;
+    }) => {
+      if (!conversationId || !targetUserId) {
+        throw new Error('Thiếu thông tin cuộc trò chuyện hoặc thành viên');
+      }
+      return conversationApi.updateMemberNickname(
+        conversationId,
+        targetUserId,
+        nickname,
+      );
+    },
+    onSuccess: (res, variables) => {
+      const updatedMember = res?.data?.data;
+      if (updatedMember) {
+        queryClient.setQueryData(
+          ['conversation', variables.conversationId],
+          (old: any) => {
+            if (!old) return old;
+            const updatedMembers = (old.members || []).map((m: any) =>
+              m.userId === variables.targetUserId
+                ? { ...m, ...updatedMember }
+                : m,
+            );
+            return {
+              ...old,
+              ...(!old.isGroup && { nickname: updatedMember.nickname || null }),
+              members: updatedMembers,
+            };
+          },
+        );
+      }
+      queryClient.invalidateQueries({
+        queryKey: ['conversation', variables.conversationId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Lỗi khi cập nhật biệt danh';
+      Alert.alert('Lỗi', message);
+    },
+  });
+
+  return {
+    createConversation,
+    createGroupConversation,
+    updateGroup,
+    updateMemberNickname,
+  };
 };

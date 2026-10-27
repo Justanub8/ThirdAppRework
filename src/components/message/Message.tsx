@@ -5,7 +5,11 @@ import { BaseText } from '~/components/rn-components';
 import { useAuthStore } from '~/hooks';
 import dayjs from 'dayjs';
 import { Typography } from '~/constants';
-import { MessageVideoItem, MessageImageItem, ReactBadge } from '~/components/message/components';
+import {
+  MessageVideoItem,
+  MessageImageItem,
+  ReactBadge,
+} from '~/components/message/components';
 import { isVideoMedia, Navigation, isEmojiOnlyText } from '~/utils';
 import { MessagePopUp } from '~/components/pop-up';
 
@@ -14,6 +18,7 @@ const TIME_THRESHOLD_MINUTES = 15;
 interface MessageProps {
   item: IMessage;
   previous?: IMessage;
+  senderNickname?: string;
   isRefreshing?: boolean;
   currentUserId?: string;
   activePlayingVideoId?: string | null;
@@ -25,11 +30,13 @@ interface MessageProps {
   onForward?: (message: IMessage) => void;
   onEdit?: (message: IMessage) => void;
   onSelectEmoji?: (message: IMessage, emoji: string) => void;
+  onRetry?: (message: IMessage) => void;
 }
 
 const Message = ({
   item,
   previous,
+  senderNickname,
   isRefreshing,
   currentUserId,
   activePlayingVideoId,
@@ -41,6 +48,7 @@ const Message = ({
   onForward,
   onEdit,
   onSelectEmoji,
+  onRetry,
 }: MessageProps) => {
   const storeUserId = useAuthStore(state => state.user?.id);
   const userId = currentUserId || storeUserId;
@@ -50,7 +58,8 @@ const Message = ({
     senderObj?.id ||
     (typeof item.senderId === 'string' ? item.senderId : undefined);
   const isMyMessage = !!userId && messageSenderId === userId;
-  const senderDisplayName = senderObj?.username || senderObj?.name || 'Unknown';
+  const senderDisplayName =
+    senderNickname || senderObj?.name || senderObj?.username || 'Unknown';
   const [showTime, setShowTime] = React.useState(false);
   const [showName, setShowName] = React.useState(false);
   const bubbleRef = React.useRef<View>(null);
@@ -185,6 +194,44 @@ const Message = ({
         </BaseText>
       ) : null}
 
+      {item.status === 'Pinned' && !isOnlyEmoji ? (
+        <BaseText
+          color={isMyMessage ? 'rgba(255, 255, 255, 0.7)' : '#8E8E8E'}
+          typography={Typography.bodyRegular.xSmall}
+          style={styles.editedText}
+        >
+          Đã ghim
+        </BaseText>
+      ) : null}
+
+      {item.status === 'Sending' ? (
+        <BaseText
+          color={isMyMessage ? 'rgba(255, 255, 255, 0.7)' : '#8E8E8E'}
+          typography={Typography.bodyRegular.xSmall}
+          style={styles.editedText}
+        >
+          Đang gửi...
+        </BaseText>
+      ) : null}
+
+      {item.status === 'Failed' ? (
+        <TouchableOpacity
+          onPress={() => onRetry?.(item)}
+          style={[
+            styles.failedContainer,
+            isMyMessage ? styles.selfAlignEnd : styles.selfAlignStart,
+          ]}
+          activeOpacity={0.7}
+        >
+          <BaseText
+            color="#FF3B30"
+            typography={Typography.bodyRegular.xSmall}
+          >
+            Gửi thất bại • Chạm để thử lại
+          </BaseText>
+        </TouchableOpacity>
+      ) : null}
+
       <TouchableOpacity
         ref={bubbleRef}
         style={[
@@ -196,6 +243,8 @@ const Message = ({
             : styles.otherBubble,
           isMyMessage ? styles.selfAlignEnd : styles.selfAlignStart,
           hasReactions ? styles.bubbleWithReactions : undefined,
+          item.status === 'Sending' ? styles.sendingBubble : undefined,
+          item.status === 'Failed' ? styles.failedBubble : undefined,
         ]}
         onPress={() => {
           setShowTime(!showTime);
@@ -225,12 +274,14 @@ const Message = ({
         onReply={() => onReply?.(item)}
         onCopy={() => onCopy?.(item)}
         onPin={() => onPin?.(item)}
+        isPinned={item.status === 'Pinned'}
         onForward={() => onForward?.(item)}
         onEdit={() => onEdit?.(item)}
         onDelete={() => onDelete?.(item)}
         showCopy={hasContent && !isDeleted}
         showEdit={isMyMessage && hasContent && !isDeleted}
         showDelete={isMyMessage && !isDeleted}
+        showPin={hasContent && !hasMedia && !isDeleted}
       >
         <View
           style={[
@@ -324,6 +375,18 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginTop: 2,
   },
+  sendingBubble: {
+    opacity: 0.65,
+  },
+  failedBubble: {
+    borderColor: '#FF3B30',
+    borderWidth: 1,
+  },
+  failedContainer: {
+    marginHorizontal: 8,
+    marginTop: 2,
+    marginBottom: 2,
+  },
 });
 
 export default React.memo(Message, (prevProps, nextProps) => {
@@ -339,6 +402,7 @@ export default React.memo(Message, (prevProps, nextProps) => {
   if (prevProps.onEdit !== nextProps.onEdit) return false;
   if (prevProps.onForward !== nextProps.onForward) return false;
   if (prevProps.onSelectEmoji !== nextProps.onSelectEmoji) return false;
+  if (prevProps.onRetry !== nextProps.onRetry) return false;
 
   if (prevProps.activePlayingVideoId !== nextProps.activePlayingVideoId) {
     const checkHasVideo = (msg: IMessage, targetId?: string | null) => {

@@ -12,6 +12,21 @@ Tính năng hiện tại:
 -Comment ảnh 
 -Tạo module bài đăng / reel mini để hiển thị trên UserProfile và Explore
 
+thực hiện sửa:
+-Nút "xem thêm" bị vô hiệu hoá
+-Đăng xuất không dọn dẹp queryClient
+-Chátsocket mất kết nối khi mạng chậm không có optimístic update 
+-Ghost querié ở Profile
+-Các mutation hooks dùng chung boilder plate 
+-Trùng lặp 2 màn xem story
+-setInterval(50ms) thành useShareValue
+-Re-render cascades
+-renderItem bị tạo mới liên tục 
+-competing state antipattern ở post 
+-đưa code về dùng 1 thư viện duy nhất react native actions sheet
+-đổi vị trí file của useAuthStore
+
+
 
 Cần làm thêm: 
 -Thêm otp về mail/sdt khi tạo tài khoản

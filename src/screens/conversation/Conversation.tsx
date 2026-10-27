@@ -59,7 +59,6 @@ const Conversation = () => {
     isTexting,
     setIsTexting,
     messageContent,
-    setMessageContent,
     inputHeight,
     setInputHeight,
     selectedMedia,
@@ -71,6 +70,7 @@ const Conversation = () => {
     listRef,
     inputRef,
     user,
+    isOtherTyping,
     editingMessage,
     handleStartEdit,
     handleCancelEdit,
@@ -82,6 +82,8 @@ const Conversation = () => {
     handleScroll,
     handleTogglePlayVideo,
     handleSend,
+    handleRetryMessage,
+    handleTyping,
     scrollToBottom,
     keyExtractor,
   } = useConversationLogic({ id });
@@ -127,6 +129,7 @@ const Conversation = () => {
 
   const displayName =
     conversationData?.name ||
+    conversationData?.nickname ||
     initialName ||
     (conversationData?.isGroup
       ? fallbackGroupName
@@ -138,14 +141,33 @@ const Conversation = () => {
     otherUser?.avatarUrl ||
     otherUser?.imageUrl;
 
+  const nicknameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    conversationData?.members?.forEach(m => {
+      const nick = m.nickname?.trim();
+      if (m.userId && nick) {
+        map.set(m.userId, nick);
+      }
+    });
+    return map;
+  }, [conversationData?.members]);
+
   const renderItem = useCallback(
     ({ item, index }: { item: IMessage; index: number }) => {
       const previous =
         index < messages.length - 1 ? messages[index + 1] : undefined;
+      const senderId =
+        item.sender?.id ||
+        (typeof item.senderId === 'string'
+          ? item.senderId
+          : (item.senderId as any)?.id);
+      const senderNickname = senderId ? nicknameMap.get(senderId) : undefined;
+
       return (
         <Message
           item={item}
           previous={previous}
+          senderNickname={senderNickname}
           isRefreshing={isRefreshing}
           currentUserId={user?.id}
           activePlayingVideoId={activePlayingVideoId}
@@ -161,11 +183,13 @@ const Conversation = () => {
           onReply={() => {}}
           onSelectEmoji={handleReact}
           onEdit={handleStartEdit}
+          onRetry={handleRetryMessage}
         />
       );
     },
     [
       messages,
+      nicknameMap,
       isRefreshing,
       user?.id,
       activePlayingVideoId,
@@ -174,6 +198,7 @@ const Conversation = () => {
       handleDeleteMessage,
       handlePinMessage,
       handleReact,
+      handleRetryMessage,
     ],
   );
 
@@ -190,7 +215,7 @@ const Conversation = () => {
         <TouchableOpacity
           style={styles.headerUser}
           onPress={() => {
-            Navigation.goToConversationDetail(id);
+            Navigation.goToConversationDetail(id, displayName, displayAvatar);
           }}
           disabled={!otherUser?.id}
           activeOpacity={0.8}
@@ -274,6 +299,16 @@ const Conversation = () => {
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
           />
+          {isOtherTyping ? (
+            <View style={styles.typingContainer}>
+              <BaseText
+                typography={Typography.bodyRegular.xSmall}
+                color={theme.subtext}
+              >
+                {displayName} đang soạn tin nhắn...
+              </BaseText>
+            </View>
+          ) : null}
           <View style={styles.inputContainer}>
             <View style={styles.unifiedInputWrapper}>
               {editingMessage ? (
@@ -360,7 +395,7 @@ const Conversation = () => {
                     }
                     value={messageContent}
                     onChangeText={text => {
-                      setMessageContent(text);
+                      handleTyping(text);
                       if (!text) {
                         setInputHeight(MIN_INPUT_HEIGHT);
                       }
@@ -386,7 +421,10 @@ const Conversation = () => {
                     style={styles.sendButton}
                   >
                     {isUploading ? (
-                      <ActivityIndicator size="small" color={theme.primaryBlue} />
+                      <ActivityIndicator
+                        size="small"
+                        color={theme.primaryBlue}
+                      />
                     ) : (
                       <BaseText
                         typography={Typography.bodyBold.medium}
@@ -614,6 +652,10 @@ const getStyles = (theme: Theme) =>
     footerLoading: {
       paddingVertical: 12,
       alignItems: 'center',
+    },
+    typingContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 4,
     },
     fabArrowRotated: {
       transform: [{ rotate: '-90deg' }],

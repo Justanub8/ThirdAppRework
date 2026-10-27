@@ -43,12 +43,14 @@ type MessagePopupProps = {
   onReply?: () => void;
   onCopy?: () => void;
   onPin?: () => void;
+  isPinned?: boolean;
   onForward?: () => void;
   onDelete?: () => void;
   onEdit?: () => void;
   showCopy?: boolean;
   showDelete?: boolean;
   showEdit?: boolean;
+  showPin?: boolean;
   offset?: number;
   topWidth?: number;
   bottomWidth?: number;
@@ -70,12 +72,14 @@ const MessagePopUp = ({
   onReply,
   onCopy,
   onPin,
+  isPinned = false,
   onForward,
   onEdit,
   onDelete,
   showEdit = false,
   showCopy = true,
   showDelete = true,
+  showPin = true,
   offset = 8,
   topWidth = 260,
   bottomWidth = 200,
@@ -126,16 +130,18 @@ const MessagePopUp = ({
       });
     }
 
-    list.push(
-      {
-        label: 'Ghim tin nhắn',
+    
+    if (showPin) {
+      list.push({
+        label: isPinned ? 'Bỏ ghim tin nhắn' : 'Ghim tin nhắn',
         onPress: onPin,
-      },
-      {
-        label: 'Chuyển tiếp',
-        onPress: onForward,
-      },
-    );
+      });
+    }
+
+    list.push({
+      label: 'Chuyển tiếp',
+      onPress: onForward,
+    });
 
     if (showDelete) {
       list.push({
@@ -150,6 +156,8 @@ const MessagePopUp = ({
     onReply,
     showCopy,
     onCopy,
+    isPinned,
+    showPin,
     onPin,
     onForward,
     showDelete,

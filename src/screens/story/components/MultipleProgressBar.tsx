@@ -1,12 +1,31 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, DimensionValue } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  SharedValue,
+} from 'react-native-reanimated';
 import { useTheme, Theme } from '~/hooks';
 
 interface MultiProgressBarProps {
   total: number;
   activeIndex: number;
-  progress: number;
+  progress: SharedValue<number>;
 }
+
+const ActiveBarFill: React.FC<{
+  progress: SharedValue<number>;
+  color: string;
+}> = ({ progress, color }) => {
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: `${Math.min(Math.max(progress.value * 100, 0), 100)}%`,
+  }));
+
+  return (
+    <Animated.View
+      style={[{ height: '100%', backgroundColor: color }, animatedStyle]}
+    />
+  );
+};
 
 export const MultiProgressBar: React.FC<MultiProgressBarProps> = ({
   total,
@@ -21,16 +40,18 @@ export const MultiProgressBar: React.FC<MultiProgressBarProps> = ({
   return (
     <View style={styles.container}>
       {Array.from({ length: total }).map((_, index) => {
-        let fillWidth: DimensionValue = '0%';
-        if (index < activeIndex) {
-          fillWidth = '100%';
-        } else if (index === activeIndex) {
-          fillWidth = `${Math.min(Math.max(progress * 100, 0), 100)}%`;
-        }
+        const isCompleted = index < activeIndex;
+        const isActive = index === activeIndex;
 
         return (
           <View key={index} style={styles.track}>
-            <View style={[styles.fill, { width: fillWidth }]} />
+            {isCompleted ? (
+              <View style={[styles.fill, { width: '100%' }]} />
+            ) : isActive ? (
+              <ActiveBarFill progress={progress} color={theme.white} />
+            ) : (
+              <View style={[styles.fill, { width: '0%' }]} />
+            )}
           </View>
         );
       })}

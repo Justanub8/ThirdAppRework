@@ -11,6 +11,50 @@ import { useTheme, Theme } from '~/hooks';
 import { useIsFocused } from '@react-navigation/native';
 import { isVideoMedia } from '~/utils';
 
+interface ReelItemProps {
+  item: IReel;
+  index: number;
+  activeIndex: number;
+  isFocused: boolean;
+  availableHeight: number;
+  style: any;
+}
+
+const ReelItem = React.memo(
+  ({
+    item,
+    index,
+    activeIndex,
+    isFocused,
+    availableHeight,
+    style,
+  }: ReelItemProps) => {
+    const mediaUrl = item.media?.url || item.videoUrl || item.mediaUrl || '';
+    const isVideo = isVideoMedia(item.media || mediaUrl);
+    const isActive = index === activeIndex && isFocused;
+
+    return (
+      <View style={[style, { height: availableHeight }]}>
+        {isVideo ? (
+          <VideoReel reel={item} isActive={isActive} />
+        ) : (
+          <ImageReel reel={item} />
+        )}
+      </View>
+    );
+  },
+  (prev, next) => {
+    const wasActive = prev.index === prev.activeIndex && prev.isFocused;
+    const isNowActive = next.index === next.activeIndex && next.isFocused;
+    return (
+      wasActive === isNowActive &&
+      prev.item === next.item &&
+      prev.availableHeight === next.availableHeight &&
+      prev.style === next.style
+    );
+  },
+);
+
 const Reels = () => {
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
@@ -66,23 +110,23 @@ const Reels = () => {
 
   const renderItem = useCallback(
     ({ item, index }: { item: IReel; index: number }) => {
-      const mediaUrl = item.media?.url || item.videoUrl || item.mediaUrl || '';
-      const isVideo = isVideoMedia(item.media || mediaUrl);
-
       return (
-        <View style={[styles.reelItem, { height: availableHeight }]}>
-          {isVideo ? (
-            <VideoReel
-              reel={item}
-              isActive={index === activeIndex && isFocused}
-            />
-          ) : (
-            <ImageReel reel={item} />
-          )}
-        </View>
+        <ReelItem
+          item={item}
+          index={index}
+          activeIndex={activeIndex}
+          isFocused={isFocused}
+          availableHeight={availableHeight}
+          style={styles.reelItem}
+        />
       );
     },
-    [styles.reelItem, availableHeight, activeIndex, isFocused],
+    [activeIndex, isFocused, availableHeight, styles.reelItem],
+  );
+
+  const keyExtractor = useCallback(
+    (item: IReel, index: number) => item.id || `reel-${index}`,
+    [],
   );
 
   return (
@@ -90,7 +134,9 @@ const Reels = () => {
       <FlashList
         data={reels}
         renderItem={renderItem}
-        keyExtractor={item => item.id || ''}
+        keyExtractor={keyExtractor}
+        estimatedItemSize={availableHeight}
+        extraData={[activeIndex, isFocused]}
         pagingEnabled={true}
         showsVerticalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}

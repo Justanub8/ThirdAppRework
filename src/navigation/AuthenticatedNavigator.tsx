@@ -20,6 +20,9 @@ import {
   NewGroupMessage,
   ConversationDetail,
 } from '~/screens';
+import EditProfile from '~/screens/profile/EditProfile';
+import ConversationNickname from '~/screens/conversationDetail/components/ConversationNickname';
+import ConversationPinned from '~/screens/conversationDetail/components/ConversationPinned';
 
 const Stack = createNativeStackNavigator<AuthenticatedStackParamList>();
 
@@ -46,7 +49,10 @@ const AuthenticatedNavigator: React.FC = () => {
       <Stack.Screen name="DetailMedia" component={DetailMedia} />
       <Stack.Screen name="Setting" component={Setting} />
       <Stack.Screen name="NewGroupMessage" component={NewGroupMessage} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
       <Stack.Screen name="ConversationDetail" component={ConversationDetail} />
+      <Stack.Screen name="ConversationNickname" component={ConversationNickname}/>
+      <Stack.Screen name="ConversationPinned" component={ConversationPinned}/>
     </Stack.Navigator>
   );
 };

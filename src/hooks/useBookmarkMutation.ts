@@ -1,22 +1,23 @@
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { Alert } from 'react-native';
 import { bookmarkApi } from '~/api';
+import {
+  getTargetQueryKeys,
+  updateFeedEntityInCache,
+  rollbackOptimisticUpdates,
+} from '~/utils';
 
 export const useBookmarkMutation = () => {
   const queryClient = useQueryClient();
 
-  const updateCacheOptimistically = async (
+  const updateBookmarkCache = (
     targetId: string,
     targetType: string,
     isBookmarked: boolean,
   ) => {
-    const queryKeys =
-      targetType === 'Reel' ? [['Reel'], ['Reels']] : [['Post'], ['Posts']];
-
-    const previousDataMap: Array<{ queryKey: any[]; data: any }> = [];
-
-    const updateItem = (item: any) => {
-      if (!item || item.id !== targetId) return item;
+    const queryKeys = getTargetQueryKeys(targetType);
+    return updateFeedEntityInCache(queryClient, queryKeys, item => {
+      if (item.id !== targetId) return item;
       return {
         ...item,
         isBookmarked,
@@ -24,40 +25,7 @@ export const useBookmarkMutation = () => {
           ? (item.bookmarkCount || 0) + 1
           : Math.max(0, (item.bookmarkCount || 0) - 1),
       };
-    };
-
-    const updatePage = (page: any) => {
-      if (!page) return page;
-      const newPage = { ...page };
-      if (Array.isArray(page.data)) {
-        newPage.data = page.data.map(updateItem);
-      }
-      if (Array.isArray(page.reels)) {
-        newPage.reels = page.reels.map(updateItem);
-      }
-      return newPage;
-    };
-
-    for (const queryKey of queryKeys) {
-      await queryClient.cancelQueries({ queryKey });
-      const previousData = queryClient.getQueryData(queryKey);
-      if (previousData) {
-        previousDataMap.push({ queryKey, data: previousData });
-      }
-
-      queryClient.setQueryData(queryKey, (old: any) => {
-        if (!old) return old;
-        if (Array.isArray(old.pages)) {
-          return {
-            ...old,
-            pages: old.pages.map(updatePage),
-          };
-        }
-        return updatePage(old);
-      });
-    }
-
-    return { previousDataMap, queryKeys };
+    });
   };
 
   const createBookmark = useMutation({
@@ -68,27 +36,25 @@ export const useBookmarkMutation = () => {
       return bookmarkApi.createBookmark(params);
     },
     onMutate: async params => {
-      return await updateCacheOptimistically(
+      const previousDataMap = await updateBookmarkCache(
         params.targetId,
         params.targetType,
         true,
       );
+      return { previousDataMap, targetType: params.targetType };
     },
-    onError: (error: any, _variables, context: any) => {
+    onError: (error: any, _variables, context) => {
       if (context?.previousDataMap) {
-        context.previousDataMap.forEach((entry: any) => {
-          queryClient.setQueryData(entry.queryKey, entry.data);
-        });
+        rollbackOptimisticUpdates(queryClient, context.previousDataMap);
       }
       const msg =
         error?.response?.data?.message || error?.message || 'Lỗi lưu nội dung';
       Alert.alert('Lỗi lưu nội dung', msg);
     },
-    onSettled: (_data, _error, _variables, context: any) => {
-      if (context?.queryKeys) {
-        context.queryKeys.forEach((key: any[]) => {
-          queryClient.invalidateQueries({ queryKey: key });
-        });
+    onSettled: (_data, _error, variables) => {
+      if (variables?.targetType) {
+        const keys = getTargetQueryKeys(variables.targetType);
+        keys.forEach(key => queryClient.invalidateQueries({ queryKey: key }));
       }
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
@@ -103,17 +69,16 @@ export const useBookmarkMutation = () => {
       return bookmarkApi.deleteBookmark(params);
     },
     onMutate: async params => {
-      return await updateCacheOptimistically(
+      const previousDataMap = await updateBookmarkCache(
         params.targetId,
         params.targetType,
         false,
       );
+      return { previousDataMap, targetType: params.targetType };
     },
-    onError: (error: any, _variables, context: any) => {
+    onError: (error: any, _variables, context) => {
       if (context?.previousDataMap) {
-        context.previousDataMap.forEach((entry: any) => {
-          queryClient.setQueryData(entry.queryKey, entry.data);
-        });
+        rollbackOptimisticUpdates(queryClient, context.previousDataMap);
       }
       const msg =
         error?.response?.data?.message ||
@@ -121,11 +86,10 @@ export const useBookmarkMutation = () => {
         'Lỗi bỏ lưu nội dung';
       Alert.alert('Lỗi bỏ lưu nội dung', msg);
     },
-    onSettled: (_data, _error, _variables, context: any) => {
-      if (context?.queryKeys) {
-        context.queryKeys.forEach((key: any[]) => {
-          queryClient.invalidateQueries({ queryKey: key });
-        });
+    onSettled: (_data, _error, variables) => {
+      if (variables?.targetType) {
+        const keys = getTargetQueryKeys(variables.targetType);
+        keys.forEach(key => queryClient.invalidateQueries({ queryKey: key }));
       }
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });

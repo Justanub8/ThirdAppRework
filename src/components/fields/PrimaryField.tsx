@@ -1,4 +1,8 @@
-import { BaseTextInputProps, BaseText, BaseTextInput } from '~/components/rn-components';
+import {
+  BaseTextInputProps,
+  BaseText,
+  BaseTextInput,
+} from '~/components/rn-components';
 import { Typography } from '~/constants';
 import { SizedBox } from '~/components/separate-components';
 

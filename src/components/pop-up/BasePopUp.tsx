@@ -1,4 +1,12 @@
-import { Modal, Pressable, StyleSheet, DimensionValue } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  DimensionValue,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import React, { ReactNode, useMemo, useEffect, useState } from 'react';
 import { Theme, useTheme } from '~/hooks';
 import Animated, {
@@ -85,21 +93,24 @@ const BasePopUp = ({
       animationType="none"
       onRequestClose={onClose}
     >
-      <AnimatedPressable
-        style={[styles.backdrop, backdropAnimatedStyle]}
-        onPress={onClose}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.container}
       >
+        <AnimatedPressable
+          style={[
+            StyleSheet.absoluteFill,
+            styles.backdrop,
+            backdropAnimatedStyle,
+          ]}
+          onPress={onClose}
+        />
         <Animated.View
           style={[styles.popupBox, customCardSizeStyle, cardAnimatedStyle]}
         >
-          <Pressable
-            style={styles.innerContainer}
-            onPress={e => e.stopPropagation()}
-          >
-            {children}
-          </Pressable>
+          <View style={styles.innerContainer}>{children}</View>
         </Animated.View>
-      </AnimatedPressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -108,11 +119,13 @@ const getStyles = (theme: Theme) => {
   const isDark = theme.background === '#000000';
 
   return StyleSheet.create({
-    backdrop: {
+    container: {
       flex: 1,
-      backgroundColor: isDark ? theme.overlayDark : theme.overlayMedium,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    backdrop: {
+      backgroundColor: isDark ? theme.overlayDark : theme.overlayMedium,
     },
     popupBox: {
       backgroundColor: isDark ? '#262628' : '#F2F2F7',
@@ -122,6 +135,7 @@ const getStyles = (theme: Theme) => {
       shadowOpacity: 0.35,
       shadowRadius: 12,
       elevation: 10,
+      zIndex: 10,
     },
     innerContainer: {
       flex: 1,

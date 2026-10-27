@@ -1,46 +1,20 @@
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import Avatar from '~/components/avatar';
-import {
-  CrossIcon,
-  HeartIcon,
-  MessageLightIcon,
-  NotificationIcon,
-} from '~/assets/svgs';
-import { Navigation, timeAgo, isVideoMedia } from '~/utils';
-import { useTheme, Theme, useLikeMutation } from '~/hooks';
-import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { storyApi, viewApi } from '~/api';
-import { AuthenticatedStackParamList } from '~/navigation/types';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import { MultiProgressBar } from '~/screens/story/components/MultipleProgressBar';
-import { VideoRef } from 'react-native-video';
-import { Typography } from '~/constants';
-import StoryVideoItem from '~/screens/story/components/StoryVideoItem';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { storyApi, viewApi, messageApi } from '~/api';
+import { useLikeMutation } from '~/hooks';
+import { Navigation } from '~/utils';
+import { AuthenticatedStackParamList } from '~/navigation/types';
 import { IStory, IProfileUser } from '~/interfaces';
+import StoryViewer from './components/StoryViewer';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Story'>;
 
-const IMAGE_STORY_DURATION_MS = 5000;
-
 const Story = () => {
-  const { theme } = useTheme();
-  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const route = useRoute<RouteProps>();
-  const { bottom } = useSafeAreaInsets();
   const { userId, userIds: initialUserIds } = route.params;
 
-  const userIds = React.useMemo(() => {
+  const userIds = useMemo(() => {
     if (initialUserIds && initialUserIds.length > 0) {
       return initialUserIds;
     }
@@ -55,20 +29,7 @@ const Story = () => {
   const activeUserId = userIds[currentUserIndex] || userId;
   const { createLike, deleteLike } = useLikeMutation();
   const queryClient = useQueryClient();
-
-  const [messageContent, setMessageContent] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [duration, setDuration] = useState(1);
-  const [hasVideoError, setHasVideoError] = useState(false);
-
-  useEffect(() => {
-    setHasVideoError(false);
-  }, [activeIndex, activeUserId]);
-
-  const videoRef = useRef<VideoRef>(null);
-  const imageTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: stories = [], isLoading } = useQuery({
     queryKey: ['story', activeUserId],
@@ -81,46 +42,33 @@ const Story = () => {
   });
 
   const nextUserId = userIds[currentUserIndex + 1];
-  const prevUserId = userIds[currentUserIndex - 1];
 
   useEffect(() => {
     if (nextUserId) {
       queryClient.prefetchQuery({
         queryKey: ['story', nextUserId],
         queryFn: async () => {
-          const response = await storyApi.getAllStories(1, 20, nextUserId);
-          return response.data?.data || [];
+          const res = await storyApi.getAllStories(1, 20, nextUserId);
+          return res.data?.data || [];
         },
         staleTime: 5 * 60 * 1000,
       });
     }
-    if (prevUserId) {
-      queryClient.prefetchQuery({
-        queryKey: ['story', prevUserId],
-        queryFn: async () => {
-          const response = await storyApi.getAllStories(1, 20, prevUserId);
-          return response.data?.data || [];
-        },
-        staleTime: 5 * 60 * 1000,
-      });
-    }
-  }, [nextUserId, prevUserId, queryClient]);
+  }, [nextUserId, queryClient]);
 
-  const totalStories = stories.length;
   const currentStory = stories[activeIndex];
-  const isVideo = isVideoMedia(currentStory?.media);
   const isCurrentStoryLiked = Boolean(currentStory?.isLiked);
 
-  useEffect(() => {
-    if (!currentStory?.id) return;
+  const handleStoryViewed = useCallback(
+    (story: IStory) => {
+      if (!story?.id || story.isViewed) return;
 
-    if (!currentStory.isViewed) {
       queryClient.setQueryData(
         ['story', activeUserId],
         (old: IStory[] | undefined) => {
           if (!Array.isArray(old)) return old;
           const updated = old.map((item: IStory) =>
-            item.id === currentStory.id
+            item.id === story.id
               ? {
                   ...item,
                   isViewed: true,
@@ -153,20 +101,11 @@ const Story = () => {
       );
 
       viewApi
-        .createView({ targetId: currentStory.id, targetType: 'Story' })
+        .createView({ targetId: story.id, targetType: 'Story' })
         .catch(() => {});
-    }
-  }, [currentStory?.id, currentStory?.isViewed, activeUserId, queryClient]);
-
-  useEffect(() => {
-    return () => {
-      userIds.forEach(uId => {
-        queryClient.invalidateQueries({ queryKey: ['userProfile', uId] });
-      });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      queryClient.invalidateQueries({ queryKey: ['followedStories'] });
-    };
-  }, [userIds, queryClient]);
+    },
+    [activeUserId, queryClient],
+  );
 
   const handleToggleLike = useCallback(() => {
     if (!currentStory?.id) return;
@@ -177,337 +116,63 @@ const Story = () => {
     }
   }, [currentStory, createLike, deleteLike]);
 
-  const handleNext = useCallback(() => {
-    if (activeIndex < totalStories - 1) {
-      setActiveIndex(prev => prev + 1);
-      setProgress(0);
-      setDuration(1);
-    } else if (currentUserIndex < userIds.length - 1) {
+  const handleNextUser = useCallback(() => {
+    if (currentUserIndex < userIds.length - 1) {
       setCurrentUserIndex(prev => prev + 1);
       setActiveIndex(0);
-      setProgress(0);
-      setDuration(1);
     } else {
       Navigation.goBack();
     }
-  }, [activeIndex, totalStories, currentUserIndex, userIds.length]);
+  }, [currentUserIndex, userIds.length]);
 
-  const handlePrevious = useCallback(() => {
-    if (activeIndex > 0) {
-      setActiveIndex(prev => prev - 1);
-      setProgress(0);
-      setDuration(1);
-    } else if (currentUserIndex > 0) {
-      const targetPrevUserIndex = currentUserIndex - 1;
-      const targetPrevUserId = userIds[targetPrevUserIndex];
+  const handlePrevUser = useCallback(() => {
+    if (currentUserIndex > 0) {
+      const prevIndex = currentUserIndex - 1;
+      const targetPrevUserId = userIds[prevIndex];
       const cached = queryClient.getQueryData<IStory[]>([
         'story',
         targetPrevUserId,
       ]);
       const lastStoryIdx =
         Array.isArray(cached) && cached.length > 0 ? cached.length - 1 : 0;
-
-      setCurrentUserIndex(targetPrevUserIndex);
+      setCurrentUserIndex(prevIndex);
       setActiveIndex(lastStoryIdx);
-      setProgress(0);
-      setDuration(1);
+    } else {
+      Navigation.goBack();
     }
-  }, [activeIndex, currentUserIndex, userIds, queryClient]);
+  }, [currentUserIndex, userIds, queryClient]);
 
-  useEffect(() => {
-    if (!currentStory || isVideo || isPaused) {
-      if (imageTimerRef.current) clearInterval(imageTimerRef.current);
-      return;
-    }
-
-    const intervalTime = 50;
-    const step = intervalTime / IMAGE_STORY_DURATION_MS;
-
-    imageTimerRef.current = setInterval(() => {
-      setProgress(prev => {
-        const nextProgress = prev + step;
-        if (nextProgress >= 1) {
-          if (imageTimerRef.current) clearInterval(imageTimerRef.current);
-          handleNext();
-          return 0;
-        }
-        return nextProgress;
-      });
-    }, intervalTime);
-
-    return () => {
-      if (imageTimerRef.current) clearInterval(imageTimerRef.current);
-    };
-  }, [currentStory, isVideo, isPaused, handleNext]);
-
-  const handleSend = () => {
-    if (!messageContent.trim()) return;
-    setMessageContent('');
-  };
-
-  const hitSlop8 = { top: 8, bottom: 8, left: 8, right: 8 };
-
-  if (isLoading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={theme.text} />
-      </View>
-    );
-  }
-
-  if (totalStories === 0) {
-    if (currentUserIndex < userIds.length - 1) {
-      setCurrentUserIndex(prev => prev + 1);
-      setActiveIndex(0);
-      setProgress(0);
-      setDuration(1);
-      return null;
-    }
-    return (
-      <View style={styles.centerContainer}>
-        <BaseText typography={Typography.bodyMedium.large}>
-          Không có tin nào
-        </BaseText>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => Navigation.goBack()}
-        >
-          <BaseText color={theme.blue}>Quay lại</BaseText>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  const mediaUrl = currentStory?.media?.url;
-  const author = currentStory?.user;
-  const createdAt = currentStory?.createdAt;
+  const handleSendReply = useCallback(
+    async (content: string) => {
+      if (!activeUserId) return;
+      try {
+        await messageApi.sendMessage({
+          content,
+          targetStoryId: currentStory?.id,
+        } as any);
+      } catch (err) {
+        console.error('Lỗi gửi tin nhắn phản hồi story:', err);
+      }
+    },
+    [activeUserId, currentStory?.id],
+  );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.mediaWrapper}>
-        {isVideo && mediaUrl ? (
-          hasVideoError ? (
-            <View style={[StyleSheet.absoluteFill, styles.errorContainer]}>
-              <BaseText
-                color={theme.white}
-                typography={Typography.bodyMedium.medium}
-              >
-                Không thể phát nội dung
-              </BaseText>
-            </View>
-          ) : (
-            <StoryVideoItem
-              ref={videoRef}
-              url={mediaUrl}
-              style={styles.media}
-              isPaused={isPaused}
-              onLoad={data => setDuration(data.duration || 1)}
-              onProgress={data => {
-                if (duration > 0) {
-                  setProgress(data.currentTime / duration);
-                }
-              }}
-              onEnd={handleNext}
-              onError={() => {
-                setHasVideoError(true);
-              }}
-            />
-          )
-        ) : mediaUrl ? (
-          <FastImage
-            source={{ uri: mediaUrl }}
-            style={styles.media}
-            resizeMode="contain"
-          />
-        ) : (
-          <View style={[StyleSheet.absoluteFill, styles.emptyMediaContainer]}>
-            <BaseText
-              color={theme.lightGrey}
-              typography={Typography.bodyMedium.medium}
-              style={styles.emptyMediaText}
-            >
-              Không có nội dung hiển thị
-            </BaseText>
-          </View>
-        )}
-      </View>
-
-      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-        <View style={styles.touchRow}>
-          <TouchableOpacity
-            style={styles.touchArea}
-            activeOpacity={1}
-            onPress={handlePrevious}
-            onPressIn={() => setIsPaused(true)}
-            onPressOut={() => setIsPaused(false)}
-          />
-          <TouchableOpacity
-            style={styles.touchArea}
-            activeOpacity={1}
-            onPress={handleNext}
-            onPressIn={() => setIsPaused(true)}
-            onPressOut={() => setIsPaused(false)}
-          />
-        </View>
-      </View>
-
-      <SafeAreaView style={styles.safeAreaContainer} pointerEvents="box-none">
-        <View style={styles.progressWrapper}>
-          <MultiProgressBar
-            total={totalStories}
-            activeIndex={activeIndex}
-            progress={progress}
-          />
-        </View>
-        <View style={styles.headerBar}>
-          <View style={styles.authorInfo}>
-            <Avatar
-              url={author?.avatarUrl || author?.imageUrl}
-              size={36}
-              id={author?.id}
-              disabled
-            />
-            <BaseText color={theme.white} typography={Typography.bodyBold.medium}>
-              {author?.username || 'user'}
-            </BaseText>
-            <BaseText color={theme.white} typography={Typography.bodyRegular.small}>
-              {timeAgo(createdAt)}
-            </BaseText>
-          </View>
-          <TouchableOpacity
-            onPress={() => Navigation.goBack()}
-            hitSlop={hitSlop8}
-          >
-            <CrossIcon width={28} height={28} color={theme.white} />
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-
-      <View style={[styles.footerBar, { bottom: bottom + 8 }]}>
-        <View style={styles.messageInput}>
-          <BaseTextInput
-            placeholder="Gửi tin nhắn..."
-            placeholderTextColor={theme.overlayWhite70}
-            value={messageContent}
-            onChangeText={setMessageContent}
-            onSubmitEditing={handleSend}
-            returnKeyType="send"
-            color={theme.white}
-          />
-        </View>
-        <TouchableOpacity onPress={handleSend}>
-          <MessageLightIcon width={26} height={26} color={theme.white} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleToggleLike}
-          activeOpacity={0.7}
-          hitSlop={hitSlop8}
-        >
-          {isCurrentStoryLiked ? (
-            <HeartIcon width={28} height={28} color={theme.heartRed} />
-          ) : (
-            <NotificationIcon width={28} height={28} color={theme.white} />
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
+    <StoryViewer
+      stories={stories}
+      isLoading={isLoading}
+      isOwnStory={false}
+      activeIndex={activeIndex}
+      setActiveIndex={setActiveIndex}
+      onClose={() => Navigation.goBack()}
+      onNextUser={handleNextUser}
+      onPrevUser={handlePrevUser}
+      isLiked={isCurrentStoryLiked}
+      onToggleLike={handleToggleLike}
+      onStoryViewed={handleStoryViewed}
+      onSendReply={handleSendReply}
+    />
   );
 };
-
-const getStyles = (theme: Theme) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.black,
-    },
-    mediaWrapper: {
-      zIndex: 0,
-      ...StyleSheet.absoluteFill,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: theme.black,
-    },
-    media: {
-      width: '100%',
-      height: '100%',
-      zIndex: -1,
-    },
-    centerContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: theme.background,
-      gap: 16,
-    },
-    errorContainer: {
-      backgroundColor: theme.black,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 24,
-    },
-    emptyMediaContainer: {
-      backgroundColor: theme.darkPlaceholder,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 24,
-    },
-    emptyMediaText: {
-      textAlign: 'center',
-    },
-    safeAreaContainer: {
-      flex: 1,
-    },
-    progressWrapper: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    backButton: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 8,
-    },
-    headerBar: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      marginTop: 16,
-    },
-    authorInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    touchRow: {
-      flex: 1,
-      flexDirection: 'row',
-    },
-    touchArea: {
-      flex: 1,
-      height: '100%',
-    },
-    footerBar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      zIndex: 20,
-      gap: 12,
-    },
-    messageInput: {
-      borderWidth: 1,
-      borderColor: theme.overlayWhite40,
-      borderRadius: 9999,
-      height: 44,
-      backgroundColor: theme.overlayBlack40,
-      alignItems: 'center',
-      flexDirection: 'row',
-      paddingHorizontal: 16,
-      flex: 1,
-    },
-  });
 
 export default Story;

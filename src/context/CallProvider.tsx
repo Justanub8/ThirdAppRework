@@ -5,6 +5,7 @@ import React, {
   useRef,
   useEffect,
   useCallback,
+  useMemo,
 } from 'react';
 import { View } from 'react-native';
 import {
@@ -206,7 +207,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         } else if (
           pc.connectionState === 'failed' ||
           pc.connectionState === 'disconnected'
-        ) {}
+        ) {
+        }
       };
 
       return pc;
@@ -378,41 +380,44 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     };
   }, [socket, cleanup, createPeerConnection]);
 
-  const startCall = async (
-    calleeId: string,
-    callType: 'audio' | 'video',
-    calleeInfo?: { name?: string; avatarUrl?: string },
-  ) => {
-    if (!socket || state !== 'idle') return;
+  const startCall = useCallback(
+    async (
+      calleeId: string,
+      callType: 'audio' | 'video',
+      calleeInfo?: { name?: string; avatarUrl?: string },
+    ) => {
+      if (!socket || state !== 'idle') return;
 
-    socket.emit(
-      'call-request',
-      { calleeId, callType },
-      (res: { ok: boolean; callId?: string; error?: string }) => {
-        if (res?.ok && res.callId) {
-          const session: CallSession = {
-            callId: res.callId,
-            peerId: calleeId,
-            peerName: calleeInfo?.name,
-            peerAvatar: calleeInfo?.avatarUrl,
-            callType,
-            isCaller: true,
-          };
-          setCall(session);
-          callRef.current = session;
-          setState('outgoing');
+      socket.emit(
+        'call-request',
+        { calleeId, callType },
+        (res: { ok: boolean; callId?: string; error?: string }) => {
+          if (res?.ok && res.callId) {
+            const session: CallSession = {
+              callId: res.callId,
+              peerId: calleeId,
+              peerName: calleeInfo?.name,
+              peerAvatar: calleeInfo?.avatarUrl,
+              callType,
+              isCaller: true,
+            };
+            setCall(session);
+            callRef.current = session;
+            setState('outgoing');
 
-          try {
-            InCallManager.start({ media: callType, ringback: '_BUNDLE_' });
-          } catch {}
-        } else {
-          cleanup();
-        }
-      },
-    );
-  };
+            try {
+              InCallManager.start({ media: callType, ringback: '_BUNDLE_' });
+            } catch {}
+          } else {
+            cleanup();
+          }
+        },
+      );
+    },
+    [socket, state, cleanup],
+  );
 
-  const acceptCall = async () => {
+  const acceptCall = useCallback(async () => {
     if (!socket || !call || state !== 'incoming') return;
 
     try {
@@ -437,16 +442,16 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         }
       },
     );
-  };
+  }, [socket, call, state, cleanup, createPeerConnection]);
 
-  const rejectCall = () => {
+  const rejectCall = useCallback(() => {
     if (socket && call) {
       socket.emit('reject', { callId: call.callId });
     }
     cleanup();
-  };
+  }, [socket, call, cleanup]);
 
-  const endCall = () => {
+  const endCall = useCallback(() => {
     if (socket && call) {
       if (state === 'outgoing') {
         socket.emit('cancel', { callId: call.callId });
@@ -455,9 +460,9 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       }
     }
     cleanup();
-  };
+  }, [socket, call, state, cleanup]);
 
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     if (localStreamRef.current) {
       const nextState = !isMuted;
       localStreamRef.current.getAudioTracks().forEach(track => {
@@ -471,9 +476,9 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         });
       }
     }
-  };
+  }, [isMuted, call, socket]);
 
-  const toggleCamera = () => {
+  const toggleCamera = useCallback(() => {
     if (localStreamRef.current) {
       const nextState = !isCameraOff;
       localStreamRef.current.getVideoTracks().forEach(track => {
@@ -487,17 +492,17 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         });
       }
     }
-  };
+  }, [isCameraOff, call, socket]);
 
-  const toggleSpeaker = () => {
+  const toggleSpeaker = useCallback(() => {
     const nextState = !isSpeakerOn;
     try {
       InCallManager.setSpeakerphoneOn(nextState);
       setIsSpeakerOn(nextState);
     } catch {}
-  };
+  }, [isSpeakerOn]);
 
-  const switchCamera = () => {
+  const switchCamera = useCallback(() => {
     if (localStreamRef.current) {
       localStreamRef.current.getVideoTracks().forEach(track => {
         const customTrack = track as any;
@@ -506,26 +511,43 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         }
       });
     }
-  };
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({
+      state,
+      call,
+      startCall,
+      acceptCall,
+      rejectCall,
+      endCall,
+      toggleMute,
+      toggleCamera,
+      toggleSpeaker,
+      switchCamera,
+      isMuted,
+      isCameraOff,
+      isSpeakerOn,
+    }),
+    [
+      state,
+      call,
+      startCall,
+      acceptCall,
+      rejectCall,
+      endCall,
+      toggleMute,
+      toggleCamera,
+      toggleSpeaker,
+      switchCamera,
+      isMuted,
+      isCameraOff,
+      isSpeakerOn,
+    ],
+  );
 
   return (
-    <CallContext.Provider
-      value={{
-        state,
-        call,
-        startCall,
-        acceptCall,
-        rejectCall,
-        endCall,
-        toggleMute,
-        toggleCamera,
-        toggleSpeaker,
-        switchCamera,
-        isMuted,
-        isCameraOff,
-        isSpeakerOn,
-      }}
-    >
+    <CallContext.Provider value={contextValue}>
       <View style={{ flex: 1 }}>
         {children}
         <CallOverlay

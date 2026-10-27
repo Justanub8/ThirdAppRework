@@ -119,7 +119,10 @@ const SignUp = () => {
           />
           <SizedBox height={16} />
           <TouchableOpacity
-            style={[styles.signUpButton, signUp.isPending && styles.buttonPending]}
+            style={[
+              styles.signUpButton,
+              signUp.isPending && styles.buttonPending,
+            ]}
             onPress={handleSignUp}
             disabled={signUp.isPending}
           >

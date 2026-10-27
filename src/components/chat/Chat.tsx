@@ -34,6 +34,7 @@ const Chat = ({ conversation, currentUserId }: ChatProps) => {
     }
   } else {
     displayName =
+      conversation.nickname ||
       otherMember?.nickname ||
       otherUser?.name ||
       otherUser?.username ||

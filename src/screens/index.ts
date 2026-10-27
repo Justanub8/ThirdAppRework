@@ -1,6 +1,6 @@
 export { default as CameraScreen } from './cameraScreen/CameraScreen';
 export { default as Conversation } from './conversation/Conversation';
-export { default as ConversationDetail } from './conversation/ConversationDetail';
+export { default as ConversationDetail } from './conversationDetail/ConversationDetail';
 export { default as CreateReel } from './create-reel/CreateReel';
 export { default as SelectReelMedia } from './create-reel/components/SelectReelMedia';
 export { default as CreateStory } from './create-story/CreateStory';

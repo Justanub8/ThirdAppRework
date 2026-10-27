@@ -2,21 +2,29 @@ import { IProfileUser } from '~/interfaces/auth';
 import { IMedia } from '~/interfaces/media';
 import { IEmoji } from '~/interfaces/emoji';
 
-export type MessageStatus = 'Edited' | 'Deleted' | 'Pinned' | 'None';
+export type MessageStatus =
+  | 'Edited'
+  | 'Deleted'
+  | 'Pinned'
+  | 'None'
+  | 'Sending'
+  | 'Failed';
 
 export type { IEmoji };
 
 export interface IMessage {
   id?: string;
+  tempId?: string;
   conversationId: string;
   senderId?: string;
-  sender?: IProfileUser;
+  sender?: Partial<IProfileUser>;
   content?: string | null;
   status?: MessageStatus;
+  seq?: number;
   media?: IMedia[];
   emojis?: IEmoji[];
-  createdAt: Date;
-  updatedAt?: Date;
+  createdAt: Date | string;
+  updatedAt?: Date | string;
 }
 
 export interface IResponseGetMessage {

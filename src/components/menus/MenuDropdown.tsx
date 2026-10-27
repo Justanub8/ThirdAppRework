@@ -6,7 +6,10 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import MenuTrigger, { MenuTriggerRef, dimensions } from '~/components/menus/MenuTrigger';
+import MenuTrigger, {
+  MenuTriggerRef,
+  dimensions,
+} from '~/components/menus/MenuTrigger';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
 import { SvgProps } from 'react-native-svg';

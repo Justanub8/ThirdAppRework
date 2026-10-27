@@ -16,6 +16,7 @@ export interface IConversationMember {
 export interface IConversation {
   id?: string;
   name?: string | null;
+  nickname?: string | null;
   avatarUrl?: string | null;
   members: IConversationMember[];
   lastMessage?: IMessage;

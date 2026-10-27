@@ -5,7 +5,7 @@ export interface IEmoji {
   content: string;
   messageId: string;
   senderId: string;
-  sender?: IProfileUser;
+  sender?: Partial<IProfileUser>;
   createdAt?: Date;
   updatedAt?: Date;
 }

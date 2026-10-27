@@ -12,8 +12,8 @@ import { userApi } from '~/api/userApi';
 import { useAuthStore, useTheme, Theme } from '~/hooks';
 import { SheetManager } from 'react-native-actions-sheet';
 import { Navigation } from '~/utils';
-import { bookmarkApi, postApi, reelApi } from '~/api';
 import Tabs from '~/screens/profile/components/Tabs';
+import FollowPopUp from './components/FollowPopUp';
 const Profile = () => {
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
@@ -28,41 +28,10 @@ const Profile = () => {
   const currentUser = useAuthStore(state => state.user);
   const currentUserId = currentUser?.id || data?.id;
 
-  const { refetch: refetchPosts } = useQuery({
-    queryKey: ['my-post', currentUserId],
-    queryFn: async () => {
-      const res = await postApi.getAllPosts(1, 30, currentUserId);
-      return res?.data?.data || [];
-    },
-    enabled: !!currentUserId,
-  });
-
-  const { refetch: refetchReels } = useQuery({
-    queryKey: ['my-reels', currentUserId],
-    queryFn: async () => {
-      const res = await reelApi.getAllReels(1, 30, currentUserId);
-      return res?.data?.data || [];
-    },
-    enabled: !!currentUserId,
-  });
-
-  const { refetch: refetchBookmarks } = useQuery({
-    queryKey: ['my-bookmarks'],
-    queryFn: async () => {
-      const res = await bookmarkApi.getUserBookmarks();
-      return res?.data?.data || [];
-    },
-  });
-
   useFocusEffect(
     useCallback(() => {
       refetch();
-      if (currentUserId) {
-        refetchPosts();
-        refetchReels();
-      }
-      refetchBookmarks();
-    }, [refetch, refetchPosts, refetchReels, refetchBookmarks, currentUserId]),
+    }, [refetch]),
   );
   return (
     <SafeAreaView style={styles.container}>
@@ -102,20 +71,28 @@ const Profile = () => {
                   </BaseText>
                 </View>
                 <View>
-                  <BaseText typography={Typography.bodyBold.large}>
-                    {data?.follower}
-                  </BaseText>
-                  <BaseText typography={Typography.bodyRegular.medium}>
-                    người theo dõi
-                  </BaseText>
+                  <FollowPopUp id={currentUserId} initialTab="followers">
+                    <View style={styles.statItem}>
+                      <BaseText typography={Typography.bodyBold.large}>
+                        {data?.follower ?? 0}
+                      </BaseText>
+                      <BaseText typography={Typography.bodyRegular.medium}>
+                        người theo dõi
+                      </BaseText>
+                    </View>
+                  </FollowPopUp>
                 </View>
                 <View>
-                  <BaseText typography={Typography.bodyBold.large}>
-                    {data?.following}
-                  </BaseText>
-                  <BaseText typography={Typography.bodyRegular.medium}>
-                    đang theo dõi
-                  </BaseText>
+                  <FollowPopUp id={currentUserId} initialTab="following">
+                    <View style={styles.statItem}>
+                      <BaseText typography={Typography.bodyBold.large}>
+                        {data?.following ?? 0}
+                      </BaseText>
+                      <BaseText typography={Typography.bodyRegular.medium}>
+                        đang theo dõi
+                      </BaseText>
+                    </View>
+                  </FollowPopUp>
                 </View>
               </View>
             </View>
@@ -124,7 +101,10 @@ const Profile = () => {
           <SizedBox height={16} />
 
           <View style={styles.actionButtonsRow}>
-            <TouchableOpacity style={styles.flexButton}>
+            <TouchableOpacity
+              style={styles.flexButton}
+              onPress={() => Navigation.goToEditProfile()}
+            >
               <BaseText
                 color={theme.white}
                 typography={Typography.bodyBold.medium}
@@ -182,6 +162,9 @@ const getStyles = (theme: Theme) =>
     statsRow: {
       flexDirection: 'row',
       gap: 16,
+    },
+    statItem: {
+      alignItems: 'center',
     },
     actionButtonsRow: {
       flexDirection: 'row',

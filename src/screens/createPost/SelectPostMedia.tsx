@@ -5,9 +5,9 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import { FlashList } from '@shopify/flash-list';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { CustomHeader } from '~/components/headers';
 import { CameraLightIcon, CrossIcon } from '~/assets/svgs';
@@ -33,9 +33,7 @@ const SelectPostMedia = () => {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ['50%', '80%'], []);
-  const fetchPhotos = async (after?: string) => {
+  const fetchPhotos = useCallback(async (after?: string) => {
     try {
       const res = await CameraRoll.getPhotos({
         first: 32,
@@ -58,15 +56,46 @@ const SelectPostMedia = () => {
         setSelectedPhoto(newPhotos[0]);
       }
     } catch (error) {
-      console.log('Error fetching photos:', error);
+      console.error('Error fetching photos:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPhotos();
-  }, []);
+  }, [fetchPhotos]);
 
   const isSelectedVideo = isVideoMedia(selectedPhoto);
+
+  const renderItem = useCallback(
+    ({ item }: { item: NormalizedMediaAsset }) => {
+      const isSelected = selectedPhoto?.uri === item.uri;
+      const isVideo = isVideoMedia(item);
+      return (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => setSelectedPhoto(item)}
+          style={[styles.gridItem, isSelected && styles.gridItemSelected]}
+        >
+          <Image
+            source={{ uri: item.uri }}
+            style={styles.gridImage}
+            resizeMode="cover"
+          />
+          {isVideo && (
+            <View style={styles.videoBadge}>
+              <BaseText
+                typography={Typography.bodyRegular.xSmall}
+                color={theme.white}
+              >
+                {formatDuration(item.playableDuration) || 'Video'}
+              </BaseText>
+            </View>
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [selectedPhoto?.uri, styles, theme.white],
+  );
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
@@ -115,13 +144,7 @@ const SelectPostMedia = () => {
         )}
       </View>
 
-      <BottomSheet
-        ref={bottomSheetRef}
-        snapPoints={snapPoints}
-        enablePanDownToClose={false}
-        handleIndicatorStyle={styles.handleIndicator}
-        backgroundStyle={styles.bottomSheetBackground}
-      >
+      <View style={styles.listContainer}>
         <View style={styles.toolbar}>
           <TouchableOpacity style={styles.albumSelector}>
             <BaseText typography={Typography.bodyBold.medium}>Gần đây</BaseText>
@@ -131,43 +154,18 @@ const SelectPostMedia = () => {
           </TouchableOpacity>
         </View>
 
-        <BottomSheetFlatList
+        <FlashList
           data={photos}
           numColumns={4}
+          estimatedItemSize={GRID_SIZE}
           keyExtractor={(item, index) => item.uri + index}
           onEndReached={() => {
             if (hasNextPage && endCursor) fetchPhotos(endCursor);
           }}
           onEndReachedThreshold={0.5}
-          renderItem={({ item }) => {
-            const isSelected = selectedPhoto?.uri === item.uri;
-            const isVideo = isVideoMedia(item);
-            return (
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setSelectedPhoto(item)}
-                style={[styles.gridItem, isSelected && styles.gridItemSelected]}
-              >
-                <Image
-                  source={{ uri: item.uri }}
-                  style={styles.gridImage}
-                  resizeMode="cover"
-                />
-                {isVideo && (
-                  <View style={styles.videoBadge}>
-                    <BaseText
-                      typography={Typography.bodyRegular.xSmall}
-                      color={theme.white}
-                    >
-                      {formatDuration(item.playableDuration) || 'Video'}
-                    </BaseText>
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          }}
+          renderItem={renderItem}
         />
-      </BottomSheet>
+      </View>
     </SafeAreaView>
   );
 };
@@ -204,15 +202,9 @@ const getStyles = (theme: Theme) =>
       paddingVertical: 4,
       borderRadius: 4,
     },
-    bottomSheetBackground: {
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16,
+    listContainer: {
+      flex: 1,
       backgroundColor: theme.background,
-    },
-    handleIndicator: {
-      width: 40,
-      height: 4,
-      backgroundColor: theme.divider,
     },
     toolbar: {
       flexDirection: 'row',

@@ -1,5 +1,6 @@
 import axios, { InternalAxiosRequestConfig } from 'axios';
-import { useAuthStore } from '~/hooks';
+import { useAuthStore } from '~/store/auth.store';
+import { queryClient } from './queryClient';
 import Config from 'react-native-config';
 
 const configAxios = {
@@ -32,6 +33,11 @@ axiosInstance.interceptors.request.use(
   },
   error => Promise.reject(error),
 );
+
+const triggerLogout = () => {
+  useAuthStore.getState().logoutLocal();
+  queryClient.clear();
+};
 
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -77,13 +83,13 @@ axiosInstance.interceptors.response.use(
 
     if (isAuthBypassUrl) {
       if (requestUrl.includes('/auth/refresh-token')) {
-        useAuthStore.getState().logoutLocal();
+        triggerLogout();
       }
       return Promise.reject(error);
     }
 
     if (originalRequest._retry) {
-      useAuthStore.getState().logoutLocal();
+      triggerLogout();
       return Promise.reject(error);
     }
 
@@ -107,7 +113,7 @@ axiosInstance.interceptors.response.use(
 
     if (!currentRefreshToken) {
       isRefreshing = false;
-      useAuthStore.getState().logoutLocal();
+      triggerLogout();
       return Promise.reject(error);
     }
 
@@ -140,7 +146,7 @@ axiosInstance.interceptors.response.use(
       return axiosInstance(originalRequest);
     } catch (refreshErr) {
       processQueue(refreshErr, null);
-      useAuthStore.getState().logoutLocal();
+      triggerLogout();
       return Promise.reject(refreshErr);
     } finally {
       isRefreshing = false;

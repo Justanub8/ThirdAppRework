@@ -1,7 +1,7 @@
 import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useCallback, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useCallback, useMemo, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from '@react-navigation/native';
 import { Typography } from '~/constants';
 import { BaseText } from '~/components/rn-components';
@@ -14,6 +14,7 @@ import Chat from '~/components/chat/Chat';
 import { conversationApi } from '~/api';
 import { useAuthStore } from '~/hooks/useAuthStore';
 import { useTheme, Theme } from '~/hooks';
+import { useSocket } from '~/context';
 import { Navigation } from '~/utils';
 import { IConversation } from '~/interfaces';
 
@@ -21,6 +22,8 @@ const MessageScreen = () => {
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
   const user = useAuthStore(state => state.user);
+  const queryClient = useQueryClient();
+  const socket = useSocket();
 
   const { data: rawConversations, refetch } = useQuery({
     queryKey: ['conversations'],
@@ -29,6 +32,45 @@ const MessageScreen = () => {
       return response.data?.data || [];
     },
   });
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleConversationUpdated = (payload: {
+      conversationId: string;
+      lastMessage: any;
+      updatedAt?: string;
+    }) => {
+      queryClient.setQueryData(
+        ['conversations'],
+        (old: IConversation[] | undefined) => {
+          if (!old) return old;
+          const found = old.some(conv => conv.id === payload.conversationId);
+          if (!found) {
+            refetch();
+            return old;
+          }
+          return old.map(conv => {
+            if (conv.id === payload.conversationId) {
+              return {
+                ...conv,
+                lastMessage: payload.lastMessage,
+                lastMessageId: payload.lastMessage?.id,
+                updatedAt: (payload.updatedAt || new Date()) as any,
+              };
+            }
+            return conv;
+          });
+        },
+      );
+    };
+
+    socket.on('conversation_updated', handleConversationUpdated);
+
+    return () => {
+      socket.off('conversation_updated', handleConversationUpdated);
+    };
+  }, [socket, queryClient, refetch]);
 
   useFocusEffect(
     useCallback(() => {

@@ -36,7 +36,10 @@ export type AuthenticatedStackParamList = {
     thumbnail?: string;
   };
   Setting: undefined;
-  ConversationDetail: { id: string };
+  ConversationDetail: { id: string; name?: string; imageUrl?: string };
+  EditProfile: undefined;
+  ConversationNickname: { id: string };
+  ConversationPinned: { id: string};
 };
 
 export type MainTabParamList = {

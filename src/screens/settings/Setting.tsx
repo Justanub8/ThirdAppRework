@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomHeader } from '~/components/headers';
@@ -8,6 +8,7 @@ import { BaseText } from '~/components/rn-components';
 import { userApi } from '~/api';
 import { Typography } from '~/constants';
 import { Navigation } from '~/utils';
+import { logoutUser } from '~/services/authService';
 
 const Setting = () => {
   const { theme, mode, setMode } = useTheme();
@@ -98,6 +99,28 @@ const Setting = () => {
             typography={Typography.bodyRegular.medium}
           >
             {currentUser?.isPrivate ? 'Bật' : 'Tắt'}
+          </BaseText>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.settingRow}
+          onPress={() => {
+            Alert.alert(
+              'Đăng xuất',
+              'Bạn có chắc chắn muốn đăng xuất tài khoản?',
+              [
+                { text: 'Huỷ', style: 'cancel' },
+                {
+                  text: 'Đăng xuất',
+                  style: 'destructive',
+                  onPress: () => logoutUser(),
+                },
+              ],
+            );
+          }}
+        >
+          <BaseText color={theme.red} typography={Typography.bodyBold.medium}>
+            Đăng xuất
           </BaseText>
         </TouchableOpacity>
       </View>

@@ -7,15 +7,14 @@ import {
 } from 'react-native';
 import * as React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore, useTheme, Theme } from '~/hooks';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useAuthStore } from '~/store';
+import { useTheme, Theme } from '~/hooks';
 import { CreateIcon, NotificationIcon } from '~/assets/svgs';
 import { FastImage } from '~/components/rn-components';
 import { images } from '~/assets/images';
 import { Avatar } from '~/components/avatar';
 import Post from '~/components/post/Post';
 import { SizedBox } from '~/components/separate-components';
-import SlideUpModal from '~/components/slide-up/SlideUpModal';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { postApi } from '~/api/postApi';
 import { userApi } from '~/api/userApi';
@@ -27,7 +26,6 @@ import { IPost, IProfileUser } from '~/interfaces';
 const HomeScreen = () => {
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
-  const menuModalRef = React.useRef<BottomSheetModal>(null);
   const [activePostId, setActivePostId] = React.useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
@@ -87,7 +85,7 @@ const HomeScreen = () => {
       staleTime: 60 * 1000,
     });
 
-  const { user: currentUser, logoutLocal } = useAuthStore();
+  const currentUser = useAuthStore(state => state.user);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -146,13 +144,7 @@ const HomeScreen = () => {
             resizeMode="contain"
             style={styles.logo}
           />
-          <NotificationIcon
-            width={32}
-            height={32}
-            onPress={() => {
-              logoutLocal();
-            }}
-          />
+          <NotificationIcon width={32} height={32} onPress={() => {}} />
         </View>
         <ScrollView
           horizontal
@@ -197,7 +189,6 @@ const HomeScreen = () => {
       currentUser,
       hasActiveStory,
       isSeenStory,
-      logoutLocal,
       followedStories,
       styles,
     ],
@@ -218,6 +209,7 @@ const HomeScreen = () => {
         data={posts}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        estimatedItemSize={400}
         ListHeaderComponent={renderHeader}
         onEndReached={() => {
           if (hasNextPage) fetchNextPage();
@@ -232,7 +224,6 @@ const HomeScreen = () => {
         onRefresh={handleRefresh}
         extraData={[hasActiveStory, isSeenStory, followedStories]}
       />
-      <SlideUpModal ref={menuModalRef} renderComponent={<View />} />
     </SafeAreaView>
   );
 };

@@ -1,14 +1,10 @@
 import { View, StyleSheet } from 'react-native';
 import * as React from 'react';
-import {
-  BottomSheetFooter,
-  BottomSheetModal,
-  BottomSheetScrollView,
-  BottomSheetFooterProps,
-} from '@gorhom/bottom-sheet';
+import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 import { SizedBox } from '~/components/separate-components';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
+
 interface SlideUpModalProps {
   modalTitle?: string;
   renderComponent: React.ReactNode;
@@ -17,71 +13,40 @@ interface SlideUpModalProps {
   snapPoints?: string[];
 }
 
-const SlideUpModal = React.forwardRef<BottomSheetModal, SlideUpModalProps>(
-  (
-    {
-      modalTitle,
-      renderComponent,
-      footerComponent,
-      disableScrollView = false,
-      snapPoints = ['60%', '80%'],
-    },
-    ref,
-  ) => {
-    const handleSheetChanges = React.useCallback((_index: number) => {}, []);
-    const renderHeader = () => {
-      return (
-        <View style={styles.headerContainer}>
-          <SizedBox height={12} />
-          <SizedBox
-            height={3}
-            width={40}
-            backgroundColor={'#616161'}
-            borderRadius={9999}
-          />
-          <SizedBox height={18} />
-          <BaseText typography={Typography.bodyBold.large}>
-            {modalTitle}
-          </BaseText>
-          <SizedBox height={10} />
-        </View>
-      );
-    };
-    const renderFooter = React.useCallback(
-      (props: BottomSheetFooterProps) => (
-        <BottomSheetFooter {...props} bottomInset={24}>
-          {footerComponent}
-        </BottomSheetFooter>
-      ),
-      [footerComponent],
-    );
+const SlideUpModal = React.forwardRef<ActionSheetRef, SlideUpModalProps>(
+  ({ modalTitle, renderComponent, footerComponent }, ref) => {
     return (
-      <BottomSheetModal
+      <ActionSheet
         ref={ref}
-        index={0}
-        snapPoints={snapPoints}
-        onChange={handleSheetChanges}
-        enablePanDownToClose={true}
-        enableDynamicSizing={false}
-        handleComponent={modalTitle ? renderHeader : null}
-        footerComponent={renderFooter}
+        gestureEnabled={true}
+        indicatorStyle={styles.indicator}
       >
-        {disableScrollView ? (
-          <>{renderComponent}</>
-        ) : (
-          <BottomSheetScrollView style={{ flex: 1 }}>
-            <View>{renderComponent}</View>
-          </BottomSheetScrollView>
-        )}
-      </BottomSheetModal>
+        {modalTitle ? (
+          <View style={styles.headerContainer}>
+            <BaseText typography={Typography.bodyBold.large}>
+              {modalTitle}
+            </BaseText>
+            <SizedBox height={10} />
+          </View>
+        ) : null}
+        <View>{renderComponent}</View>
+        {footerComponent}
+      </ActionSheet>
     );
   },
 );
+
 const styles = StyleSheet.create({
   headerContainer: {
     borderBottomColor: '#bdbdbd',
     borderBottomWidth: 1,
     alignItems: 'center',
+    paddingVertical: 12,
+  },
+  indicator: {
+    backgroundColor: '#616161',
+    width: 40,
+    height: 4,
   },
 });
 

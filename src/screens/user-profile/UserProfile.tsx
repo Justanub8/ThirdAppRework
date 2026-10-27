@@ -14,6 +14,7 @@ import { Navigation } from '~/utils';
 import { useFollowMutation, useAuthStore, useTheme, Theme } from '~/hooks';
 import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import Tabs from '~/screens/profile/components/Tabs';
+import FollowPopUp from '~/screens/profile/components/FollowPopUp';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'UserProfile'>;
 
@@ -165,20 +166,28 @@ const UserProfile = () => {
                   </BaseText>
                 </View>
                 <View>
-                  <BaseText typography={Typography.bodyBold.large}>
-                    {followerCount}
-                  </BaseText>
-                  <BaseText typography={Typography.bodyRegular.medium}>
-                    người theo dõi
-                  </BaseText>
+                  <FollowPopUp id={id} initialTab="followers">
+                    <View style={styles.statItem}>
+                      <BaseText typography={Typography.bodyBold.large}>
+                        {followerCount}
+                      </BaseText>
+                      <BaseText typography={Typography.bodyRegular.medium}>
+                        người theo dõi
+                      </BaseText>
+                    </View>
+                  </FollowPopUp>
                 </View>
                 <View>
-                  <BaseText typography={Typography.bodyBold.large}>
-                    {user?.following ?? 0}
-                  </BaseText>
-                  <BaseText typography={Typography.bodyRegular.medium}>
-                    đang theo dõi
-                  </BaseText>
+                  <FollowPopUp id={id} initialTab="following">
+                    <View style={styles.statItem}>
+                      <BaseText typography={Typography.bodyBold.large}>
+                        {user?.following ?? 0}
+                      </BaseText>
+                      <BaseText typography={Typography.bodyRegular.medium}>
+                        đang theo dõi
+                      </BaseText>
+                    </View>
+                  </FollowPopUp>
                 </View>
               </View>
             </View>
@@ -274,6 +283,9 @@ const getStyles = (theme: Theme) =>
     statsRow: {
       flexDirection: 'row',
       gap: 16,
+    },
+    statItem: {
+      alignItems: 'center',
     },
     actionButtonsRow: {
       flexDirection: 'row',

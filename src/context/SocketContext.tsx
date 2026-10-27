@@ -5,8 +5,9 @@ import React, {
   useRef,
   useState,
   useCallback,
+  useMemo,
 } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '~/hooks';
 import Config from 'react-native-config';
@@ -57,11 +58,16 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    const defaultFallback =
+      Platform.OS === 'android'
+        ? 'http://10.0.2.2:5050'
+        : 'http://localhost:5050';
+
     const socketUrl =
       Config.SOCKET_URL ||
       (Config.BASE_API_URL
         ? Config.BASE_API_URL.replace(/\/api\/?$/, '')
-        : 'http://localhost:5050');
+        : defaultFallback);
 
     const socketInstance = io(socketUrl, {
       auth: { token: accessToken },
@@ -158,11 +164,14 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     [onlineUsers],
   );
 
+  const presenceValue = useMemo(
+    () => ({ onlineUsers, isUserOnline, getUserLastActive }),
+    [onlineUsers, isUserOnline, getUserLastActive],
+  );
+
   return (
     <SocketContext.Provider value={socket}>
-      <PresenceContext.Provider
-        value={{ onlineUsers, isUserOnline, getUserLastActive }}
-      >
+      <PresenceContext.Provider value={presenceValue}>
         {children}
       </PresenceContext.Provider>
     </SocketContext.Provider>

@@ -45,6 +45,7 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
   const [activePlayingVideoId, setActivePlayingVideoId] = useState<
     string | null
   >(null);
+  const [isOtherTyping, setIsOtherTyping] = useState<boolean>(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const listRef = useRef<any>(null);
@@ -52,6 +53,8 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
   const requestIdRef = useRef(0);
   const isFetchingRef = useRef(false);
   const messagesRef = useRef<IMessage[]>(messages);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -66,6 +69,12 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
     });
   }, []);
 
+  const scrollToBottom = useCallback((animated: boolean = true) => {
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToOffset({ offset: 0, animated });
+    });
+  }, []);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('blur', () => {
       setActivePlayingVideoId(null);
@@ -76,7 +85,12 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
   useEffect(() => {
     if (!socket || !id) return;
 
-    socket.emit('join_conversation', id);
+    const joinRoom = () => {
+      socket.emit('join_conversation', id);
+    };
+
+    joinRoom();
+    socket.on('connect', joinRoom);
 
     const handleIncomingMessage = (msg: IMessage) => {
       if (!msg) return;
@@ -84,9 +98,24 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
       if (!msgConvId || msgConvId === id) {
         setMessages(prev => {
           const msgId = msg.id;
-          if (msgId && prev.some(m => m.id === msgId)) {
+          if (msgId && prev.some(m => m.id === msgId && m.id !== msg.tempId)) {
             return prev;
           }
+          const pendingIndex = prev.findIndex(
+            m =>
+              (msg.tempId &&
+                (m.id === msg.tempId || m.tempId === msg.tempId)) ||
+              (m.status === 'Sending' &&
+                m.senderId === msg.senderId &&
+                (m.content || '') === (msg.content || '')),
+          );
+          if (pendingIndex !== -1) {
+            const updated = [...prev];
+            updated[pendingIndex] = msg;
+            scrollToBottom();
+            return updated;
+          }
+          scrollToBottom();
           return [msg, ...prev];
         });
       }
@@ -102,14 +131,35 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
       }
     };
 
+    const handleUserTyping = (data: {
+      userId: string;
+      conversationId: string;
+      isTyping: boolean;
+    }) => {
+      if (data.conversationId === id && data.userId !== user?.id) {
+        setIsOtherTyping(data.isTyping);
+        if (data.isTyping) {
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = setTimeout(() => {
+            setIsOtherTyping(false);
+          }, 3000);
+        }
+      }
+    };
+
     socket.on('message', handleIncomingMessage);
     socket.on('message_updated', handleUpdatedMessage);
+    socket.on('user_typing', handleUserTyping);
 
     return () => {
+      socket.emit('leave_conversation', id);
+      socket.off('connect', joinRoom);
       socket.off('message', handleIncomingMessage);
       socket.off('message_updated', handleUpdatedMessage);
+      socket.off('user_typing', handleUserTyping);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
-  }, [socket, id]);
+  }, [socket, id, user?.id, scrollToBottom]);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -148,7 +198,13 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
         }
 
         if (isLoadMore) {
-          setMessages(prev => [...prev, ...rawMessages]);
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.id).filter(Boolean));
+            const uniqueRaw = rawMessages.filter(
+              m => !m.id || !existingIds.has(m.id),
+            );
+            return [...prev, ...uniqueRaw];
+          });
         } else {
           setMessages(rawMessages);
         }
@@ -213,12 +269,8 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
     [],
   );
 
-  const scrollToBottom = useCallback(() => {
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, []);
-
   const keyExtractor = useCallback(
-    (item: IMessage) => item.id || Math.random().toString(),
+    (item: IMessage, index: number) => item.id || `msg-${index}`,
     [],
   );
 
@@ -244,35 +296,44 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
   const handleDeleteMessage = useCallback(async (message: IMessage) => {
     if (!message?.id) return;
     const messageId = message.id;
+    const originalStatus = message.status;
 
     setMessages(prev =>
       prev.map(m => (m.id === messageId ? { ...m, status: 'Deleted' } : m)),
     );
 
     try {
-      await messageApi.editMessage({
-        messageId,
-        status: 'Deleted',
-      });
+      await messageApi.deleteMessage(messageId);
     } catch (error) {
       console.error('Lỗi xoá tin nhắn:', error);
+      setMessages(prev =>
+        prev.map(m => (m.id === messageId ? { ...m, status: originalStatus } : m)),
+      );
     }
   }, []);
 
   const handlePinMessage = useCallback(async (message: IMessage) => {
     if (!message?.id) return;
     const messageId = message.id;
+    const isPinned = message.status === 'Pinned';
+    const nextStatus = isPinned ? 'None' : 'Pinned';
+    const originalStatus = message.status;
+
     setMessages(prev =>
-      prev.map(m => (m.id === messageId ? { ...m, status: 'Pinned' } : m)),
+      prev.map(m => (m.id === messageId ? { ...m, status: nextStatus } : m)),
     );
 
     try {
-      await messageApi.editMessage({
+      await messageApi.pinMessage({
         messageId,
-        status: 'PINNED',
+        status: nextStatus,
       });
+      console.log(isPinned ? 'Đã bỏ ghim tin nhắn' : 'Đã ghim tin nhắn');
     } catch (error) {
-      console.error('Lỗi ghim tin nhắn:', error);
+      console.error('Lỗi ghim/bỏ ghim tin nhắn:', error);
+      setMessages(prev =>
+        prev.map(m => (m.id === messageId ? { ...m, status: originalStatus } : m)),
+      );
     }
   }, []);
 
@@ -284,54 +345,60 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
         e => e.senderId === user?.id,
       );
 
+      // Nếu click lại đúng emoji mình đã thả -> gỡ bỏ
       if (existingUserEmoji?.content === emoji) {
+        setMessages(prev =>
+          prev.map(m => {
+            if (m.id !== messageId) return m;
+            return {
+              ...m,
+              emojis: (m.emojis || []).filter(e => e.senderId !== user?.id),
+            };
+          }),
+        );
         try {
-          console.log(
-            `[handleReact] Gỡ reaction "${emoji}" cho messageId: ${messageId}`,
-          );
           await emojiApi.deleteEmoji({ messageId });
-          setMessages(prev =>
-            prev.map(m => {
-              if (m.id !== messageId) return m;
-              return {
-                ...m,
-                emojis: (m.emojis || []).filter(e => e.senderId !== user?.id),
-              };
-            }),
-          );
         } catch (error) {
           console.error('[handleReact] Lỗi khi gỡ reaction:', error);
         }
         return;
       }
 
+      if (!user?.id) return;
+
+      // Optimistic update emoji
+      const optimisticEmoji: IEmoji = {
+        messageId,
+        content: emoji,
+        senderId: user.id,
+        sender: {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          avatarUrl: user.avatarUrl,
+        },
+      };
+
+      setMessages(prev =>
+        prev.map(m => {
+          if (m.id !== messageId) return m;
+          const currentEmojis = m.emojis || [];
+          const filtered = currentEmojis.filter(e => e.senderId !== user?.id);
+          return {
+            ...m,
+            emojis: [...filtered, optimisticEmoji],
+          };
+        }),
+      );
+
       try {
-        console.log(
-          `[handleReact] Gửi reaction "${emoji}" cho messageId: ${messageId}`,
-        );
-        if (existingUserEmoji) {
-          await emojiApi.deleteEmoji({ messageId });
-        }
         const res = await emojiApi.createEmoji({
           messageId,
           content: emoji,
         });
-        console.log('[handleReact] Lưu vào database thành công:', res.data);
 
-        const createdEmoji: IEmoji = (res.data as any)?.data ||
-          res.data || {
-            messageId,
-            content: emoji,
-            senderId: user?.id,
-            sender: user
-              ? {
-                  id: user.id,
-                  username: user.username,
-                  name: user.name,
-                  avatarUrl: user.avatarUrl,
-                }
-              : undefined,
-          };
+        const createdEmoji: IEmoji =
+          (res.data as any)?.data || res.data || optimisticEmoji;
 
         setMessages(prev =>
           prev.map(m => {
@@ -345,62 +412,23 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
           }),
         );
       } catch (error: any) {
-        if (
-          error?.response?.data?.message === 'Đã react tin nhắn này' ||
-          error?.response?.status === 400
-        ) {
-          try {
-            console.log(
-              '[handleReact] Đã react trước đó, thử xoá và cập nhật lại...',
-            );
-            await emojiApi.deleteEmoji({ messageId });
-            const res = await emojiApi.createEmoji({
-              messageId,
-              content: emoji,
-            });
-            console.log(
-              '[handleReact] Cập nhật lại reaction mới vào database thành công:',
-              res.data,
-            );
-
-            const createdEmoji: IEmoji = (res.data as any)?.data ||
-              res.data || {
-                messageId,
-                content: emoji,
-                senderId: user?.id,
-                sender: user
-                  ? {
-                      id: user.id,
-                      username: user.username,
-                      name: user.name,
-                      avatarUrl: user.avatarUrl,
-                    }
-                  : undefined,
-              };
-
-            setMessages(prev =>
-              prev.map(m => {
-                if (m.id !== messageId) return m;
-                const currentEmojis = m.emojis || [];
-                const filtered = currentEmojis.filter(
-                  e => e.senderId !== user?.id,
-                );
-                return {
-                  ...m,
-                  emojis: [...filtered, createdEmoji],
-                };
-              }),
-            );
-          } catch (retryErr: any) {
-            console.error(
-              '[handleReact] Lỗi khi cập nhật lại reaction:',
-              retryErr?.response?.data || retryErr,
-            );
-          }
-        }
+        console.error('[handleReact] Lỗi cập nhật reaction:', error);
       }
     },
     [user],
+  );
+
+  const handleTyping = useCallback(
+    (text: string) => {
+      setMessageContent(text);
+      if (!socket || !id) return;
+      socket.emit('typing', { conversationId: id, isTyping: text.length > 0 });
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = setTimeout(() => {
+        socket.emit('typing', { conversationId: id, isTyping: false });
+      }, 2000);
+    },
+    [socket, id],
   );
 
   const handleSend = async () => {
@@ -469,6 +497,35 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
     const mediaIds = uploadedMediaId ? [uploadedMediaId] : undefined;
     const mediaList = uploadedMediaObj ? [uploadedMediaObj] : undefined;
 
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: IMessage = {
+      id: tempId,
+      tempId,
+      conversationId: id,
+      content: content || '',
+      senderId: user?.id,
+      sender: user
+        ? {
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            avatarUrl: user.avatarUrl,
+          }
+        : undefined,
+      media: mediaList,
+      createdAt: new Date().toISOString(),
+      status: 'Sending',
+    };
+
+    setMessages(prev => [optimisticMessage, ...prev]);
+    inputRef.current?.clear();
+    setMessageContent('');
+    setInputHeight(32);
+    setSelectedMedia(null);
+    setIsUploading(false);
+    setIsTexting(false);
+    scrollToBottom();
+
     if (socket && socket.connected) {
       socket.emit('message', {
         conversationId: id,
@@ -476,40 +533,108 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
         senderId: user?.id,
         mediaId: mediaIds,
         media: mediaList,
+        tempId,
       });
-      inputRef.current?.clear();
-      setMessageContent('');
-      setInputHeight(32);
-      setSelectedMedia(null);
-      setIsUploading(false);
-      setIsTexting(false);
+
+      // Đặt timeout nếu sau 10s chưa nhận được message thì coi như thất bại
+      setTimeout(() => {
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === tempId && m.status === 'Sending'
+              ? { ...m, status: 'Failed' }
+              : m,
+          ),
+        );
+      }, 10000);
     } else {
       createMessage.mutate(
-        { conversationId: id, content: content || '', mediaId: mediaIds },
+        {
+          conversationId: id,
+          content: content || '',
+          mediaId: mediaIds,
+          tempId,
+        } as any,
         {
           onSuccess: (data: any) => {
             const newMsg: IMessage = data.data || data;
-            setMessages(prev => {
-              const msgId = newMsg.id;
-              if (msgId && prev.some(m => m.id === msgId)) {
-                return prev;
-              }
-              return [newMsg, ...prev];
-            });
-            inputRef.current?.clear();
-            setMessageContent('');
-            setInputHeight(32);
-            setSelectedMedia(null);
-            setIsUploading(false);
-            setIsTexting(false);
+            setMessages(prev => prev.map(m => (m.id === tempId ? newMsg : m)));
+            scrollToBottom();
           },
           onError: () => {
-            setIsUploading(false);
+            setMessages(prev =>
+              prev.map(m =>
+                m.id === tempId ? { ...m, status: 'Failed' } : m,
+              ),
+            );
           },
         },
       );
     }
   };
+
+  const handleRetryMessage = useCallback(
+    (failedMessage: IMessage) => {
+      if (!failedMessage?.id) return;
+      const targetId = failedMessage.id;
+      const tempId = failedMessage.tempId || targetId;
+
+      setMessages(prev =>
+        prev.map(m => (m.id === targetId ? { ...m, status: 'Sending' } : m)),
+      );
+      scrollToBottom();
+
+      const mediaIds = failedMessage.media
+        ?.map(m => m.id)
+        .filter(Boolean) as string[] | undefined;
+
+      if (socket && socket.connected) {
+        socket.emit('message', {
+          conversationId: id,
+          content: failedMessage.content || '',
+          senderId: user?.id,
+          mediaId: mediaIds,
+          media: failedMessage.media,
+          tempId,
+        });
+
+        setTimeout(() => {
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === targetId && m.status === 'Sending'
+                ? { ...m, status: 'Failed' }
+                : m,
+            ),
+          );
+        }, 10000);
+      } else {
+        createMessage.mutate(
+          {
+            conversationId: id,
+            content: failedMessage.content || '',
+            mediaId: mediaIds,
+            tempId,
+          } as any,
+          {
+            onSuccess: (data: any) => {
+              const newMsg: IMessage = data.data || data;
+              setMessages(prev =>
+                prev.map(m => (m.id === targetId ? newMsg : m)),
+              );
+              scrollToBottom();
+            },
+            onError: () => {
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === targetId ? { ...m, status: 'Failed' } : m,
+                ),
+              );
+            },
+          },
+        );
+      }
+    },
+    [socket, id, user?.id, createMessage, scrollToBottom],
+  );
 
   return {
     messages,
@@ -535,6 +660,7 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
     listRef,
     inputRef,
     user,
+    isOtherTyping,
 
     fetchData,
     handleRefresh,
@@ -547,6 +673,8 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
     handlePinMessage,
     handleReact,
     handleSend,
+    handleRetryMessage,
+    handleTyping,
     scrollToBottom,
     keyExtractor,
   };

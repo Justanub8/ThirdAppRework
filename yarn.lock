@@ -1200,21 +1200,6 @@
   resolved "https://registry.npmjs.org/@expo/sdk-runtime-versions/-/sdk-runtime-versions-1.0.0.tgz"
   integrity sha512-Doz2bfiPndXYFPMRwPyGa1k5QaKDVpY806UJj570epIiMzWaYyCtobasyfC++qfIXVb5Ocy7r3tP9d62hAQ7IQ==
 
-"@gorhom/bottom-sheet@^5.2.14":
-  version "5.2.14"
-  resolved "https://registry.npmjs.org/@gorhom/bottom-sheet/-/bottom-sheet-5.2.14.tgz"
-  integrity sha512-uLQFlDjp9z+jrOFcMSEldPqL5JdaXL3vXOh+juhwoNvXgTsEorJLjHTugXu+YccAG/0KJnShzKCrb71MHBsvJg==
-  dependencies:
-    "@gorhom/portal" "1.0.14"
-    invariant "^2.2.4"
-
-"@gorhom/portal@1.0.14":
-  version "1.0.14"
-  resolved "https://registry.npmjs.org/@gorhom/portal/-/portal-1.0.14.tgz"
-  integrity sha512-MXyL4xvCjmgaORr/rtryDNFy3kU4qUbKlwtQqqsygd0xX3mhKjOLn6mQK8wfu0RkoE0pBE0nAasRoHua+/QZ7A==
-  dependencies:
-    nanoid "^3.3.1"
-
 "@hapi/hoek@^9.0.0", "@hapi/hoek@^9.3.0":
   version "9.3.0"
   resolved "https://registry.npmjs.org/@hapi/hoek/-/hoek-9.3.0.tgz"
@@ -5963,7 +5948,7 @@ ms@2.1.2:
   resolved "https://registry.npmjs.org/ms/-/ms-2.1.2.tgz"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
-nanoid@^3.3.1, nanoid@^3.3.11:
+nanoid@^3.3.11:
   version "3.3.16"
   resolved "https://registry.npmjs.org/nanoid/-/nanoid-3.3.16.tgz"
   integrity sha512-bzlKTyNJ7+LdGIIwy8ijFpIqEQIvafahV7eYykJ8Cvh42EdJeODoJ6gUJXpQJvej1BddH8OqTXZNE/KfbWAu8Q==
@@ -6572,7 +6557,7 @@ react-native-fs@^2.20.0:
     base-64 "^0.1.0"
     utf8 "^3.0.0"
 
-react-native-gesture-handler@*, react-native-gesture-handler@^3.1.0, react-native-gesture-handler@>=2.16.1:
+react-native-gesture-handler@*, react-native-gesture-handler@^3.1.0:
   version "3.1.0"
   resolved "https://registry.npmjs.org/react-native-gesture-handler/-/react-native-gesture-handler-3.1.0.tgz"
   integrity sha512-+kWVyZ6vLdtyFa1/aOc/sZncLAVPUKxhji/ttbiLI7hOaSU44bLjhI7p+Ns+pMl2r3RqPXssl5qHReYet9G77g==
@@ -6615,7 +6600,7 @@ react-native-pager-view@^9.0.4, "react-native-pager-view@>= 6.0.0":
   resolved "https://registry.npmjs.org/react-native-pager-view/-/react-native-pager-view-9.0.4.tgz"
   integrity sha512-FoGi40losOaXNj/bGzr0O6rvJY3KOkQKtTXGtfElo/rV66KUcXV0UegDKzhoK4Fg+rChbPJRlyhtro8qUG9abQ==
 
-react-native-reanimated@*, react-native-reanimated@^4.5.3, "react-native-reanimated@>=3.16.0 || >=4.0.0-":
+react-native-reanimated@*, react-native-reanimated@^4.5.3:
   version "4.5.3"
   resolved "https://registry.npmjs.org/react-native-reanimated/-/react-native-reanimated-4.5.3.tgz"
   integrity sha512-+owIckpD4sA13XKHaLrr8V1RP4paqoxKvz/jy2wl/ULjMsfcRlfIJdKJxR1kcQr4McBZ6hAoPo01NyLnmy2ycQ==

@@ -216,7 +216,10 @@ const CameraScreen = () => {
         {isRecording && (
           <View style={styles.timerBadge}>
             <View style={styles.timerDot} />
-            <BaseText typography={Typography.bodyMedium.medium} color={theme.white}>
+            <BaseText
+              typography={Typography.bodyMedium.medium}
+              color={theme.white}
+            >
               {formatTimer(recordingSeconds)}
             </BaseText>
           </View>
@@ -256,9 +259,7 @@ const CameraScreen = () => {
             >
               <BaseText
                 typography={Typography.bodyMedium.medium}
-                color={
-                  mode === 'image' ? theme.white : theme.overlayWhite60
-                }
+                color={mode === 'image' ? theme.white : theme.overlayWhite60}
               >
                 Ảnh
               </BaseText>
@@ -270,9 +271,7 @@ const CameraScreen = () => {
             >
               <BaseText
                 typography={Typography.bodyMedium.medium}
-                color={
-                  mode === 'video' ? theme.white : theme.overlayWhite60
-                }
+                color={mode === 'video' ? theme.white : theme.overlayWhite60}
               >
                 Video
               </BaseText>

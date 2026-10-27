@@ -24,6 +24,11 @@ export interface AvatarProps {
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   storyUserIds?: string[];
+  showUsername?: boolean;
+  showStoryStatus?: boolean;
+  showStory?: boolean;
+  onlyAvatar?: boolean;
+  onlyImage?: boolean;
 }
 
 const STORY_GRADIENT_COLORS = [
@@ -51,9 +56,21 @@ const Avatar: React.FC<AvatarProps> = ({
   onPress,
   style,
   storyUserIds,
+  showUsername = true,
+  showStoryStatus = true,
+  showStory = true,
+  onlyAvatar = false,
+  onlyImage = false,
 }) => {
   const { theme } = useTheme();
   const currentUserId = useAuthStore(state => state.user?.id);
+
+  const isOnlyAvatar = onlyAvatar || onlyImage;
+  const isStoryEnabled =
+    showStoryStatus !== undefined ? showStoryStatus : showStory;
+  const shouldShowStory = !isOnlyAvatar && isStoryEnabled && hasActiveStory;
+  const shouldShowUsername = !isOnlyAvatar && showUsername && Boolean(username);
+  const shouldShowOnline = !isOnlyAvatar && isOnline;
 
   const imageSource = React.useMemo(() => {
     if (!url) return images.avater_random;
@@ -67,7 +84,7 @@ const Avatar: React.FC<AvatarProps> = ({
       return;
     }
     if (!id) return;
-    if (hasActiveStory) {
+    if (shouldShowStory) {
       if (currentUserId && id === currentUserId) {
         Navigation.goToMyActiveStory();
       } else {
@@ -86,38 +103,41 @@ const Avatar: React.FC<AvatarProps> = ({
   const innerSize = size - gapWidth * 2;
 
   const renderAvatarImage = () => {
-    if (hasActiveStory) {
+    if (shouldShowStory) {
       const gradientColors = isSeenStory
         ? SEEN_STORY_COLORS
         : STORY_GRADIENT_COLORS;
       return (
         <LinearGradient
-          style={{
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
+          style={[
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+            },
+            styles.centerContent,
+          ]}
           colors={gradientColors}
           start={{ x: 0.0, y: 1.0 }}
           end={{ x: 1.0, y: 0.0 }}
         >
           <View
-            style={{
-              width: innerSize,
-              height: innerSize,
-              borderRadius: innerSize / 2,
-              borderWidth: gapWidth,
-              borderColor: theme.background,
-              overflow: 'hidden',
-              backgroundColor: theme.background,
-            }}
+            style={[
+              {
+                width: innerSize,
+                height: innerSize,
+                borderRadius: innerSize / 2,
+                borderWidth: gapWidth,
+                borderColor: theme.background,
+                backgroundColor: theme.background,
+              },
+              styles.overflowHidden,
+            ]}
           >
             <FastImage
               source={imageSource}
               resizeMode="cover"
-              style={{ width: '100%', height: '100%', borderRadius: 9999 }}
+              style={styles.fullSizeCircle}
             />
           </View>
         </LinearGradient>
@@ -126,18 +146,20 @@ const Avatar: React.FC<AvatarProps> = ({
 
     return (
       <View
-        style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          overflow: 'hidden',
-          backgroundColor: theme.darkSurface || '#2a2a2a',
-        }}
+        style={[
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: theme.darkSurface || '#2a2a2a',
+          },
+          styles.overflowHidden,
+        ]}
       >
         <FastImage
           source={imageSource}
           resizeMode="cover"
-          style={[{ width: '100%', height: '100%', borderRadius: size / 2 }]}
+          style={[{ borderRadius: size / 2 }, styles.fullSize]}
         />
       </View>
     );
@@ -149,9 +171,9 @@ const Avatar: React.FC<AvatarProps> = ({
       disabled={disabled || !id}
       style={[styles.container, style]}
     >
-      <View style={{ position: 'relative' }}>
+      <View style={styles.imageWrapper}>
         {renderAvatarImage()}
-        {isOnline ? (
+        {shouldShowOnline ? (
           <View
             style={[
               styles.onlineBadge,
@@ -167,7 +189,7 @@ const Avatar: React.FC<AvatarProps> = ({
         ) : null}
       </View>
 
-      {username ? (
+      {shouldShowUsername ? (
         <BaseText
           style={[styles.username, { color: theme.text, maxWidth: size + 28 }]}
           numberOfLines={1}
@@ -183,6 +205,25 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  overflowHidden: {
+    overflow: 'hidden',
+  },
+  fullSize: {
+    width: '100%',
+    height: '100%',
+  },
+  imageWrapper: {
+    position: 'relative',
+  },
+  fullSizeCircle: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 9999,
   },
   username: {
     marginTop: 4,

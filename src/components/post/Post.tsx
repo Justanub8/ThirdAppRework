@@ -6,7 +6,7 @@ import {
   FlatList,
   ViewToken,
 } from 'react-native';
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Typography } from '~/constants';
 import { BaseText } from '~/components/rn-components';
 import { CommentIcon, MoreIcon, MessageLightIcon } from '~/assets/svgs';
@@ -20,65 +20,25 @@ import LikeButton from '~/components/buttons/LikeButton';
 import BookmarkButton from '~/components/buttons/BookmarkButton';
 import { IMedia } from '~/interfaces';
 import { Navigation } from '~/utils';
-import { useFollowMutation, useAuthStore } from '~/hooks';
+import { useFollowMutation, useTheme } from '~/hooks';
+import { useAuthStore } from '~/store';
 import { RepostButton } from '~/components/buttons';
 import PostVideoItem from '~/components/post/components/PostVideoItem';
 
-const Post = ({
-  post,
-  isActive = true,
-}: {
-  post: IPost;
-  isActive?: boolean;
-}) => {
-  const [expanded, setExpanded] = React.useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [numberOfLines, _setNumberOfLines] = React.useState(0);
-  const [likeCount, setLikeCount] = useState(post.likeCount);
-  const [repostCount, setRepostCount] = useState(post.repostCount);
-  const [isFollowing, setIsFollowing] = useState(!!post.isFollowing);
-  const windowWidth = Dimensions.get('window').width;
-  const currentUser = useAuthStore(state => state.user);
-  const postUserId = post.user?.id;
-  const currentUserId = currentUser?.id;
-  const isOwnPost = !!currentUserId && currentUserId === postUserId;
-  const postId = post.id || '';
+interface PostMediaItemProps {
+  item: IMedia;
+  isPaused: boolean;
+  windowWidth: number;
+}
 
-  useEffect(() => {
-    setLikeCount(post.likeCount);
-  }, [post.likeCount]);
-
-  useEffect(() => {
-    setRepostCount(post.repostCount);
-  }, [post.repostCount]);
-
-  useEffect(() => {
-    setIsFollowing(!!post.isFollowing);
-  }, [postUserId, post.isFollowing]);
-
-  const { createFollow, deleteFollow } = useFollowMutation();
-
-  const handleFollowToggle = () => {
-    if (!postUserId) return;
-    const nextState = !isFollowing;
-    setIsFollowing(nextState);
-    if (isFollowing) {
-      deleteFollow.mutate(postUserId);
-    } else {
-      createFollow.mutate(postUserId);
-    }
-  };
-
-  const renderItem = ({ item, index }: { item: IMedia; index: number }) => {
+const PostMediaItem = React.memo(
+  ({ item, isPaused, windowWidth }: PostMediaItemProps) => {
     return (
       <View
         style={{ width: windowWidth, aspectRatio: 1, backgroundColor: '#000' }}
       >
         {item.type === 'video' ? (
-          <PostVideoItem
-            url={item?.url}
-            isPaused={!isActive || index !== activeIndex}
-          />
+          <PostVideoItem url={item?.url} isPaused={isPaused} />
         ) : (
           <FastImage
             source={{ uri: item?.url }}
@@ -88,7 +48,51 @@ const Post = ({
         )}
       </View>
     );
-  };
+  },
+);
+
+const Post = ({
+  post,
+  isActive = true,
+}: {
+  post: IPost;
+  isActive?: boolean;
+}) => {
+  const { theme } = useTheme();
+  const [expanded, setExpanded] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [canExpand, setCanExpand] = useState(false);
+  const windowWidth = Dimensions.get('window').width;
+  const currentUser = useAuthStore(state => state.user);
+  const postUserId = post.user?.id;
+  const currentUserId = currentUser?.id;
+  const isOwnPost = !!currentUserId && currentUserId === postUserId;
+  const postId = post.id || '';
+  const isFollowing = !!post.isFollowing;
+
+  const { createFollow, deleteFollow } = useFollowMutation();
+
+  const handleFollowToggle = useCallback(() => {
+    if (!postUserId) return;
+    if (isFollowing) {
+      deleteFollow.mutate(postUserId);
+    } else {
+      createFollow.mutate(postUserId);
+    }
+  }, [postUserId, isFollowing, createFollow, deleteFollow]);
+
+  const renderMediaItem = useCallback(
+    ({ item, index }: { item: IMedia; index: number }) => {
+      return (
+        <PostMediaItem
+          item={item}
+          isPaused={!isActive || index !== activeIndex}
+          windowWidth={windowWidth}
+        />
+      );
+    },
+    [isActive, activeIndex, windowWidth],
+  );
 
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -105,6 +109,11 @@ const Post = ({
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 50,
   }).current;
+
+  const mediaKeyExtractor = useCallback(
+    (item: IMedia, index: number) => item?.id || `media-${index}`,
+    [],
+  );
 
   return (
     <View style={styles.postContainer}>
@@ -148,20 +157,14 @@ const Post = ({
               </BaseText>
             </TouchableOpacity>
           )}
-          <MoreIcon
-            width={24}
-            height={24}
-            onPress={() => {
-              console.log(post);
-            }}
-          />
+          <MoreIcon width={24} height={24} onPress={() => {}} />
         </View>
       </View>
       <View style={{ width: windowWidth, aspectRatio: 1 }}>
         <FlatList
           data={post.media || []}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => item?.id || index.toString()}
+          renderItem={renderMediaItem}
+          keyExtractor={mediaKeyExtractor}
           pagingEnabled={true}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
@@ -180,19 +183,14 @@ const Post = ({
                   id={postId}
                   type="Post"
                   initialLiked={post.isLiked}
-                  onLikeToggle={isLiked =>
-                    setLikeCount(prev =>
-                      isLiked ? prev + 1 : Math.max(0, prev - 1),
-                    )
-                  }
                   activeColor="#F44336"
                 />
               }
-              interactNum={likeCount}
+              interactNum={post.likeCount ?? 0}
             />
             <InteractNum
               accessory={<CommentIcon width={24} height={24} />}
-              interactNum={post.commentCount}
+              interactNum={post.commentCount ?? 0}
               onPress={() =>
                 SheetManager.show('CommentSheet', {
                   payload: { targetId: postId, targetType: 'Post' },
@@ -206,18 +204,13 @@ const Post = ({
                   id={postId}
                   type="Post"
                   initialReposted={post.isReposted}
-                  onRepostToggle={isReposted =>
-                    setRepostCount(prev =>
-                      isReposted ? prev + 1 : Math.max(0, prev - 1),
-                    )
-                  }
                 />
               }
-              interactNum={repostCount}
+              interactNum={post.repostCount ?? 0}
             />
             <InteractNum
               accessory={<MessageLightIcon width={24} height={24} />}
-              interactNum={post.shareCount}
+              interactNum={post.shareCount ?? 0}
             />
           </View>
           <BookmarkButton
@@ -229,28 +222,35 @@ const Post = ({
         </View>
         <SizedBox height={12} />
         <View>
-          <BaseText numberOfLines={expanded ? undefined : 1}>
+          <BaseText
+            numberOfLines={expanded ? undefined : 2}
+            onTextLayout={e => {
+              if (e.nativeEvent.lines.length > 2) {
+                setCanExpand(true);
+              }
+            }}
+          >
             <BaseText
               typography={Typography.bodyBold.medium}
               onPress={() => {}}
             >
               {post.user?.username || 'Unknown'}
             </BaseText>
-            <SizedBox width={8} />
+            {'  '}
             <BaseText typography={Typography.bodyRegular.medium}>
               {post.caption}
             </BaseText>
           </BaseText>
-          {numberOfLines > 1 ? (
+          {canExpand ? (
             <TouchableOpacity
               onPress={() => setExpanded(prev => !prev)}
               style={{ marginTop: 4 }}
             >
               <BaseText
-                color={'#9e9e9e'}
+                color={theme.placeholder}
                 typography={Typography.bodyRegular.medium}
               >
-                {expanded ? 'See less' : 'See more'}
+                {expanded ? 'Thu gọn' : 'Xem thêm'}
               </BaseText>
             </TouchableOpacity>
           ) : null}
@@ -274,26 +274,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  avatarContainer: {
-    height: 40,
-    width: 40,
-    borderRadius: 9999,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarInner: {
-    borderRadius: 9999,
-    width: 34,
-    height: 34,
-    borderWidth: 1,
-    borderColor: '#ffffff',
-    backgroundColor: '#ffffff',
-  },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 9999,
   },
   headerRightRow: {
     flexDirection: 'row',

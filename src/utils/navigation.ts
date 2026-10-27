@@ -109,11 +109,31 @@ export const Navigation = {
     }
   },
 
-  goToConversationDetail: (id: string) => {
+  goToConversationDetail: (id: string, name?: string, imageUrl?: string) => {
     SheetManager.hideAll();
     if (navigationRef.isReady()) {
       navigationRef.navigate('App', {
         screen: 'ConversationDetail',
+        params: { id, name, imageUrl },
+      });
+    }
+  },
+
+  goToConversationNickname: (id: string) => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'ConversationNickname',
+        params: { id },
+      });
+    }
+  },
+
+  goToConversationPinned: (id: string) => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'ConversationPinned',
         params: { id },
       });
     }
@@ -256,6 +276,15 @@ export const Navigation = {
     if (navigationRef.isReady()) {
       navigationRef.navigate('App', {
         screen: 'Setting',
+      });
+    }
+  },
+
+  goToEditProfile: () => {
+    SheetManager.hideAll();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('App', {
+        screen: 'EditProfile',
       });
     }
   },

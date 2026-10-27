@@ -6,22 +6,20 @@ export const resources = {
 } as const;
 export const defaultNS = 'app';
 
-i18n
-  .use(initReactI18next)
-  .init({
-    defaultNS,
-    resources,
-    nsSeparator: ':',
-    fallbackLng: ['vn'],
-    lng: 'vn',
+i18n.use(initReactI18next).init({
+  defaultNS,
+  resources,
+  nsSeparator: ':',
+  fallbackLng: ['vn'],
+  lng: 'vn',
 
-    interpolation: {
-      escapeValue: false,
-    },
-    react: {
-      useSuspense: true,
-    },
-    load: 'languageOnly',
-  });
+  interpolation: {
+    escapeValue: false,
+  },
+  react: {
+    useSuspense: true,
+  },
+  load: 'languageOnly',
+});
 
 export default i18n;
