@@ -5,7 +5,7 @@ import { ILoginPayLoad, ISignUpPayload } from '~/interfaces';
 import { useAuthStore } from '~/hooks/useAuthStore';
 
 export const useAuthMutation = () => {
-  const { saveUser } = useAuthStore();
+  const saveUser = useAuthStore(s => s.saveUser);
 
   const signUp = useMutation({
     mutationFn: (payload: ISignUpPayload) => {

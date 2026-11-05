@@ -11,6 +11,12 @@ type ColorScheme = {
   readonly green: string;
   readonly sheet: string;
   readonly input: string;
+  /** Hairline dividers between rows / sections. */
+  readonly separator: string;
+  /** Filled secondary buttons (Edit profile, Following, ...). */
+  readonly surface: string;
+  /** Secondary text: timestamps, captions, count labels. */
+  readonly textSecondary: string;
 };
 type CommonColors = {
   readonly grey: string;
@@ -66,7 +72,10 @@ export const COLORS: {
     white: '#ffffff',
     green: '#2ECC71',
     sheet: '#ffffff',
-    input: '#EAEAEA',
+    input: '#EFEFEF',
+    separator: '#DBDBDB',
+    surface: '#EFEFEF',
+    textSecondary: '#737373',
   },
   dark: {
     background: '#000000',
@@ -78,8 +87,11 @@ export const COLORS: {
     red: '#E63946',
     white: '#ffffff',
     green: '#2ECC71',
-    sheet: '#2B2B2B',
-    input: '#4A4A4A',
+    sheet: '#262626',
+    input: '#262626',
+    separator: '#262626',
+    surface: '#363636',
+    textSecondary: '#A8A8A8',
   },
   common: {
     grey: '#757575',
@@ -137,14 +149,14 @@ export const FONT_FAMILY = {
   medium: 'SFProDisplay-Medium',
   mediumItalic: 'SFProDisplay-MediumItalic',
 
-  semibold: 'SFProDisplay-SemiBold',
-  semiboldItalic: 'SFProDisplay-SemiBoldItalic',
+  semibold: 'SFProDisplay-Semibold',
+  semiboldItalic: 'SFProDisplay-SemiboldItalic',
 
   bold: 'SFProDisplay-Bold',
   boldItalic: 'SFProDisplay-BoldItalic',
 
-  extraBold: 'SFProDisplay-ExtraBold',
-  extraBoldItalic: 'SFProDisplay-ExtraBoldItalic',
+  extraBold: 'SFProDisplay-Heavy',
+  extraBoldItalic: 'SFProDisplay-HeavyItalic',
 
   black: 'SFProDisplay-Black',
   blackItalic: 'SFProDisplay-BlackItalic',

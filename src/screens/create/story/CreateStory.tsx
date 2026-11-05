@@ -26,7 +26,7 @@ import {
 import { Navigation, isVideoMedia } from '~/utils';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
-import CreateStoryVideo from '~/screens/create-story/components/CreateStoryVideo';
+import CreateStoryVideo from './components/CreateStoryVideo';
 import { mediaApi } from '~/api';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreateStory'>;

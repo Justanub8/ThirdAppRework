@@ -167,34 +167,6 @@ export const resolveLocalMediaUri = async (
       return `file://${destPath}`;
     }
 
-    if (Platform.OS === 'ios' && uri.startsWith('ph://')) {
-      if (isVideo) {
-        try {
-          if (RNFS.copyAssetsVideoIOS) {
-            const copiedPath = await RNFS.copyAssetsVideoIOS(uri, destPath);
-            if (copiedPath) {
-              return copiedPath.startsWith('file://')
-                ? copiedPath
-                : `file://${copiedPath}`;
-            }
-          }
-        } catch (videoErr) {
-          console.log('Error copyAssetsVideoIOS:', videoErr);
-        }
-      }
-
-      try {
-        const asset = await CameraRoll.iosGetImageDataById(uri, {
-          convertHeicImages: true,
-        });
-        if (asset?.node?.image?.filepath) {
-          return asset.node.image.filepath;
-        }
-      } catch (err) {
-        console.log('Error getting image data by internal id:', err);
-      }
-    }
-
     if (Platform.OS === 'ios' && uri.startsWith('assets-library://')) {
       if (isVideo && RNFS.copyAssetsVideoIOS) {
         try {
@@ -218,61 +190,6 @@ export const resolveLocalMediaUri = async (
   } catch (error) {
     console.log('Error resolving local media uri:', error);
     return uri;
-  }
-};
-
-export interface NormalizedMediaAsset {
-  uri: string;
-  filename?: string | null;
-  extension?: string | null;
-  type: 'image' | 'video';
-  playableDuration?: number | null;
-  width?: number;
-  height?: number;
-}
-
-export interface FetchDeviceMediaResult {
-  photos: NormalizedMediaAsset[];
-  hasNextPage: boolean;
-  endCursor?: string;
-}
-
-export const fetchDeviceMedia = async (
-  after?: string,
-  first: number = 16,
-  assetType: 'All' | 'Photos' | 'Videos' = 'All',
-): Promise<FetchDeviceMediaResult> => {
-  try {
-    const res = await CameraRoll.getPhotos({
-      first,
-      after,
-      assetType,
-    });
-
-    const photos: NormalizedMediaAsset[] = res.edges.map(edge => {
-      const image = edge.node.image;
-      const isVideo = isVideoMedia(image);
-
-      return {
-        ...image,
-        uri: image.uri,
-        filename: image.filename || undefined,
-        extension: image.extension || undefined,
-        type: isVideo ? 'video' : 'image',
-        playableDuration: image.playableDuration || undefined,
-        width: image.width,
-        height: image.height,
-      };
-    });
-
-    return {
-      photos,
-      hasNextPage: res.page_info.has_next_page,
-      endCursor: res.page_info.end_cursor,
-    };
-  } catch (error) {
-    console.log('Error fetchDeviceMedia:', error);
-    return { photos: [], hasNextPage: false };
   }
 };
 

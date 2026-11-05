@@ -9,7 +9,7 @@ import {
   Explore,
   Profile,
 } from '~/screens';
-import { useTheme, useAuthStore } from '~/hooks';
+import { useTheme, useAuthStore, Theme } from '~/hooks';
 import {
   HomeBoldIcon,
   HomeLightIcon,
@@ -22,7 +22,7 @@ import {
 } from '~/assets/svgs';
 import { Avatar } from '~/components/avatar';
 
-const ICON_SIZE = 36;
+const ICON_SIZE = 28;
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const renderHomeIcon = ({ focused }: { focused: boolean }) =>
@@ -64,7 +64,7 @@ const ProfileTabIcon = ({
 }) => (
   <Avatar
     url={url}
-    size={28}
+    size={26}
     disabled
     style={focused ? focusedStyle : undefined}
   />
@@ -126,7 +126,7 @@ const MainTabNavigator: React.FC = () => {
   );
 };
 
-const getStyles = (theme: any) =>
+const getStyles = (theme: Theme) =>
   StyleSheet.create({
     focusedAvatar: {
       borderWidth: 2,
@@ -135,7 +135,8 @@ const getStyles = (theme: any) =>
     },
     tabBar: {
       backgroundColor: theme.background,
-      borderTopColor: theme.border,
+      borderTopColor: theme.separator,
+      borderTopWidth: StyleSheet.hairlineWidth,
     },
   });
 

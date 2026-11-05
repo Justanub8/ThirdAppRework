@@ -1,8 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import ActionSheet, {
-  SheetProps,
-  SheetManager,
-} from 'react-native-actions-sheet';
+import ActionSheet, { SheetProps } from 'react-native-actions-sheet';
 import {
   View,
   StyleSheet,
@@ -21,7 +18,7 @@ import Comment from '~/components/comment/Comment';
 import { useCommentMutation, useTheme, Theme, useAuthStore } from '~/hooks';
 import { Typography } from '~/constants';
 import { CameraLightIcon, CrossIcon } from '~/assets/svgs';
-import { SelectedChatMedia } from '~/components/sheets/MediaSheet';
+import { PickedMedia, pickMedia } from '~/utils';
 import { IComment } from '~/interfaces';
 
 const CommentSheet = (props: SheetProps<'CommentSheet'>) => {
@@ -30,9 +27,7 @@ const CommentSheet = (props: SheetProps<'CommentSheet'>) => {
   const currentUser = useAuthStore(state => state.user);
   const { targetId, targetType } = props.payload || {};
   const [commentText, setCommentText] = useState('');
-  const [selectedImage, setSelectedImage] = useState<SelectedChatMedia | null>(
-    null,
-  );
+  const [selectedImage, setSelectedImage] = useState<PickedMedia | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { createComment } = useCommentMutation();
 
@@ -200,14 +195,9 @@ const CommentSheet = (props: SheetProps<'CommentSheet'>) => {
             <View style={styles.commentInputContainer}>
               <TouchableOpacity
                 style={styles.cameraIcon}
-                onPress={() => {
-                  SheetManager.show('MediaSheet', {
-                    payload: {
-                      mediaType: 'image',
-                      onSelectMedia: (media: SelectedChatMedia) =>
-                        setSelectedImage(media),
-                    },
-                  });
+                onPress={async () => {
+                  const media = await pickMedia('image');
+                  if (media) setSelectedImage(media);
                 }}
                 disabled={isUploading}
               >

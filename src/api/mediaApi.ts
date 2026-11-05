@@ -1,5 +1,6 @@
 import axiosInstance from '~/services/axiosClient';
 import axios from 'axios';
+import { createThumbnail } from 'react-native-create-thumbnail';
 import { IMedia } from '~/interfaces';
 import {
   resolveLocalMediaUri,
@@ -53,6 +54,25 @@ export const mediaApi = {
       name: uploadName,
       type: mimeType,
     } as any);
+
+    if (isVideo) {
+      // Grab a poster frame from the local file (no network) so the server can
+      // store a thumbnail; viewers then never need to download the video for it.
+      try {
+        const thumb = await createThumbnail({ url: fileUri, timeStamp: 100 });
+        if (thumb?.path) {
+          formData.append('thumbnail', {
+            uri: thumb.path.startsWith('file://')
+              ? thumb.path
+              : `file://${thumb.path}`,
+            name: `thumb_${Date.now()}.jpg`,
+            type: thumb.mime || 'image/jpeg',
+          } as any);
+        }
+      } catch (err) {
+        console.log('Could not create video poster:', err);
+      }
+    }
 
     if (postId) formData.append('postId', postId);
     if (messageId) formData.append('messageId', messageId);

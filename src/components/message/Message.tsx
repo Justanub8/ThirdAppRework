@@ -119,6 +119,7 @@ const Message = ({
                   {isVideo ? (
                     <MessageVideoItem
                       url={m.url}
+                      thumbnailUrl={m.thumbnailUrl}
                       videoId={videoId}
                       isPaused={!isPlaying}
                       onTogglePlay={onTogglePlayVideo}
@@ -223,10 +224,7 @@ const Message = ({
           ]}
           activeOpacity={0.7}
         >
-          <BaseText
-            color="#FF3B30"
-            typography={Typography.bodyRegular.xSmall}
-          >
+          <BaseText color="#FF3B30" typography={Typography.bodyRegular.xSmall}>
             Gửi thất bại • Chạm để thử lại
           </BaseText>
         </TouchableOpacity>
@@ -394,6 +392,7 @@ export default React.memo(Message, (prevProps, nextProps) => {
   if (prevProps.previous !== nextProps.previous) return false;
   if (prevProps.isRefreshing !== nextProps.isRefreshing) return false;
   if (prevProps.currentUserId !== nextProps.currentUserId) return false;
+  if (prevProps.senderNickname !== nextProps.senderNickname) return false;
   if (prevProps.onTogglePlayVideo !== nextProps.onTogglePlayVideo) return false;
   if (prevProps.onReply !== nextProps.onReply) return false;
   if (prevProps.onCopy !== nextProps.onCopy) return false;

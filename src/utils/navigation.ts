@@ -4,6 +4,7 @@ import {
 } from '@react-navigation/native';
 import { SheetManager } from 'react-native-actions-sheet';
 import { RootStackParamList } from '~/navigation/types';
+import { pickMedia } from './mediaPicker';
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 export const Navigation = {
@@ -172,12 +173,10 @@ export const Navigation = {
     }
   },
 
-  goToSelectPostMedia: () => {
-    SheetManager.hideAll();
-    if (navigationRef.isReady()) {
-      navigationRef.navigate('App', {
-        screen: 'SelectPostMedia',
-      });
+  goToSelectPostMedia: async () => {
+    const media = await pickMedia('all');
+    if (media) {
+      Navigation.goToCreatePost(media.uri, media.type);
     }
   },
 
@@ -191,12 +190,10 @@ export const Navigation = {
     }
   },
 
-  goToSelectStoryMedia: () => {
-    SheetManager.hideAll();
-    if (navigationRef.isReady()) {
-      navigationRef.navigate('App', {
-        screen: 'SelectStoryMedia',
-      });
+  goToSelectStoryMedia: async () => {
+    const media = await pickMedia('all');
+    if (media) {
+      Navigation.goToCreateStory(media.uri, media.type);
     }
   },
 
@@ -210,12 +207,10 @@ export const Navigation = {
     }
   },
 
-  goToSelectReelMedia: () => {
-    SheetManager.hideAll();
-    if (navigationRef.isReady()) {
-      navigationRef.navigate('App', {
-        screen: 'SelectReelMedia',
-      });
+  goToSelectReelMedia: async () => {
+    const media = await pickMedia('all');
+    if (media) {
+      Navigation.goToCreateReel(media.uri, media.type);
     }
   },
 

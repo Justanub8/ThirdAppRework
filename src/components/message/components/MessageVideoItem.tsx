@@ -10,7 +10,6 @@ import {
 import type { OnLoadData } from 'react-native-video';
 import { BaseVideo } from '~/components/rn-components';
 import { PlayIcon } from '~/assets/svgs';
-import { getVideoThumbnail } from '~/utils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DEFAULT_MEDIA_WIDTH = Math.round(SCREEN_WIDTH * 0.58);
@@ -19,10 +18,11 @@ const videoDimensionsCache = new Map<
   string,
   { width: number; height: number }
 >();
-const videoThumbnailCache = new Map<string, string>();
 
 interface MessageVideoItemProps {
   url: string;
+  /** Server-generated poster, handed to the detail screen on press. */
+  thumbnailUrl?: string | null;
   videoId?: string;
   targetWidth?: number;
   style?: StyleProp<ViewStyle>;
@@ -35,6 +35,7 @@ interface MessageVideoItemProps {
 
 export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
   url,
+  thumbnailUrl,
   videoId,
   targetWidth = DEFAULT_MEDIA_WIDTH,
   style,
@@ -45,35 +46,14 @@ export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
   onLongPress,
 }) => {
   const cachedDims = url ? videoDimensionsCache.get(url) : undefined;
-  const cachedThumb = url ? videoThumbnailCache.get(url) : undefined;
   const [internalPaused, setInternalPaused] = useState(true);
   const [dimensions, setDimensions] = useState(() => ({
     width: cachedDims?.width || targetWidth,
     height: cachedDims?.height || targetWidth,
   }));
-  const [thumbnailUri, setThumbnailUri] = useState<string | undefined>(
-    cachedThumb,
-  );
 
   const effectivePaused =
     controlledPaused !== undefined ? controlledPaused : internalPaused;
-
-  useEffect(() => {
-    if (url && videoThumbnailCache.has(url)) {
-      setThumbnailUri(videoThumbnailCache.get(url));
-      return;
-    }
-    let isMounted = true;
-    getVideoThumbnail(url).then(thumb => {
-      if (isMounted && thumb) {
-        if (url) videoThumbnailCache.set(url, thumb);
-        setThumbnailUri(thumb);
-      }
-    });
-    return () => {
-      isMounted = false;
-    };
-  }, [url]);
 
   useEffect(() => {
     if (url && videoDimensionsCache.has(url)) {
@@ -136,7 +116,7 @@ export const MessageVideoItem: React.FC<MessageVideoItemProps> = ({
       <TouchableOpacity
         activeOpacity={onPress ? 0.9 : 1}
         disabled={!onPress && !onLongPress}
-        onPress={() => onPress && onPress(thumbnailUri)}
+        onPress={() => onPress && onPress(thumbnailUrl ?? undefined)}
         onLongPress={onLongPress}
         delayLongPress={250}
         style={StyleSheet.absoluteFill}

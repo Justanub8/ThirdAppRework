@@ -8,10 +8,10 @@ import { useAuthStore } from '~/hooks';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const RootNavigator: React.FC = () => {
-  const { user, accessToken } = useAuthStore();
+  const isLoggedIn = useAuthStore(s => !!s.user && !!s.accessToken);
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {user && accessToken ? (
+      {isLoggedIn ? (
         <Stack.Screen name="App" component={AuthenticatedNavigator} />
       ) : (
         <Stack.Screen name="Auth" component={AuthNavigator} />

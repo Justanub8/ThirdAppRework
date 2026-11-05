@@ -21,7 +21,7 @@ import {
 import { BaseText, BaseTextInput, FastImage } from '~/components/rn-components';
 import { Avatar } from '~/components/avatar';
 import { AuthenticatedStackParamList } from '~/navigation/types';
-import { Navigation, timeAgo } from '~/utils';
+import { Navigation, pickMedia, timeAgo } from '~/utils';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { IMessage } from '~/interfaces';
 import Message from '~/components/message/Message';
@@ -30,15 +30,21 @@ import { Typography } from '~/constants';
 import { useTheme, Theme } from '~/hooks';
 import { useOnlineStatus, useCall } from '~/context';
 import { useQuery } from '@tanstack/react-query';
-import { SheetManager } from 'react-native-actions-sheet';
-import { SelectedChatMedia } from '~/components/sheets/MediaSheet';
-import { useConversationLogic } from '~/screens/conversation/components';
+import { useConversationLogic } from './hooks/useConversationLogic';
 import ClipBoard from '@react-native-clipboard/clipboard';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'Conversation'>;
 
 const MIN_INPUT_HEIGHT = 32;
 const MAX_INPUT_HEIGHT = 100;
+
+// Module-level so their identity is stable and React.memo(Message) can bail out.
+const copyMessage = (message: IMessage) => {
+  if (message.content) {
+    ClipBoard.setString(message.content);
+  }
+};
+const noop = () => {};
 
 const Conversation = () => {
   const { theme } = useTheme();
@@ -172,15 +178,11 @@ const Conversation = () => {
           currentUserId={user?.id}
           activePlayingVideoId={activePlayingVideoId}
           onTogglePlayVideo={handleTogglePlayVideo}
-          onCopy={() => {
-            if (item.content) {
-              ClipBoard.setString(item.content);
-            }
-          }}
+          onCopy={copyMessage}
           onDelete={handleDeleteMessage}
-          onForward={() => {}}
+          onForward={noop}
           onPin={handlePinMessage}
-          onReply={() => {}}
+          onReply={noop}
           onSelectEmoji={handleReact}
           onEdit={handleStartEdit}
           onRetry={handleRetryMessage}
@@ -371,13 +373,9 @@ const Conversation = () => {
                 !editingMessage ? (
                   <TouchableOpacity
                     style={styles.cameraIcon}
-                    onPress={() => {
-                      SheetManager.show('MediaSheet', {
-                        payload: {
-                          onSelectMedia: (media: SelectedChatMedia) =>
-                            setSelectedMedia(media),
-                        },
-                      });
+                    onPress={async () => {
+                      const media = await pickMedia('all');
+                      if (media) setSelectedMedia(media);
                     }}
                     disabled={isUploading}
                   >
@@ -442,7 +440,7 @@ const Conversation = () => {
             style={[styles.fabContainer, { opacity: fadeAnim }]}
             pointerEvents={showScrollButton ? 'auto' : 'none'}
           >
-            <TouchableOpacity style={styles.fabButton} onPress={scrollToBottom}>
+            <TouchableOpacity style={styles.fabButton} onPress={() => scrollToBottom()}>
               <ArrowToLeft
                 height={24}
                 width={24}

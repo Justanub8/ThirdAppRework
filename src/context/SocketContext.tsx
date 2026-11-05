@@ -31,7 +31,7 @@ const PresenceContext = createContext<PresenceContextType>({
 });
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-  const { accessToken } = useAuthStore();
+  const accessToken = useAuthStore(s => s.accessToken);
   const isAuthenticated = !!accessToken;
   const [socket, setSocket] = useState<Socket | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<

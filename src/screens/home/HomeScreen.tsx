@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import * as React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '~/store';
+import { useAuthStore, useFeedStore } from '~/store';
 import { useTheme, Theme } from '~/hooks';
 import { CreateIcon, NotificationIcon } from '~/assets/svgs';
 import { FastImage } from '~/components/rn-components';
@@ -26,13 +26,12 @@ import { IPost, IProfileUser } from '~/interfaces';
 const HomeScreen = () => {
   const { theme } = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
-  const [activePostId, setActivePostId] = React.useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const onViewableItemsChanged = React.useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (viewableItems && viewableItems.length > 0) {
-        setActivePostId(viewableItems[0].item.id);
+        useFeedStore.getState().setActivePostId(viewableItems[0].item.id);
       }
     },
     [],
@@ -128,6 +127,11 @@ const HomeScreen = () => {
   );
   const isSeenStory = Boolean(myProfile?.isSeenStory);
 
+  const storyUserIds = React.useMemo(
+    () => followedStories.map((item: IProfileUser) => item.id || ''),
+    [followedStories],
+  );
+
   const renderHeader = React.useCallback(
     () => (
       <View>
@@ -175,9 +179,7 @@ const HomeScreen = () => {
               hasActiveStory={true}
               isSeenStory={u.isSeenStory}
               id={u.id}
-              storyUserIds={followedStories.map(
-                (item: IProfileUser) => item.id || '',
-              )}
+              storyUserIds={storyUserIds}
             />
           ))}
         </ScrollView>
@@ -190,6 +192,7 @@ const HomeScreen = () => {
       hasActiveStory,
       isSeenStory,
       followedStories,
+      storyUserIds,
       styles,
     ],
   );
@@ -197,10 +200,8 @@ const HomeScreen = () => {
   const keyExtractor = React.useCallback((item: IPost) => item.id || '', []);
 
   const renderItem = React.useCallback(
-    ({ item }: { item: IPost }) => (
-      <Post post={item} isActive={item.id === activePostId} />
-    ),
-    [activePostId],
+    ({ item }: { item: IPost }) => <Post post={item} />,
+    [],
   );
 
   return (
@@ -209,7 +210,6 @@ const HomeScreen = () => {
         data={posts}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        estimatedItemSize={400}
         ListHeaderComponent={renderHeader}
         onEndReached={() => {
           if (hasNextPage) fetchNextPage();
@@ -222,7 +222,6 @@ const HomeScreen = () => {
         viewabilityConfig={viewabilityConfig}
         refreshing={isRefreshing}
         onRefresh={handleRefresh}
-        extraData={[hasActiveStory, isSeenStory, followedStories]}
       />
     </SafeAreaView>
   );

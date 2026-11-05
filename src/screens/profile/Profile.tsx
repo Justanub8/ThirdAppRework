@@ -12,7 +12,7 @@ import { userApi } from '~/api/userApi';
 import { useAuthStore, useTheme, Theme } from '~/hooks';
 import { SheetManager } from 'react-native-actions-sheet';
 import { Navigation } from '~/utils';
-import Tabs from '~/screens/profile/components/Tabs';
+import { Tabs } from '~/components';
 import FollowPopUp from './components/FollowPopUp';
 const Profile = () => {
   const { theme } = useTheme();

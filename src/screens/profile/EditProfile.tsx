@@ -8,7 +8,6 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SheetManager } from 'react-native-actions-sheet';
 import {
   Avatar,
   BaseText,
@@ -19,11 +18,10 @@ import {
 import { ArrowToLeft, CameraLightIcon } from '~/assets/svgs';
 import { Typography } from '~/constants';
 import { useTheme, Theme, useAuthStore } from '~/hooks';
-import { Navigation } from '~/utils';
+import { Navigation, pickMedia } from '~/utils';
 import { userApi, mediaApi } from '~/api';
 import { queryClient } from '~/services/queryClient';
 import { showToast } from '~/components/globals/GlobalToast';
-import { SelectedChatMedia } from '~/components/sheets/MediaSheet';
 
 const EditProfile = () => {
   const { theme } = useTheme();
@@ -42,17 +40,11 @@ const EditProfile = () => {
   const displayAvatarUri =
     selectedAvatarUri || currentUser?.avatarUrl || currentUser?.imageUrl;
 
-  const handleOpenMediaSheet = useCallback(() => {
-    SheetManager.show('MediaSheet', {
-      payload: {
-        mediaType: 'image',
-        onSelectMedia: (media: SelectedChatMedia) => {
-          if (media?.uri) {
-            setSelectedAvatarUri(media.uri);
-          }
-        },
-      },
-    });
+  const handleOpenMediaSheet = useCallback(async () => {
+    const media = await pickMedia('image');
+    if (media?.uri) {
+      setSelectedAvatarUri(media.uri);
+    }
   }, []);
 
   const handleSave = async () => {

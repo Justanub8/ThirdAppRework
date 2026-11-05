@@ -1,48 +1,49 @@
 import {
   View,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
   Image,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
-import React, { useState, useEffect, useMemo } from 'react';
-import { AuthenticatedStackParamList } from '~/navigation/types';
+import React, { useState, useEffect } from 'react';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import { Theme, useReelMutation, useTheme } from '~/hooks';
+import { AuthenticatedStackParamList } from '~/navigation/types';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import {
-  CrossIcon,
-  MutedIcon,
-  UnmutedIcon,
-  TextAaIcon,
-  StickerIcon,
-  StarIcon,
-  MusicIcon,
-  ScribbleIcon,
   ArrowToRight,
+  CrossIcon,
+  MenuIcon,
+  MutedIcon,
+  StickerIcon,
+  TextAaIcon,
+  UnmutedIcon,
 } from '~/assets/svgs';
-import { Navigation, isVideoMedia } from '~/utils';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
-import CreateReelVideo from '~/screens/create-reel/components/CreateReelVideo';
+import { Navigation, isVideoMedia } from '~/utils';
+import { usePostMutation, useTheme, Theme } from '~/hooks';
 import { mediaApi } from '~/api';
+import CreatePostVideo from './components/CreatePostVideo';
 
-type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreateReel'>;
+type RouteProps = RouteProp<AuthenticatedStackParamList, 'CreatePost'>;
 
-const CreateReel = () => {
-  const { top } = useSafeAreaInsets();
+const CreatePost = () => {
   const { theme } = useTheme();
-  const styles = useMemo(() => getStyles(theme), [theme]);
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
+  const { top } = useSafeAreaInsets();
   const route = useRoute<RouteProps>();
-  const { uri, mediaType } = route.params || {};
+  const { uri = '', mediaType } = route.params || {};
+  const [caption, setCaption] = useState('');
+  const [showCaptionInput, setShowCaptionInput] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [hasVideoError, setHasVideoError] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const { createReel } = useReelMutation();
+  const [hasVideoError, setHasVideoError] = useState(false);
+  const { createPost } = usePostMutation();
 
   useEffect(() => {
     setHasVideoError(false);
@@ -50,8 +51,8 @@ const CreateReel = () => {
 
   const isVideo = isVideoMedia(uri, undefined, mediaType === 'video');
 
-  const handleCreateReel = async () => {
-    if (!uri || createReel.isPending || isUploading) return;
+  const handleCreatePost = async () => {
+    if (!uri || createPost.isPending || isUploading) return;
 
     try {
       setIsUploading(true);
@@ -62,29 +63,27 @@ const CreateReel = () => {
         isVideo,
       );
       const uploadedUrl = uploadRes?.url || uri;
-      const mediaId = uploadRes?.media?.id;
+      const finalType = isVideo ? 'video' : 'image';
 
-      await createReel.mutateAsync({
-        mediaId,
-        videoUrl: uploadedUrl,
-        caption: '',
+      await createPost.mutateAsync({
+        caption: caption.trim() || (isVideo ? 'Video mới' : 'Bài viết mới'),
+        media: [{ url: uploadedUrl, type: finalType }],
       });
-
-      Alert.alert('Thành công', 'Đã tạo thước phim thành công!', [
+      Alert.alert('Thành công', 'Đã tạo bài viết mới thành công!', [
         {
           text: 'OK',
           onPress: () => {
-            Navigation.goToReels();
+            Navigation.goToHomeScreen();
           },
         },
       ]);
     } catch (error: any) {
-      console.log('Error creating reel:', error);
+      console.log('Error creating post:', error);
       Alert.alert(
         'Lỗi',
         error?.response?.data?.message ||
           error?.message ||
-          'Không thể tạo thước phim',
+          'Không thể tạo bài viết',
       );
     } finally {
       setIsUploading(false);
@@ -93,18 +92,16 @@ const CreateReel = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View
-        style={[{ paddingTop: top + 12 }, styles.toolBar]}
-        pointerEvents="box-none"
-      >
-        <View style={styles.headerRow} pointerEvents="box-none">
+      <View style={[{ paddingTop: top + 12 }, styles.toolBar]}>
+        <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.iconButton}
             onPress={() => Navigation.pop()}
           >
             <CrossIcon width={24} height={24} color={theme.white} />
           </TouchableOpacity>
-          <View style={styles.rightTools} pointerEvents="box-none">
+
+          <View style={styles.rightTools}>
             {isVideo && (
               <TouchableOpacity
                 style={styles.iconButton}
@@ -117,20 +114,20 @@ const CreateReel = () => {
                 )}
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={styles.iconButton}>
-              <TextAaIcon width={20} height={20} color={theme.white} />
+            <TouchableOpacity
+              style={[
+                styles.iconButton,
+                showCaptionInput && styles.activeIconButton,
+              ]}
+              onPress={() => setShowCaptionInput(prev => !prev)}
+            >
+              <TextAaIcon width={16} height={16} color={theme.white} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
               <StickerIcon width={20} height={20} color={theme.white} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
-              <StarIcon width={20} height={20} color={theme.white} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <MusicIcon width={20} height={20} color={theme.white} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <ScribbleIcon width={20} height={20} color={theme.white} />
+              <MenuIcon width={20} height={20} color={theme.white} />
             </TouchableOpacity>
           </View>
         </View>
@@ -148,7 +145,7 @@ const CreateReel = () => {
               </BaseText>
             </View>
           ) : (
-            <CreateReelVideo
+            <CreatePostVideo
               uri={uri}
               style={styles.mainImage}
               isMuted={isMuted}
@@ -156,31 +153,40 @@ const CreateReel = () => {
             />
           )
         ) : (
-          <Image
-            source={{ uri }}
-            resizeMode="contain"
-            style={styles.mainImage}
-          />
+          <Image source={{ uri }} resizeMode="cover" style={styles.mainImage} />
+        )}
+        {showCaptionInput && (
+          <View style={styles.captionOverlay}>
+            <TextInput
+              placeholder="Caption cho bài đăng"
+              placeholderTextColor={theme.placeholder}
+              value={caption}
+              onChangeText={setCaption}
+              style={styles.captionInput}
+              autoFocus
+              multiline
+            />
+          </View>
         )}
       </View>
 
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.storyButton}>
           <BaseText typography={Typography.bodyBold.medium} color={theme.white}>
-            Reels
+            Your Story
           </BaseText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.storyButton}>
           <BaseText typography={Typography.bodyBold.medium} color={theme.white}>
-            Thước phim
+            Close Friends
           </BaseText>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.nextButton}
-          onPress={handleCreateReel}
-          disabled={isUploading || createReel.isPending}
+          onPress={handleCreatePost}
+          disabled={createPost.isPending || isUploading}
         >
-          {isUploading || createReel.isPending ? (
+          {createPost.isPending || isUploading ? (
             <ActivityIndicator size="small" color={theme.black} />
           ) : (
             <ArrowToRight width={24} height={24} color={theme.black} />
@@ -204,17 +210,17 @@ const getStyles = (theme: Theme) =>
       right: 0,
       zIndex: 10,
       paddingHorizontal: 16,
-      alignItems: 'flex-start',
     },
     headerRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       width: '100%',
     },
     rightTools: {
-      flexDirection: 'column',
+      flexDirection: 'row',
       gap: 8,
+      alignItems: 'center',
     },
     iconButton: {
       backgroundColor: theme.overlayMedium,
@@ -224,15 +230,15 @@ const getStyles = (theme: Theme) =>
       width: 40,
       height: 40,
     },
+    activeIconButton: {
+      backgroundColor: theme.overlayLight,
+      borderWidth: 1,
+      borderColor: theme.white,
+    },
     imageWrapper: {
       width: '100%',
       height: '84%',
       position: 'relative',
-      backgroundColor: theme.darkCard,
-      borderRadius: 24,
-      overflow: 'hidden',
-      justifyContent: 'center',
-      alignItems: 'center',
     },
     mainImage: {
       width: '100%',
@@ -243,6 +249,19 @@ const getStyles = (theme: Theme) =>
       backgroundColor: theme.black,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    captionOverlay: {
+      position: 'absolute',
+      top: '40%',
+      left: 24,
+      right: 24,
+      borderRadius: 16,
+      padding: 16,
+    },
+    captionInput: {
+      color: theme.white,
+      fontSize: 16,
+      textAlign: 'center',
     },
     bottomBar: {
       flexDirection: 'row',
@@ -270,4 +289,4 @@ const getStyles = (theme: Theme) =>
     },
   });
 
-export default CreateReel;
+export default CreatePost;

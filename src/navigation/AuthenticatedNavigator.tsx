@@ -6,23 +6,20 @@ import {
   Conversation,
   NewMessage,
   UserProfile,
-  SelectPostMedia,
   CreatePost,
   Story,
-  SelectStoryMedia,
   CreateStory,
   MyActiveStory,
   CameraScreen,
-  SelectReelMedia,
   CreateReel,
   DetailMedia,
   Setting,
   NewGroupMessage,
   ConversationDetail,
+  EditProfile,
+  ConversationNickname,
+  ConversationPinned,
 } from '~/screens';
-import EditProfile from '~/screens/profile/EditProfile';
-import ConversationNickname from '~/screens/conversationDetail/components/ConversationNickname';
-import ConversationPinned from '~/screens/conversationDetail/components/ConversationPinned';
 
 const Stack = createNativeStackNavigator<AuthenticatedStackParamList>();
 
@@ -37,12 +34,9 @@ const AuthenticatedNavigator: React.FC = () => {
       <Stack.Screen name="Conversation" component={Conversation} />
       <Stack.Screen name="NewMessage" component={NewMessage} />
       <Stack.Screen name="UserProfile" component={UserProfile} />
-      <Stack.Screen name="SelectPostMedia" component={SelectPostMedia} />
       <Stack.Screen name="CreatePost" component={CreatePost} />
       <Stack.Screen name="Story" component={Story} />
-      <Stack.Screen name="SelectStoryMedia" component={SelectStoryMedia} />
       <Stack.Screen name="CreateStory" component={CreateStory} />
-      <Stack.Screen name="SelectReelMedia" component={SelectReelMedia} />
       <Stack.Screen name="CreateReel" component={CreateReel} />
       <Stack.Screen name="MyActiveStory" component={MyActiveStory} />
       <Stack.Screen name="CameraScreen" component={CameraScreen} />

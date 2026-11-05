@@ -13,8 +13,8 @@ import { AuthenticatedStackParamList } from '~/navigation/types';
 import { Navigation } from '~/utils';
 import { useFollowMutation, useAuthStore, useTheme, Theme } from '~/hooks';
 import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import Tabs from '~/screens/profile/components/Tabs';
-import FollowPopUp from '~/screens/profile/components/FollowPopUp';
+import { Tabs } from '~/components';
+import FollowPopUp from './components/FollowPopUp';
 
 type RouteProps = RouteProp<AuthenticatedStackParamList, 'UserProfile'>;
 

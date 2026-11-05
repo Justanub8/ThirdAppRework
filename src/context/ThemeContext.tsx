@@ -53,10 +53,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     [activeSchemeColors],
   );
 
+  const value = useMemo(
+    () => ({ theme, mode, setMode }),
+    [theme, mode, setMode],
+  );
+
   return (
-    <ThemeContext.Provider value={{ theme, mode, setMode }}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
 

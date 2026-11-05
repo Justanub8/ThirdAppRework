@@ -17,7 +17,7 @@ import { Navigation } from '~/utils';
 import { conversationApi } from '~/api';
 import { AuthenticatedStackParamList } from '~/navigation/types';
 import { IConversationMember } from '~/interfaces';
-import { InputPopUp } from './InputPopUp';
+import { InputPopUp } from './components/InputPopUp';
 
 type RouteProps = RouteProp<
   AuthenticatedStackParamList,

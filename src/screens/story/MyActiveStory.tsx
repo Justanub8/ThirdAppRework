@@ -7,7 +7,7 @@ import { Navigation } from '~/utils';
 import StoryViewer from './components/StoryViewer';
 
 const MyActiveStory = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore(s => s.user);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const {

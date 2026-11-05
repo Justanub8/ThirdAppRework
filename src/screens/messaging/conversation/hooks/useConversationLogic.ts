@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { messageApi, emojiApi } from '~/api';
 import { mediaApi } from '~/api/mediaApi';
 import { IMessage, IMedia, IEmoji } from '~/interfaces';
-import { SelectedChatMedia } from '~/components/sheets/MediaSheet';
+import { PickedMedia } from '~/utils';
 import { useAuthStore, useMessageMutation } from '~/hooks';
 import { useSocket } from '~/context';
 
@@ -20,7 +20,7 @@ export interface UseConversationLogicParams {
 }
 
 export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
-  const { user } = useAuthStore();
+  const user = useAuthStore(s => s.user);
   const socket = useSocket();
   const navigation = useNavigation();
   const { createMessage } = useMessageMutation();
@@ -36,9 +36,7 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
   const [messageContent, setMessageContent] = useState('');
   const [inputHeight, setInputHeight] = useState(32);
   const [editingMessage, setEditingMessage] = useState<IMessage | null>(null);
-  const [selectedMedia, setSelectedMedia] = useState<SelectedChatMedia | null>(
-    null,
-  );
+  const [selectedMedia, setSelectedMedia] = useState<PickedMedia | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -307,7 +305,9 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
     } catch (error) {
       console.error('Lỗi xoá tin nhắn:', error);
       setMessages(prev =>
-        prev.map(m => (m.id === messageId ? { ...m, status: originalStatus } : m)),
+        prev.map(m =>
+          m.id === messageId ? { ...m, status: originalStatus } : m,
+        ),
       );
     }
   }, []);
@@ -332,7 +332,9 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
     } catch (error) {
       console.error('Lỗi ghim/bỏ ghim tin nhắn:', error);
       setMessages(prev =>
-        prev.map(m => (m.id === messageId ? { ...m, status: originalStatus } : m)),
+        prev.map(m =>
+          m.id === messageId ? { ...m, status: originalStatus } : m,
+        ),
       );
     }
   }, []);
@@ -562,9 +564,7 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
           },
           onError: () => {
             setMessages(prev =>
-              prev.map(m =>
-                m.id === tempId ? { ...m, status: 'Failed' } : m,
-              ),
+              prev.map(m => (m.id === tempId ? { ...m, status: 'Failed' } : m)),
             );
           },
         },
@@ -583,9 +583,9 @@ export const useConversationLogic = ({ id }: UseConversationLogicParams) => {
       );
       scrollToBottom();
 
-      const mediaIds = failedMessage.media
-        ?.map(m => m.id)
-        .filter(Boolean) as string[] | undefined;
+      const mediaIds = failedMessage.media?.map(m => m.id).filter(Boolean) as
+        | string[]
+        | undefined;
 
       if (socket && socket.connected) {
         socket.emit('message', {

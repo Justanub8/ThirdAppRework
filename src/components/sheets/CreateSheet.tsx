@@ -1,7 +1,10 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import React from 'react';
 import { useTheme, Theme } from '~/hooks';
-import ActionSheet, { SheetProps } from 'react-native-actions-sheet';
+import ActionSheet, {
+  SheetManager,
+  SheetProps,
+} from 'react-native-actions-sheet';
 import { BaseText } from '~/components/rn-components';
 import { Typography } from '~/constants';
 import { Navigation } from '~/utils';
@@ -24,13 +27,21 @@ const CreateSheet = (props: SheetProps<'CreateSheet'>) => {
         </View>
         <TouchableOpacity
           style={styles.item}
-          onPress={() => Navigation.goToSelectPostMedia()}
+          onPress={async () => {
+            // Close the sheet first: iOS can't present the picker over a dismissing modal.
+            await SheetManager.hide(props.sheetId);
+            Navigation.goToSelectPostMedia();
+          }}
         >
           <BaseText typography={Typography.bodyBold.large}>Bài viết</BaseText>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.item}
-          onPress={() => Navigation.goToSelectStoryMedia()}
+          onPress={async () => {
+            // Close the sheet first: iOS can't present the picker over a dismissing modal.
+            await SheetManager.hide(props.sheetId);
+            Navigation.goToSelectStoryMedia();
+          }}
         >
           <BaseText typography={Typography.bodyBold.large}>Tin</BaseText>
         </TouchableOpacity>
@@ -46,7 +57,11 @@ const CreateSheet = (props: SheetProps<'CreateSheet'>) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.item}
-          onPress={() => Navigation.goToSelectReelMedia()}
+          onPress={async () => {
+            // Close the sheet first: iOS can't present the picker over a dismissing modal.
+            await SheetManager.hide(props.sheetId);
+            Navigation.goToSelectReelMedia();
+          }}
         >
           <BaseText typography={Typography.bodyBold.large}>Reels</BaseText>
         </TouchableOpacity>

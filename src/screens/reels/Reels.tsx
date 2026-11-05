@@ -87,10 +87,13 @@ const Reels = () => {
       initialPageParam: 1,
     });
 
-  const reels =
-    data?.pages.flatMap(
-      page => page.data || (page as { reels?: IReel[] }).reels || [],
-    ) || [];
+  const reels = useMemo(
+    () =>
+      data?.pages.flatMap(
+        page => page.data || (page as { reels?: IReel[] }).reels || [],
+      ) || [],
+    [data?.pages],
+  );
 
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 50,
@@ -135,8 +138,7 @@ const Reels = () => {
         data={reels}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        estimatedItemSize={availableHeight}
-        extraData={[activeIndex, isFocused]}
+        extraData={activeIndex}
         pagingEnabled={true}
         showsVerticalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}

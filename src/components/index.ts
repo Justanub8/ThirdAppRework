@@ -25,7 +25,6 @@ export * from './separate-components';
 export * from './sheets/sheets';
 export { default as CommentSheet } from './sheets/CommentSheet';
 export { default as CreateSheet } from './sheets/CreateSheet';
-export { default as MediaSheet } from './sheets/MediaSheet';
 export { default as SlideUpModal } from './slide-up/SlideUpModal';
 export { default as SlideUpView } from './slide-up/SlideUpView';
 export { default as Tabs } from './tabs/Tabs';
